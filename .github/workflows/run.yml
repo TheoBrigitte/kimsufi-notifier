@@ -1,0 +1,19 @@
+name: 'run'
+on:
+  schedule:
+    # run every minute
+    - cron:  '* * * * *'
+
+jobs:
+  run:
+    name: 'run'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: check
+        env:
+          COUNTRY: ${{ secrets.COUNTRY }}
+          HARDWARE: ${{ secrets.HARDWARE }}
+          SMS_USER: ${{ secrets.SMS_USER }}
+          SMS_PASS: ${{ secrets.SMS_PASS }}
+        run: hack/check.sh
