@@ -1,6 +1,6 @@
 package main
 
-import "github.com/TheoBrigitte/kimsufi-notify/cmd"
+import "github.com/TheoBrigitte/kimsufi-notifier/cmd"
 
 func main() {
 	cmd.Execute()

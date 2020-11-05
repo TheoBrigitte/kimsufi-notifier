@@ -1,4 +1,4 @@
-# kimsufi-notify
+# kimsufi-notifier
 
 Notify on kimsufi server availability.
 

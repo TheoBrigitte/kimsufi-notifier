@@ -9,8 +9,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/TheoBrigitte/kimsufi-notify/pkg/kimsufi"
-	"github.com/TheoBrigitte/kimsufi-notify/pkg/sms"
+	"github.com/TheoBrigitte/kimsufi-notifier/pkg/kimsufi"
+	"github.com/TheoBrigitte/kimsufi-notifier/pkg/sms"
 )
 
 // Cmd represents the check command

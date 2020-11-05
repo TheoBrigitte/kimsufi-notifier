@@ -1,4 +1,4 @@
-module github.com/TheoBrigitte/kimsufi-notify
+module github.com/TheoBrigitte/kimsufi-notifier
 
 go 1.15
 
