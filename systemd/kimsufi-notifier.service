@@ -1,0 +1,6 @@
+[Unit]
+Description=kimsufi-notifier
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/kimsufi-notifier/env
+ExecStart=/usr/local/bin/kimsufi-notifier
