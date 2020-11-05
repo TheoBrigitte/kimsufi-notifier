@@ -19,7 +19,7 @@ OVH_URL=${OVH_URL:-https://eu.api.ovh.com/1.0}
 echo "> checking $HARDWARE in $COUNTRY"
 if ! curl -Ss "${OVH_URL}/dedicated/server/availabilities?country=${COUNTRY}&hardware=${HARDWARE}" | jq -e '.[].datacenters[] | select(.availability != "unavailable")'; then
 	echo "> $HARDWARE not available in $COUNTRY"
-	exit 1
+	exit 0
 fi
 
 echo "> $HARDWARE available in $COUNTRY"
