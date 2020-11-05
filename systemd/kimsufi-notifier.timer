@@ -2,7 +2,7 @@
 Description=Run kimsufi-notifier minutely
 
 [Timer]
-OnCalendar=*-*-* *:*:00
+OnCalendar=*-*-* *:*:00/10
 Persistent=true
 
 [Install]

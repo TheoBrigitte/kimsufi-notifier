@@ -44,6 +44,7 @@ FREEMOBILE_URL=${FREEMOBILE_URL:-https://smsapi.free-mobile.fr/sendmsg}
 
 # send sms
 # receiver phone number is the account holder
+message="$HARDWARE is available\nhttps://www.kimsufi.com/fr/commande/kimsufi.xml?reference=$HARDWARE ."
 echo "> sending message"
-curl -iXPOST "$FREEMOBILE_URL" -d'{"msg":"'"$HARDWARE is available"'","user":"'"$SMS_USER"'","pass":"'"$SMS_PASS"'"}' -H'Content-Type: application/json'
+curl -iXPOST "$FREEMOBILE_URL" -d'{"msg":"'"$message"'","user":"'"$SMS_USER"'","pass":"'"$SMS_PASS"'"}' -H'Content-Type: application/json'
 echo "> message sent"
