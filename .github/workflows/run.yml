@@ -1,8 +1,9 @@
 name: 'run'
 on:
   schedule:
-    # run every minute
-    - cron:  '* * * * *'
+    # run every 5 minute; shortest interval for github actions
+    # see: https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions#onschedule
+    - cron:  '*/5 * * * *'
 
 jobs:
   run:
