@@ -26,7 +26,14 @@ for (( i=1; i<=$table_count; i++ )); do
 	for (( j=2; j<=$row_count; j++)); do
 		name=$(echo $table | pup 'tr:nth-child('$j') td:first-child text{}' | tr -d '[:space:]')
 		hardware=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(11) attr{data-ref}' | tr -d '[:space:]')
-		echo -e "model=$name\thardware=$hardware\tcountry=$country"
+		cpu=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(2) span:nth-child(2) text{}' | tr -d '[:space:]')
+		threads=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(3) span text{}' | tr -d '[:space:]')
+		freq=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(4) span text{}' | tr -d '[:space:]')
+		ram=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(5) text{}')
+		disk=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(6) text{}' | awk '{$1=$1};1' | tr -d '\n')
+		network=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(7) text{}' | tr -d '[:space:]' )
+		price=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(9) span span text{}' | tr -d '[:space:]' )
+		echo -e "model=$name\thardware=$hardware\tcpu=$cpu\t$freq ($threads)\tram=$ram \tdisk=$disk \tnetwork=$network\tprice=$price\tcountry=$country"
 	done
 done
 exit
