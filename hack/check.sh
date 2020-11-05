@@ -29,6 +29,16 @@ test ! -v NO_SMS
 
 _=$SMS_USER
 _=$SMS_PASS
+_=$SMS_DELAY
+_=$SMS_STATE_FILE
+
+# only send 1 sms every $SMS_DELAY
+if test -e $SMS_STATE_FILE && test $(($(date +%s) - $(stat -c %Y $SMS_STATE_FILE))) -lt $SMS_DELAY; then
+	echo "> sms already sent at $(stat -c %y $SMS_STATE_FILE) (delay: "$(TZ=UTC0 printf '%(%Hh%Mm%Ss)T\n' "$SMS_DELAY")")"
+	exit 0
+fi
+
+touch $SMS_STATE_FILE
 
 FREEMOBILE_URL=${FREEMOBILE_URL:-https://smsapi.free-mobile.fr/sendmsg}
 
