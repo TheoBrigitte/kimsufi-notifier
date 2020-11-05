@@ -20,7 +20,7 @@ type Service struct {
 }
 
 func NewService(config Config) (*Service, error) {
-	c, err := ovh.NewClient(ovh.OvhEU, "none", "none", "none")
+	c, err := ovh.NewClient(config.URL, "none", "none", "none")
 	//c, err := ovh.NewEndpointClient(ovh.KimsufiEU)
 	if err != nil {
 		fmt.Println("nope")
@@ -66,9 +66,9 @@ func NewRequestLogger(l logrus.StdLogger) *Logger {
 }
 
 func (l *Logger) LogRequest(r *http.Request) {
-	l.logger.Printf("%s %s %s %v\n", r.Method, r.URL.String(), r.Proto, r.Header)
+	l.logger.Printf("kimsufi: %s %s %s %v\n", r.Method, r.URL.String(), r.Proto, r.Header)
 }
 
 func (l *Logger) LogResponse(r *http.Response) {
-	l.logger.Printf("%s %s %v\n", r.Status, r.Proto, r.Header)
+	l.logger.Printf("kimsufi: %s %s %v\n", r.Status, r.Proto, r.Header)
 }

@@ -3,10 +3,9 @@ package sms
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 )
@@ -60,28 +59,30 @@ func (s *Service) SendMessage(msg string) error {
 		return err
 	}
 
-	s.logger.Printf("SendMessage:values %s\n", b)
 	req, err := http.NewRequest("POST", s.url.String(), bytes.NewBuffer(b))
 	if err != nil {
 		return err
 	}
 	req.Header.Add("Content-Type", "application/json")
 
+	s.LogRequest(req, r)
+
 	resp, err := s.client.Do(req)
 	if err != nil {
 		return err
 	}
-
 	defer resp.Body.Close()
-	content, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
 
-	if len(content) > 0 {
-		fmt.Printf("SendMessage:body %s\n", content)
-	}
-	s.logger.Printf("SendMessage:response\n\tstatus: %v\n\theader: %v\n\tbody: %s\n", resp.Status, resp.Header, content)
+	s.LogResponse(resp)
 
 	return nil
+}
+
+func (s *Service) LogRequest(r *http.Request, d Request) {
+	d.User = strings.Repeat("*", len(d.User))
+	d.Pass = strings.Repeat("*", len(d.Pass))
+	s.logger.Printf("sms: %s %s %s %#v\n", r.Method, r.URL.String(), r.Proto, d)
+}
+func (s *Service) LogResponse(r *http.Response) {
+	s.logger.Printf("sms: %s %s %v\n", r.Status, r.Proto, r.Header)
 }
