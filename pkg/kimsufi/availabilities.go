@@ -20,3 +20,15 @@ func (list Availabilities) Format(firstKey, secondKey KeyFunc, formatDatacenters
 
 	return result
 }
+
+func (list Availabilities) IsAvailable() bool {
+	for _, a := range list {
+		for _, d := range a.Datacenters {
+			if IsDatacenterAvailable(d) {
+				return true
+			}
+		}
+	}
+
+	return false
+}

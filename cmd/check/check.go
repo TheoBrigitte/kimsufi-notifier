@@ -1,6 +1,7 @@
 package check
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -51,7 +52,7 @@ func runner(cmd *cobra.Command, args []string) error {
 		log.Fatalf("error: %v\n", err)
 	}
 
-	_, err = k.GetAvailabilities(country, hardware)
+	a, err := k.GetAvailabilities(country, hardware)
 	if kimsufi.IsNotAvailableError(err) {
 		log.Printf("%s is not available in %s\n", hardware, country)
 		os.Exit(0)
@@ -59,10 +60,15 @@ func runner(cmd *cobra.Command, args []string) error {
 		log.Fatalf("error: %v\n", err)
 	}
 
-	//formatter := kimsufi.DatacenterFormatter(kimsufi.IsDatacenterAvailable, kimsufi.DatacenterKey)
-	//result := a.Format(kimsufi.HardwareKey, kimsufi.RegionKey, formatter)
-	//data, err := json.Marshal(result)
-	//fmt.Printf("%s\n", data)
+	if !a.IsAvailable() {
+		log.Printf("%s is not available in %s\n", hardware, country)
+		os.Exit(0)
+	}
+
+	formatter := kimsufi.DatacenterFormatter(kimsufi.IsDatacenterAvailable, kimsufi.DatacenterKey)
+	result := a.Format(kimsufi.HardwareKey, kimsufi.RegionKey, formatter)
+	data, err := json.Marshal(result)
+	fmt.Printf("%s\n", data)
 
 	message := fmt.Sprintf("%s is available", hardware)
 	fmt.Println(message)
