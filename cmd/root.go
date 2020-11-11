@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/TheoBrigitte/kimsufi-notifier/cmd/check"
+	"github.com/TheoBrigitte/kimsufi-notifier/cmd/order"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -27,4 +28,5 @@ func Execute() {
 
 func init() {
 	rootCmd.AddCommand(check.Cmd)
+	rootCmd.AddCommand(order.Cmd)
 }
