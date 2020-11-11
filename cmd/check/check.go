@@ -21,10 +21,11 @@ var (
 		RunE:  runner,
 	}
 
-	country  string
-	hardware string
-	smsUser  string
-	smsPass  string
+	country   string
+	hardware  string
+	smsUser   string
+	smsPass   string
+	checkOnly bool
 )
 
 const (
@@ -37,6 +38,7 @@ func init() {
 	Cmd.PersistentFlags().StringVarP(&hardware, "hardware", "w", "", "harware code name (e.g. 1801sk143)")
 	Cmd.PersistentFlags().StringVarP(&smsUser, "user", "u", "", "sms api username")
 	Cmd.PersistentFlags().StringVarP(&smsPass, "pass", "p", "", "sms api password")
+	Cmd.PersistentFlags().BoolVarP(&checkOnly, "check-only", "o", false, "run check only (no sms)")
 }
 
 func runner(cmd *cobra.Command, args []string) error {
@@ -64,6 +66,10 @@ func runner(cmd *cobra.Command, args []string) error {
 
 	message := fmt.Sprintf("%s is available", hardware)
 	fmt.Println(message)
+
+	if checkOnly {
+		os.Exit(0)
+	}
 
 	c := sms.Config{
 		URL:    smsAPI,
