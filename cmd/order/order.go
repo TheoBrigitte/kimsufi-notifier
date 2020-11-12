@@ -329,11 +329,11 @@ func confirm() chromedp.Action {
 
 func waitNextPage(duration time.Duration) chromedp.Action {
 	return chromedp.ActionFunc(func(ctx context.Context) error {
-		//f := chromedp.WaitNotVisible(".dedicated-contracts div.center:nth-child(2) button")
-		//err := f.Do(ctx)
-		//if err != nil {
-		//	return err
-		//}
+		f := chromedp.WaitNotVisible(".dedicated-contracts div.center:nth-child(2) button")
+		err := f.Do(ctx)
+		if err != nil {
+			return err
+		}
 
 		log.Printf("sleeping=%v\n", duration)
 
