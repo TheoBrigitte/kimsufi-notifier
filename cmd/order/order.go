@@ -31,6 +31,12 @@ var (
 	kimsufiKey  string
 	country     string
 	hardware    string
+
+	timeout          time.Duration
+	quantity         int
+	paymentMethod    int
+	paymentFrequency string
+	screenshot       string
 )
 
 const (
@@ -39,10 +45,15 @@ const (
 )
 
 func init() {
-	Cmd.PersistentFlags().StringVarP(&country, "country", "c", "", "country code (e.g. fr)")
+	Cmd.PersistentFlags().StringVarP(&country, "country", "c", "fr", "country code")
 	Cmd.PersistentFlags().StringVarP(&hardware, "hardware", "w", "", "harware code name (e.g. 1801sk143)")
 	Cmd.PersistentFlags().StringVarP(&kimsufiUser, "kimsufi-user", "u", "", "kimsufi api username")
 	Cmd.PersistentFlags().StringVarP(&kimsufiPass, "kimsufi-pass", "p", "", "kimsufi api password")
+	Cmd.PersistentFlags().DurationVarP(&timeout, "timeout", "t", 30*time.Second, "command timeout")
+	Cmd.PersistentFlags().IntVarP(&quantity, "quantity", "q", 1, "quantity of hardware to order")
+	Cmd.PersistentFlags().IntVarP(&paymentMethod, "payment-method", "m", 1, "payment method index")
+	Cmd.PersistentFlags().StringVarP(&paymentFrequency, "frequency", "f", "Mensuelle", "payement frequency (Mensuelle, Trimestrielle, Semestrielle, or Annuelle)")
+	Cmd.PersistentFlags().StringVarP(&screenshot, "screenshot", "s", "kimsufi-order.png", "screenshot filename")
 }
 
 func runner(cmd *cobra.Command, args []string) error {
@@ -66,7 +77,7 @@ func runner(cmd *cobra.Command, args []string) error {
 
 	{
 		// run task list
-		ctx, _ := context.WithTimeout(ctx, 40*time.Second)
+		ctx, _ := context.WithTimeout(ctx, timeout)
 		ctx, cancel := chromedp.NewContext(ctx)
 		defer cancel()
 		//defer chromedp.Run(ctx, )
@@ -74,15 +85,15 @@ func runner(cmd *cobra.Command, args []string) error {
 			chromedp.Navigate(u),
 			chromedp.Click("button#header_tc_privacy_button", chromedp.NodeVisible),
 			isAvailable(),
-			setQuantity(1),
-			setPaymentFrequency("Mensuelle"),
+			setQuantity(quantity),
+			setPaymentFrequency(paymentFrequency),
 			login(kimsufiUser, kimsufiPass),
-			selectRecurringPayement(1),
+			selectPayement(paymentMethod),
 			chromedp.Click("#contracts-validation"),
 			chromedp.Click("#customConractAccepted"),
 			confirm(),
 			waitNextPage(5*time.Second),
-			fullScreenshot(90, "screenshot.png"),
+			fullScreenshot(90, screenshot),
 		)
 		if err != nil {
 			return err
@@ -228,7 +239,7 @@ func login(user, pass string) chromedp.Tasks {
 	}
 }
 
-func selectRecurringPayement(index int) chromedp.Tasks {
+func selectPayement(index int) chromedp.Tasks {
 	// offset by one, to skip header.
 	i := index + 1
 	wait := chromedp.WaitVisible(".payment-means form", chromedp.ByQuery)
