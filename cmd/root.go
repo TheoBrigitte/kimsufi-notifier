@@ -1,9 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/spf13/cobra"
 
 	"github.com/TheoBrigitte/kimsufi-notifier/cmd/check"
@@ -16,14 +13,11 @@ var rootCmd = &cobra.Command{
 	Short:             "kimsufi availability notifier",
 	Long:              `Send notification when kimsufi server are available.`,
 	PersistentPreRunE: logLevel,
+	SilenceUsage:      true,
 }
 
 func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	rootCmd.Execute()
 }
 
 func init() {

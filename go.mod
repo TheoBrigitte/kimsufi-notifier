@@ -3,6 +3,7 @@ module github.com/TheoBrigitte/kimsufi-notifier
 go 1.15
 
 require (
+	github.com/chromedp/cdproto v0.0.0-20200116234248-4da64dd111ac
 	github.com/chromedp/chromedp v0.5.3
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/ovh/go-ovh v1.1.0
