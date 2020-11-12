@@ -315,14 +315,13 @@ func selectPayement(index int) chromedp.Tasks {
 
 func confirm() chromedp.Action {
 	return chromedp.ActionFunc(func(ctx context.Context) error {
-		var text string
-		f := chromedp.Text(".dedicated-contracts div.center:nth-child(2) button", &text)
+		f := chromedp.Click(".dedicated-contracts div.center:nth-child(2) button")
 		err := f.Do(ctx)
 		if err != nil {
 			return err
 		}
 
-		log.Printf("confirm=%s\n", text)
+		log.Println("confirm")
 
 		return nil
 	})
