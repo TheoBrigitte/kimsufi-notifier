@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/ovh/go-ovh/ovh"
+
+	"github.com/TheoBrigitte/kimsufi-notifier/pkg/sms"
 
 	"github.com/chromedp/cdproto/emulation"
 	"github.com/chromedp/cdproto/page"
@@ -28,15 +31,17 @@ var (
 
 	kimsufiUser string
 	kimsufiPass string
-	kimsufiKey  string
-	country     string
-	hardware    string
+	smsUser     string
+	smsPass     string
 
-	timeout          time.Duration
+	country          string
+	hardware         string
 	quantity         int
 	paymentMethod    int
 	paymentFrequency string
-	screenshot       string
+
+	timeout    time.Duration
+	screenshot string
 )
 
 const (
@@ -46,7 +51,7 @@ const (
 
 func init() {
 	Cmd.PersistentFlags().StringVarP(&country, "country", "c", "fr", "country code")
-	Cmd.PersistentFlags().StringVarP(&hardware, "hardware", "w", "", "harware code name (e.g. 1801sk143)")
+	Cmd.PersistentFlags().StringVarP(&hardware, "hardware", "w", "", "hardware code name (e.g. 1801sk143)")
 	Cmd.PersistentFlags().StringVarP(&kimsufiUser, "kimsufi-user", "u", "", "kimsufi api username")
 	Cmd.PersistentFlags().StringVarP(&kimsufiPass, "kimsufi-pass", "p", "", "kimsufi api password")
 	Cmd.PersistentFlags().DurationVarP(&timeout, "timeout", "t", 30*time.Second, "command timeout")
@@ -54,10 +59,21 @@ func init() {
 	Cmd.PersistentFlags().IntVarP(&paymentMethod, "payment-method", "m", 1, "payment method index")
 	Cmd.PersistentFlags().StringVarP(&paymentFrequency, "frequency", "f", "Mensuelle", "payement frequency (Mensuelle, Trimestrielle, Semestrielle, or Annuelle)")
 	Cmd.PersistentFlags().StringVarP(&screenshot, "screenshot", "s", "kimsufi-order.png", "screenshot filename")
+	Cmd.PersistentFlags().StringVar(&smsUser, "sms-user", "", "sms api username")
+	Cmd.PersistentFlags().StringVar(&smsPass, "sms-pass", "", "sms api password")
 }
 
 func runner(cmd *cobra.Command, args []string) error {
-	log.Printf("hello\n")
+	ordered, err := alreadyOrdered(screenshot)
+	if err != nil {
+		return err
+	}
+
+	if ordered {
+		log.Printf("screenshot %s already exists.", screenshot)
+		log.Println("stopping, not to order multiple times.\n")
+		return nil
+	}
 
 	u := fmt.Sprintf("https://www.kimsufi.com/fr/commande/kimsufi.xml?reference=%s", hardware)
 
@@ -70,7 +86,7 @@ func runner(cmd *cobra.Command, args []string) error {
 	defer cancel()
 
 	log.Printf("open: %s\n", u)
-	err := chromedp.Run(ctx)
+	err = chromedp.Run(ctx)
 	if err != nil {
 		return err
 	}
@@ -100,9 +116,42 @@ func runner(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	log.Println("done")
+	message := fmt.Sprintf("%s ordered\ncheck your mail", hardware)
+	log.Println(message)
+
+	c := sms.Config{
+		URL:    smsAPI,
+		Logger: log.StandardLogger(),
+		User:   smsUser,
+		Pass:   smsPass,
+	}
+
+	s, err := sms.NewService(c)
+	if err != nil {
+		return err
+	}
+
+	err = s.SendMessage(message)
+	if err != nil {
+		return err
+	}
+	log.Printf("message sent\n")
 
 	return nil
+}
+
+func alreadyOrdered(screenshot string) (bool, error) {
+	// Only order once.
+	_, err := os.Stat(screenshot)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
 }
 
 func isAvailable() chromedp.Action {
