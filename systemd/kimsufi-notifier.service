@@ -1,7 +1,7 @@
 [Unit]
 Description=kimsufi-notifier
-#After=docker.service
-#Requires=docker.service
+After=docker.service
+Requires=docker.service
 
 [Service]
 Type=oneshot
@@ -19,3 +19,6 @@ ExecStart=/usr/bin/docker run \
   -s /state/kimsufi-order.png \
   -u $KIMSUFI_USER -p $KIMSUFI_PASS \
   --sms-user $SMS_USER --sms-pass $SMS_PASS
+ExecStartPost=/bin/systemctl stop kimsufi-notifier.timer
+ExecStartPost=/bin/systemctl disable kimsufi-notifier.timer
+ExecStartPost=/bin/systemctl disable kimsufi-notifier.service

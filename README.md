@@ -42,3 +42,5 @@ $ HARDWARE=1801sk12 COUNTRY=FRA NO_SMS=true ./hack/check.sh
 > checking 1801sk12 in FRA
 > 1801sk12 not available in FRA
 ```
+
+inspired from: https://github.com/rdpse/kimiao/blob/master/kimiao.rb
