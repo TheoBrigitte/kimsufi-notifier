@@ -42,6 +42,7 @@ var (
 
 	timeout    time.Duration
 	screenshot string
+	dryRun     bool
 )
 
 const (
@@ -61,6 +62,7 @@ func init() {
 	Cmd.PersistentFlags().StringVarP(&screenshot, "screenshot", "s", "kimsufi-order.png", "screenshot filename")
 	Cmd.PersistentFlags().StringVar(&smsUser, "sms-user", "", "sms api username")
 	Cmd.PersistentFlags().StringVar(&smsPass, "sms-pass", "", "sms api password")
+	Cmd.PersistentFlags().BoolVarP(&dryRun, "dry-run", "n", false, "do not submit order")
 }
 
 func runner(cmd *cobra.Command, args []string) error {
