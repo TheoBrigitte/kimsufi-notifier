@@ -316,25 +316,42 @@ func selectPayement(index int) chromedp.Tasks {
 }
 
 func confirm() chromedp.Action {
-	return chromedp.ActionFunc(func(ctx context.Context) error {
-		f := chromedp.Click(".dedicated-contracts div.center:nth-child(2) button")
-		err := f.Do(ctx)
-		if err != nil {
-			return err
-		}
+	if dryRun {
+		return chromedp.ActionFunc(func(ctx context.Context) error {
+			var text string
+			f := chromedp.Text(".dedicated-contracts div.center:nth-child(2) button", &text)
+			err := f.Do(ctx)
+			if err != nil {
+				return err
+			}
 
-		log.Println("confirm")
+			log.Printf("confirm=%s\n", text)
 
-		return nil
-	})
+			return nil
+		})
+	} else {
+		return chromedp.ActionFunc(func(ctx context.Context) error {
+			f := chromedp.Click(".dedicated-contracts div.center:nth-child(2) button")
+			err := f.Do(ctx)
+			if err != nil {
+				return err
+			}
+
+			log.Println("confirm")
+
+			return nil
+		})
+	}
 }
 
 func waitNextPage(duration time.Duration) chromedp.Action {
 	return chromedp.ActionFunc(func(ctx context.Context) error {
-		f := chromedp.WaitNotVisible(".dedicated-contracts div.center:nth-child(2) button")
-		err := f.Do(ctx)
-		if err != nil {
-			return err
+		if !dryRun {
+			f := chromedp.WaitNotVisible(".dedicated-contracts div.center:nth-child(2) button")
+			err := f.Do(ctx)
+			if err != nil {
+				return err
+			}
 		}
 
 		log.Printf("sleeping=%v\n", duration)
