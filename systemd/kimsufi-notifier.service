@@ -6,9 +6,6 @@ Requires=docker.service
 [Service]
 Type=oneshot
 EnvironmentFile=/etc/kimsufi-notifier/env
-ExecStartPre=-/usr/bin/docker stop %n
-ExecStartPre=-/usr/bin/docker rm %n
-ExecStartPre=/usr/bin/docker pull theo01/kimsufi-notifier:latest
 ExecStart=/usr/bin/docker run \
   --name %n \
   --rm \
