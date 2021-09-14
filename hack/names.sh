@@ -33,7 +33,8 @@ for (( i=1; i<=$table_count; i++ )); do
 		disk=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(6) text{}' | awk '{$1=$1};1' | tr -d '\n')
 		network=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(7) text{}' | tr -d '[:space:]' )
 		price=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(9) span span text{}' | tr -d '[:space:]' )
-		echo -e "model=$name\thardware=$hardware\tcpu=$cpu\t$freq ($threads)\tram=$ram \tdisk=$disk \tnetwork=$network\tprice=$price\tcountry=$country"
+		availability=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(11) style text{}' | tr -d '[:space:]')
+		echo -e "model=$name\thardware=$hardware\tcpu=$cpu\t$freq ($threads)\tram=$ram \tdisk=$disk \tnetwork=$network\tprice=$price\tcountry=$country\tavailable=$availability"
 	done
 done
 exit
