@@ -9,7 +9,7 @@ Uses [opsgenie](https://www.atlassian.com/software/opsgenie) to send notificatio
 * Check availability
 
 ```
-$ PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg hack/check.sh
+$ PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg OPSGENIE_API_KEY=******** hack/check.sh
 > checking 22sk010 availability in fr,gra,rbx,sbg
 > checked  22sk010 available    in fr,gra,rbx,sbg
 > sending notification
