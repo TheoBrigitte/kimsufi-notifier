@@ -16,7 +16,7 @@ workflows:
           branches:
             only: master
          context:
-         - kimsufi-notifier
+         - opsgenie
   run:
     triggers:
       - schedule:
