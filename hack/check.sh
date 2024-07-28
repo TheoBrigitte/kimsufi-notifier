@@ -3,48 +3,51 @@
 # Check Kimsufi server availability
 #
 # Usages:
-# 	COUNTRY=fr HARDWARE=1801sk12 SMS_USER=******** SMS_PASS=************** check.sh
-# 	COUNTRY=fr HARDWARE=1801sk12 NO_SMS=true check.sh
+# 	DATACENTERS=fr PLAN_CODE=22sk010 OPSGENIE_API_KEY=******** check.sh
+# 	DATACENTERS=fr,gra,rbx,sbg PLAN_CODE=22sk010 NO_SMS=true check.sh
 
 set -eu
 
+# Helper function - prints a message to stderr
+echo_stderr() {
+    >&2 echo "$@"
+}
+
 ## required environement variables
-_=$HARDWARE
-_=$COUNTRY
+_=$PLAN_CODE
+_=$DATACENTERS
 
+OPSGENIE_API_URL="https://api.opsgenie.com/v2/alerts"
 
-OVH_URL=${OVH_URL:-https://eu.api.ovh.com/1.0}
+OVH_URL="https://eu.api.ovh.com/v1/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}&datacenters=${DATACENTERS}"
 
 # check availability from api
-echo "> checking $HARDWARE in $COUNTRY"
-if ! curl -Ss "${OVH_URL}/dedicated/server/availabilities?country=${COUNTRY}&hardware=${HARDWARE}" | jq -e '.[].datacenters[] | select(.availability != "unavailable")'; then
-	echo "> $HARDWARE not available in $COUNTRY"
-	exit 0
+echo_stderr "> checking $PLAN_CODE availability in $DATACENTERS"
+DATA="$(curl -Ss "${OVH_URL}")"
+#DATA="$(echo bob)"
+if test -z "$DATA" || ! echo "$DATA" | jq -e . &>/dev/null || echo "$DATA" | jq -e '. | length == 0' &>/dev/null; then
+  echo "> failed to fetch data from $OVH_URL"
+  exit 1
 fi
 
-echo "> $HARDWARE available in $COUNTRY"
+if ! echo "$DATA" | jq -e '.[].datacenters[] | select(.availability != "unavailable")' &>/dev/null; then
+  echo_stderr "> checked  $PLAN_CODE unavailable  in $DATACENTERS"
+  exit 0
+fi
+
+AVAILABLE_DATACENTERS="$(echo "$DATA" | jq -r '[.[].datacenters[] | select(.availability != "unavailable") | .datacenter] | join(",")')"
+echo_stderr "> checked  $PLAN_CODE available    in $AVAILABLE_DATACENTERS"
 
 # stop when NO_SMS variable is set
 test ! -v NO_SMS
 
-_=$SMS_USER
-_=$SMS_PASS
-_=$SMS_DELAY
-_=$SMS_STATE_FILE
+_=$OPSGENIE_API_KEY
 
-# only send 1 sms every $SMS_DELAY
-if test -e $SMS_STATE_FILE && test $(($(date +%s) - $(stat -c %Y $SMS_STATE_FILE))) -lt $SMS_DELAY; then
-	echo "> sms already sent at $(stat -c %y $SMS_STATE_FILE) (delay: "$(TZ=UTC0 printf '%(%Hh%Mm%Ss)T\n' "$SMS_DELAY")")"
-	exit 0
-fi
-
-touch $SMS_STATE_FILE
-
-FREEMOBILE_URL=${FREEMOBILE_URL:-https://smsapi.free-mobile.fr/sendmsg}
-
-# send sms
-# receiver phone number is the account holder
-message="$HARDWARE is available\nhttps://www.kimsufi.com/fr/commande/kimsufi.xml?reference=$HARDWARE ."
-echo "> sending message"
-curl -iXPOST "$FREEMOBILE_URL" -d'{"msg":"'"$message"'","user":"'"$SMS_USER"'","pass":"'"$SMS_PASS"'"}' -H'Content-Type: application/json'
-echo "> message sent"
+# send notification
+message="$PLAN_CODE is available\nhttps://eco.ovhcloud.com/fr/?display=list&range=kimsufi ."
+echo_stderr "> sending message"
+curl -X POST "$OPSGENIE_API_URL" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: GenieKey $OPSGENIE_API_KEY" \
+    -d'{"message": "'"$message"'"}'
+echo_stderr "> message sent"
