@@ -370,7 +370,7 @@ func waitNextPage(duration time.Duration) chromedp.Action {
 func fullScreenshot(quality int64, filename string) chromedp.Action {
 	return chromedp.ActionFunc(func(ctx context.Context) error {
 		// get layout metrics
-		_, _, contentSize, err := page.GetLayoutMetrics().Do(ctx)
+		_, _, contentSize, _, _, _, err := page.GetLayoutMetrics().Do(ctx)
 		if err != nil {
 			return err
 		}
