@@ -8,17 +8,13 @@
 
 set -eu
 
+OPSGENIE_API_URL="https://api.opsgenie.com/v2/alerts"
+OVH_URL="https://eu.api.ovh.com/v1/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}&datacenters=${DATACENTERS}"
+
 # Helper function - prints a message to stderr
 echo_stderr() {
     >&2 echo "$@"
 }
-
-## required environement variables
-_=$PLAN_CODE
-_=$DATACENTERS
-
-OPSGENIE_API_URL="https://api.opsgenie.com/v2/alerts"
-OVH_URL="https://eu.api.ovh.com/v1/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}&datacenters=${DATACENTERS}"
 
 # check availability from api
 echo_stderr "> checking $PLAN_CODE availability in $DATACENTERS"

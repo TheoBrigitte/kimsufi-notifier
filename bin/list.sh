@@ -26,7 +26,7 @@ if test -z "$DATA" || ! echo "$DATA" | jq -e . &>/dev/null || echo "$DATA" | jq 
   echo "> failed to fetch data from $OVH_URL"
   exit 1
 fi
-echo_stderr "> fetched data"
+echo_stderr "> fetched  servers"
 
 CURRENCY="$(echo "$DATA" | jq -r '.locale.currencyCode')"
 echo "$DATA" | \
