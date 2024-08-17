@@ -7,7 +7,8 @@
 #
 # Usage:
 # 	PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg check.sh
-# 	PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg OPSGENIE_API_KEY=******** check.sh
+# 	PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg OPSGENIE_API_KEY=******* check.sh
+# 	PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg TELEGRAM_BOT_TOKEN=******** TELEGRAM_CHAT_ID=******** check.sh
 
 set -eu
 
@@ -16,6 +17,49 @@ OVH_URL="https://eu.api.ovh.com/v1/dedicated/server/datacenter/availabilities?pl
 
 echo_stderr() {
     >&2 echo "$@"
+}
+
+notify_opsgenie() {
+  local message="$1"
+  if [ -z ${OPSGENIE_API_KEY+x} ]; then
+    return
+  fi
+
+  echo_stderr "> sending OpsGenie notification"
+  RESULT="$(curl -sSX POST "$OPSGENIE_API_URL" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: GenieKey $OPSGENIE_API_KEY" \
+      -d'{"message": "'"$message"'"}')"
+
+  if echo "$RESULT" | jq -e '.result | length > 0' &>/dev/null; then
+    echo_stderr "> sent    OpsGenie notification"
+  else
+    echo "$RESULT"
+    echo_stderr "> failed  OpsGenie notification"
+  fi
+}
+
+notify_telegram() {
+  local message="$1"
+  if [ -z ${TELEGRAM_BOT_TOKEN+x} ] || [ -z ${TELEGRAM_CHAT_ID+x} ]; then
+    return
+  fi
+
+  TG_WEBHOOK_URL="https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
+
+  echo_stderr "> sending Telegram notification"
+  RESULT="$(curl -sSX POST \
+    -d chat_id="${TELEGRAM_CHAT_ID}" \
+    -d text="${message}" \
+    -d parse_mode="HTML" \
+    "${TG_WEBHOOK_URL}")"
+
+  if echo "$RESULT" | jq -e .ok &>/dev/null; then
+    echo_stderr "> sent    Telegram notification"
+  else
+    echo "$RESULT"
+    echo_stderr "> failed  Telegram notification"
+  fi
 }
 
 # Fetch availability from api
@@ -38,17 +82,7 @@ fi
 AVAILABLE_DATACENTERS="$(echo "$DATA" | jq -r '[.[].datacenters[] | select(.availability != "unavailable") | .datacenter] | join(",")')"
 echo_stderr "> checked  $PLAN_CODE available    in $AVAILABLE_DATACENTERS"
 
-# Exit here when OPSGENIE_API_KEY variable is not set
-if [ -z ${OPSGENIE_API_KEY+x} ]; then
-  exit 0
-fi
-
-# Send notification via OpsGenie
-message="$PLAN_CODE is available\nhttps://eco.ovhcloud.com/fr/?display=list&range=kimsufi ."
-echo_stderr "> sending notification"
-curl -X POST "$OPSGENIE_API_URL" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: GenieKey $OPSGENIE_API_KEY" \
-    -d'{"message": "'"$message"'"}'
-echo_stderr
-echo_stderr "> notification sent"
+# Send notifications
+message="$PLAN_CODE is available https://eco.ovhcloud.com"
+notify_opsgenie "$message"
+notify_telegram "$message"

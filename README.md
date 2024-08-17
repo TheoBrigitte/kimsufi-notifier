@@ -33,7 +33,11 @@ $ PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg bin/check.sh
 > checked  22sk010 available    in fr,gra,rbx,sbg
 ```
 
-A notification can be sent whenever a server is available.
+Notification(s) can be sent whenever a server is available.
+
+Supported notification services:
+- [OpsGenie](https://www.atlassian.com/software/opsgenie) via [Alerts API](https://docs.opsgenie.com/docs/alert-api)
+- [Telegram](https://telegram.org/) via [Bots API#sendMessage](https://core.telegram.org/bots/api#sendmessage)
 
 ```
 $ PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg OPSGENIE_API_KEY=******** bin/check.sh
