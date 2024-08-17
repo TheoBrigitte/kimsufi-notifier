@@ -7,11 +7,11 @@
   <a href="https://dl.circleci.com/status-badge/redirect/gh/TheoBrigitte/kimsufi-notifier/tree/main"><img src="https://dl.circleci.com/status-badge/img/gh/TheoBrigitte/kimsufi-notifier/tree/main.svg?style=svg" alt="CircleCI"></a>
 </p>
 
-## About
+### About
 
 [OVH Eco dedicated servers](https://eco.ovhcloud.com) are known for their low prices and high demand. As a result, they are often out of stock. This collection of bash scripts is used to check for server availability and send notifications when a server is available.
 
-## Features
+### Features
 
 - List available servers from OVH Eco catalog in a specific country
 - Check availability of a specific server in one or multiple datacenters
