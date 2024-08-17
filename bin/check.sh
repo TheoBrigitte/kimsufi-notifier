@@ -15,6 +15,7 @@ set -eu
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
 
 source "${SCRIPT_DIR}/../config.env"
+source "${SCRIPT_DIR}/common.sh"
 
 echo_stderr() {
     >&2 echo "$@"
@@ -32,7 +33,7 @@ notify_opsgenie() {
       -H "Authorization: GenieKey $OPSGENIE_API_KEY" \
       -d'{"message": "'"$message"'"}')"
 
-  if echo "$RESULT" | jq -e '.result | length > 0' &>/dev/null; then
+  if echo "$RESULT" | $JQ_BIN -e '.result | length > 0' &>/dev/null; then
     echo_stderr "> sent    OpsGenie notification"
   else
     echo "$RESULT"
@@ -55,7 +56,7 @@ notify_telegram() {
     -d parse_mode="HTML" \
     "${TG_WEBHOOK_URL}")"
 
-  if echo "$RESULT" | jq -e .ok &>/dev/null; then
+  if echo "$RESULT" | $JQ_BIN -e .ok &>/dev/null; then
     echo_stderr "> sent    Telegram notification"
   else
     echo "$RESULT"
@@ -71,19 +72,19 @@ echo_stderr "> checking $PLAN_CODE availability in $DATACENTERS"
 DATA="$(curl -Ss "${OVH_URL}")"
 
 # Check for error: empty data, invalid json, or empty list
-if test -z "$DATA" || ! echo "$DATA" | jq -e . &>/dev/null || echo "$DATA" | jq -e '. | length == 0' &>/dev/null; then
+if test -z "$DATA" || ! echo "$DATA" | $JQ_BIN -e . &>/dev/null || echo "$DATA" | $JQ_BIN -e '. | length == 0' &>/dev/null; then
   echo "> failed to fetch data from $OVH_URL"
   exit 1
 fi
 
 # Check for datacenters availability
-if ! echo "$DATA" | jq -e '.[].datacenters[] | select(.availability != "unavailable")' &>/dev/null; then
+if ! echo "$DATA" | $JQ_BIN -e '.[].datacenters[] | select(.availability != "unavailable")' &>/dev/null; then
   echo_stderr "> checked  $PLAN_CODE unavailable  in $DATACENTERS"
   exit 0
 fi
 
 # Print availability
-AVAILABLE_DATACENTERS="$(echo "$DATA" | jq -r '[.[].datacenters[] | select(.availability != "unavailable") | .datacenter] | join(",")')"
+AVAILABLE_DATACENTERS="$(echo "$DATA" | $JQ_BIN -r '[.[].datacenters[] | select(.availability != "unavailable") | .datacenter] | join(",")')"
 echo_stderr "> checked  $PLAN_CODE available    in $AVAILABLE_DATACENTERS"
 
 # Send notifications
