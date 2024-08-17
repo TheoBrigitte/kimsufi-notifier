@@ -1,5 +1,8 @@
 # kimsufi-notifier
 
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/TheoBrigitte/kimsufi-notifier/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/TheoBrigitte/kimsufi-notifier/tree/main)
+[![GitHub release](https://img.shields.io/github/release/TheoBrigitte/kimsufi-notifier.svg)](https://github.com/TheoBrigitte/kimsufi-notifier/releases)
+
 Collection of bash scripts used to check for kimsufi server availability.
 
 It supports sending notifications to OpsGenie and Telegram when a server is available.
