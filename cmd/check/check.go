@@ -1,9 +1,10 @@
 package check
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
+	"text/tabwriter"
 
 	"github.com/ovh/go-ovh/ovh"
 
@@ -22,10 +23,11 @@ var (
 		RunE:  runner,
 	}
 
+	datacenters []string
+	planCode    string
+
 	country   string
 	hardware  string
-	smsUser   string
-	smsPass   string
 	checkOnly bool
 )
 
@@ -35,11 +37,12 @@ const (
 )
 
 func init() {
+	Cmd.PersistentFlags().StringSliceVarP(&datacenters, "datacenters", "d", []string{"fr"}, "datacenter comma separated list")
+	Cmd.PersistentFlags().StringVarP(&planCode, "planCode", "p", "", "plan code name (e.g. 1801sk143)")
+
 	Cmd.PersistentFlags().StringVarP(&country, "country", "c", "", "country code (e.g. fr)")
 	Cmd.PersistentFlags().StringVarP(&hardware, "hardware", "w", "", "harware code name (e.g. 1801sk143)")
-	Cmd.PersistentFlags().StringVarP(&smsUser, "user", "u", "", "sms api username")
-	Cmd.PersistentFlags().StringVarP(&smsPass, "pass", "p", "", "sms api password")
-	Cmd.PersistentFlags().BoolVarP(&checkOnly, "check-only", "o", false, "run check only (no sms)")
+	Cmd.PersistentFlags().BoolVarP(&checkOnly, "check-only", "o", true, "run check only (no sms)")
 }
 
 func runner(cmd *cobra.Command, args []string) error {
@@ -52,7 +55,7 @@ func runner(cmd *cobra.Command, args []string) error {
 		log.Fatalf("error: %v\n", err)
 	}
 
-	a, err := k.GetAvailabilities(country, hardware)
+	a, err := k.GetAvailabilities(datacenters, planCode)
 	if kimsufi.IsNotAvailableError(err) {
 		log.Printf("%s is not available in %s\n", hardware, country)
 		os.Exit(0)
@@ -60,18 +63,32 @@ func runner(cmd *cobra.Command, args []string) error {
 		log.Fatalf("error: %v\n", err)
 	}
 
-	if !a.IsAvailable() {
-		log.Printf("%s is not available in %s\n", hardware, country)
-		os.Exit(0)
+	formatter := kimsufi.DatacenterFormatter(kimsufi.IsDatacenterAvailable, kimsufi.DatacenterKey)
+	result := a.Format(kimsufi.PlanCode, formatter)
+	//data, err := json.Marshal(result)
+	//log.Printf("%s\n", data)
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0)
+	fmt.Fprintln(w, "planCode\tstatus\tdatacenters")
+	fmt.Fprintln(w, "--------\t------\t-----------")
+
+	for k, v := range result {
+		status := "available"
+		if len(v) == 0 {
+			status = "unavailable"
+		}
+		fmt.Fprintf(w, "%s\t%s\t%s\n", k, status, strings.Join(v, ", "))
 	}
 
-	formatter := kimsufi.DatacenterFormatter(kimsufi.IsDatacenterAvailable, kimsufi.DatacenterKey)
-	result := a.Format(kimsufi.HardwareKey, kimsufi.RegionKey, formatter)
-	data, err := json.Marshal(result)
-	fmt.Printf("%s\n", data)
-
-	message := fmt.Sprintf("%s is available", hardware)
-	fmt.Println(message)
+	w.Flush()
+	//for _, availability := range *a {
+	//	if availability.IsAvailable() {
+	//		planDatacenters := formatter(availability.Datacenters)
+	//		fmt.Printf("%s is available in following datacenters %v\n", availability.PlanCode, planDatacenters)
+	//	} else {
+	//		fmt.Printf("%s is not available\n", availability.PlanCode)
+	//	}
+	//}
 
 	if checkOnly {
 		os.Exit(0)
@@ -80,8 +97,8 @@ func runner(cmd *cobra.Command, args []string) error {
 	c := sms.Config{
 		URL:    smsAPI,
 		Logger: log.StandardLogger(),
-		User:   smsUser,
-		Pass:   smsPass,
+		User:   "",
+		Pass:   "",
 	}
 
 	s, err := sms.NewService(c)
@@ -89,7 +106,7 @@ func runner(cmd *cobra.Command, args []string) error {
 		log.Fatalf("error: %v\n", err)
 	}
 
-	err = s.SendMessage(message)
+	err = s.SendMessage("")
 	if err != nil {
 		log.Fatalf("error: %v\n", err)
 	}

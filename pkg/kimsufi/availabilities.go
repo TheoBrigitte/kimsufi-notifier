@@ -1,20 +1,23 @@
 package kimsufi
 
-type Result map[string]map[string][]string
+type Result map[string][]string
 
-func (list Availabilities) Format(firstKey, secondKey KeyFunc, formatDatacenters func([]Datacenter) []string) Result {
+func (list Availabilities) Format(firstKey KeyFunc, formatDatacenters func([]Datacenter) []string) Result {
 	result := make(Result)
 
 	for _, a := range list {
+		firstGroup := firstKey(a)
+		if result[firstGroup] == nil {
+			result[firstGroup] = []string{}
+		}
+
 		datacenters := formatDatacenters(a.Datacenters)
 		if len(datacenters) > 0 {
-			firstGroup := firstKey(a)
-			secondGroup := secondKey(a)
-
-			if result[firstGroup] == nil {
-				result[firstGroup] = make(map[string][]string)
+			for _, d := range datacenters {
+				if !inList(result[firstGroup], d) {
+					result[firstGroup] = append(result[firstGroup], d)
+				}
 			}
-			result[firstGroup][secondGroup] = append(result[firstGroup][secondGroup], datacenters...)
 		}
 	}
 
@@ -27,6 +30,16 @@ func (list Availabilities) IsAvailable() bool {
 			if IsDatacenterAvailable(d) {
 				return true
 			}
+		}
+	}
+
+	return false
+}
+
+func inList(list []string, item string) bool {
+	for _, i := range list {
+		if i == item {
+			return true
 		}
 	}
 

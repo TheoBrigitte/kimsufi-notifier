@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/ovh/go-ovh/ovh"
 	"github.com/sirupsen/logrus"
@@ -35,12 +36,14 @@ func NewService(config Config) (*Service, error) {
 	return s, nil
 }
 
-func (s *Service) GetAvailabilities(countryCode, hardware string) (*Availabilities, error) {
-	u, err := url.Parse("/dedicated/server/availabilities")
+func (s *Service) GetAvailabilities(datacenters []string, planCode string) (*Availabilities, error) {
+	u, err := url.Parse("/dedicated/server/datacenter/availabilities")
 	q := u.Query()
-	q.Set("country", countryCode)
-	if hardware != "" {
-		q.Set("hardware", hardware)
+	if len(datacenters) > 0 {
+		q.Set("datacenters", strings.Join(datacenters, ","))
+	}
+	if planCode != "" {
+		q.Set("planCode", planCode)
 	}
 	u.RawQuery = q.Encode()
 

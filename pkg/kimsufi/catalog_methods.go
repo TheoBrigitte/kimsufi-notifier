@@ -7,6 +7,9 @@ var (
 	PriceDivider  = math.Pow10(PriceDecimals)
 
 	PlanCategories = []string{"kimsufi", "soyoustart", "rise"}
+
+	StatusAvailable   = "available"
+	StatusUnavailable = "unavailable"
 )
 
 func (p Plan) FirstPrice() Pricing {
