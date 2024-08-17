@@ -12,8 +12,9 @@
 
 set -eu
 
-OPSGENIE_API_URL="https://api.opsgenie.com/v2/alerts"
-OVH_URL="https://eu.api.ovh.com/v1/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}&datacenters=${DATACENTERS}"
+SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
+
+source "${SCRIPT_DIR}/../config.env"
 
 echo_stderr() {
     >&2 echo "$@"
@@ -61,6 +62,9 @@ notify_telegram() {
     echo_stderr "> failed  Telegram notification"
   fi
 }
+
+OPSGENIE_API_URL="https://api.opsgenie.com/v2/alerts"
+OVH_URL="https://eu.api.ovh.com/v1/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}&datacenters=${DATACENTERS}"
 
 # Fetch availability from api
 echo_stderr "> checking $PLAN_CODE availability in $DATACENTERS"

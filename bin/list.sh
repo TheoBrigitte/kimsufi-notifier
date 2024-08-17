@@ -10,11 +10,15 @@
 
 set -eu
 
-OVH_URL="https://eu.api.ovh.com/v1/order/catalog/public/eco?ovhSubsidiary=${COUNTRY}"
+SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
+
+source "${SCRIPT_DIR}/../config.env"
 
 echo_stderr() {
     >&2 echo "$@"
 }
+
+OVH_URL="https://eu.api.ovh.com/v1/order/catalog/public/eco?ovhSubsidiary=${COUNTRY}"
 
 # Fetch servers from OVH API
 echo_stderr "> fetching servers in $COUNTRY"

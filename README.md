@@ -3,15 +3,43 @@
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/TheoBrigitte/kimsufi-notifier/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/TheoBrigitte/kimsufi-notifier/tree/main)
 [![GitHub release](https://img.shields.io/github/release/TheoBrigitte/kimsufi-notifier.svg)](https://github.com/TheoBrigitte/kimsufi-notifier/releases)
 
-Collection of bash scripts used to check for kimsufi server availability.
+## About
 
-It supports sending notifications to OpsGenie and Telegram when a server is available.
+[OVH Eco dedicated servers](https://eco.ovhcloud.com) are known for their low prices and high demand. As a result, they are often out of stock. This collection of bash scripts is used to check for server availability and send notifications when a server is available.
+
+## Features
+
+- List available servers from OVH Eco catalog in a specific country
+- Check availability of a specific server in one or multiple datacenters
+- Send notifications to OpsGenie and/or Telegram when a server is available
+
+### Quickstart
+
+```
+git clone git@github.com:TheoBrigitte/kimsufi-notifier.git
+cd kimsufi-notifier
+cp config.env.example config.env
+bin/check.sh
+```
+
+### Configuration
+
+Configuration is done through environment variables. The following variables are available:
+
+- `COUNTRY`: country code to list servers from (e.g. `FR`)
+- `PLAN_CODE`: plan code to check availability for (e.g. `22sk010`)
+- `DATACENTERS`: comma-separated list of datacenters to check availability in (e.g. `fr,gra,rbx,sbg`)
+- `OPSGENIE_API_KEY`: API key to use OpsGenie notification service
+- `TELEGRAM_CHAT_ID`: chat ID to use Telegram notification service
+- `TELEGRAM_BOT_TOKEN`: bot token to use Telegram notification service
+
+More details can be found in the [config.env.example](config.env.example) file.
 
 ### Usage
 
 #### List available servers
 
-List all available servers from OVH Eco catalog in a specific country.
+List servers from OVH Eco catalog in a specific country.
 
 ```
 $ COUNTRY=FR bin/list.sh
