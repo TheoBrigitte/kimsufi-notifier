@@ -25,7 +25,7 @@ PlanCode                Category      Name                 Price (EUR)
 
 #### Check availability
 
-Check availability of a specific server in one or multiple datacenters. Exit code is 0 if the server is available, 1 otherwise.
+Check availability of a specific server in one or multiple datacenters.
 
 ```
 $ PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg bin/check.sh

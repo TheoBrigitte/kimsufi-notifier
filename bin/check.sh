@@ -75,7 +75,7 @@ fi
 # Check for datacenters availability
 if ! echo "$DATA" | jq -e '.[].datacenters[] | select(.availability != "unavailable")' &>/dev/null; then
   echo_stderr "> checked  $PLAN_CODE unavailable  in $DATACENTERS"
-  exit 1
+  exit 0
 fi
 
 # Print availability
