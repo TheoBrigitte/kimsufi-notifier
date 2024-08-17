@@ -1,40 +1,35 @@
 #!/bin/bash
 #
-# Display hardware and country code for Kimsufi server models.
+# Display available servers from OVH eco catalog
+#
+# Allowed country codes:
+#   CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN
+#
+# Usages:
+#   COUNTRY=FR names.sh
 
-URL=${URL:-https://www.kimsufi.com/fr/serveurs.xml}
+set -eu
 
-echo "> fetching data from $URL" 1>&2
-DATA=$(curl -qSs "$URL")
-echo "> fetched data"
+# Helper function - prints a message to stderr
+echo_stderr() {
+    >&2 echo "$@"
+}
 
-# count number of tables
-table_count=$(echo $DATA | pup 'div#main table.homepage-table' -n)
-tables=$(echo $DATA | pup 'div#main table.homepage-table')
+## required environement variables
+_=$COUNTRY
 
-# process each table
-for (( i=1; i<=$table_count; i++ )); do
-	# count number of rows
-	table=$(echo $tables | pup 'table:nth-child('$i')')
-	row_count=$(echo $table | pup 'tr' -n)
+OVH_URL="https://eu.api.ovh.com/v1/order/catalog/public/eco?ovhSubsidiary=${COUNTRY}"
 
-	# get country code from header row
-	country=$(echo $table | pup 'tr:nth-child(1) th:nth-child(10) span attr{class}' | tr -d '[:space:]')
+echo_stderr "> fetching servers in $COUNTRY"
+DATA=$(curl -qSs "${OVH_URL}")
+if test -z "$DATA" || ! echo "$DATA" | jq -e . &>/dev/null || echo "$DATA" | jq -e '.plans | length == 0' &>/dev/null; then
+  echo "> failed to fetch data from $OVH_URL"
+  exit 1
+fi
+echo_stderr "> fetched data"
 
-	# get model name and hardware code from each row
-	# skip first header row
-	for (( j=2; j<=$row_count; j++)); do
-		name=$(echo $table | pup 'tr:nth-child('$j') td:first-child text{}' | tr -d '[:space:]')
-		hardware=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(11) attr{data-ref}' | tr -d '[:space:]')
-		cpu=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(2) span:nth-child(2) text{}' | tr -d '[:space:]')
-		threads=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(3) span text{}' | tr -d '[:space:]')
-		freq=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(4) span text{}' | tr -d '[:space:]')
-		ram=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(5) text{}')
-		disk=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(6) text{}' | awk '{$1=$1};1' | tr -d '\n')
-		network=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(7) text{}' | tr -d '[:space:]' )
-		price=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(9) span span text{}' | tr -d '[:space:]' )
-		availability=$(echo $table | pup 'tr:nth-child('$j') td:nth-child(11) style text{}' | tr -d '[:space:]')
-		echo -e "model=$name\thardware=$hardware\tcpu=$cpu\t$freq ($threads)\tram=$ram \tdisk=$disk \tnetwork=$network\tprice=$price\tcountry=$country\tavailable=$availability"
-	done
-done
-exit
+CURRENCY="$(echo "$DATA" | jq -r '.locale.currencyCode')"
+echo "$DATA" | \
+  jq -r '.plans[] | [.planCode,.blobs.commercial.range,.invoiceName,(.pricings[]|select(.phase == 1)|select(.mode == "default")|.price/100000000)] | @tsv' | \
+  sort -k2,2 -k4n,4 -k3h,3 -b | \
+  column -t -C "name=PlanCode" -C "name=Category" -C "name=Name" -C "name=Price ($CURRENCY)" -o '    '
