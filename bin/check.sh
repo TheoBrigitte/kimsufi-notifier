@@ -37,12 +37,10 @@ fi
 AVAILABLE_DATACENTERS="$(echo "$DATA" | jq -r '[.[].datacenters[] | select(.availability != "unavailable") | .datacenter] | join(",")')"
 echo_stderr "> checked  $PLAN_CODE available    in $AVAILABLE_DATACENTERS"
 
-# stop when NO_NOTIFICATION variable is set
-if $NO_NOTIFICATION; then
+# stop when OPSGENIE_API_KEY variable is not set
+if [ -z ${OPSGENIE_API_KEY+x} ]; then
   exit 0
 fi
-
-_=$OPSGENIE_API_KEY
 
 # send notification
 message="$PLAN_CODE is available\nhttps://eco.ovhcloud.com/fr/?display=list&range=kimsufi ."
