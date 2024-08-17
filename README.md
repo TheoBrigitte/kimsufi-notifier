@@ -1,4 +1,6 @@
-# kimsufi-notifier
+<p align="center">
+    <img src="assets/kimsufi-logo.webp" alt="Kimsufi logo" height="100px">
+</p>
 
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/TheoBrigitte/kimsufi-notifier/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/TheoBrigitte/kimsufi-notifier/tree/main)
 [![GitHub release](https://img.shields.io/github/release/TheoBrigitte/kimsufi-notifier.svg)](https://github.com/TheoBrigitte/kimsufi-notifier/releases)
