@@ -2,7 +2,7 @@
 
 Collection of bash scripts used to check for kimsufi server availability.
 
-It supports sending notifications via [OpsGenie](https://www.atlassian.com/software/opsgenie). Get your API key under Teams > Integrations.
+It supports sending notifications to OpsGenie and Telegram when a server is available.
 
 ### Usage
 
@@ -33,16 +33,26 @@ $ PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg bin/check.sh
 > checked  22sk010 available    in fr,gra,rbx,sbg
 ```
 
-Notification(s) can be sent whenever a server is available.
+Notification(s) can be sent whenever a server is available. Either one or multiple notification services can be used.
 
 Supported notification services:
 - [OpsGenie](https://www.atlassian.com/software/opsgenie) via [Alerts API](https://docs.opsgenie.com/docs/alert-api)
 - [Telegram](https://telegram.org/) via [Bots API#sendMessage](https://core.telegram.org/bots/api#sendmessage)
 
+Example with OpsGenie:
 ```
 $ PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg OPSGENIE_API_KEY=******** bin/check.sh
 > checking 22sk010 availability in fr,gra,rbx,sbg
 > checked  22sk010 available    in fr,gra,rbx,sbg
-> sending notification
-{"result":"Request will be processed","took":0.005,"requestId":"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"}
-> notification sent
+> sending OpsGenie notification
+> sent    OpsGenie notification
+```
+
+Example with Telegram:
+```
+$ PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg TELEGRAM_BOT_TOKEN=******** TELEGRAM_CHAT_ID=******** bin/check.sh
+> checking 22sk010 availability in fr,gra,rbx,sbg
+> checked  22sk010 available    in fr,gra,rbx,sbg
+> sending Telegram notification
+> sent    Telegram notification
+```
