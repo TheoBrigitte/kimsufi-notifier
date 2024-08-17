@@ -53,6 +53,21 @@ func (s *Service) GetAvailabilities(countryCode, hardware string) (*Availabiliti
 	return &availabilities, nil
 }
 
+func (s *Service) ListServers(ovhSubsidiary string) (*Catalog, error) {
+	u, err := url.Parse("/order/catalog/public/eco")
+	q := u.Query()
+	q.Set("ovhSubsidiary", ovhSubsidiary)
+	u.RawQuery = q.Encode()
+
+	var catalog Catalog
+	err = s.client.GetUnAuth(u.String(), &catalog)
+	if err != nil {
+		return nil, err
+	}
+
+	return &catalog, nil
+}
+
 type Logger struct {
 	logger logrus.StdLogger
 }
