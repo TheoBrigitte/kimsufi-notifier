@@ -14,7 +14,7 @@ workflows:
       - run:
          filters:
           branches:
-            only: master
+            only: main
          context:
          - opsgenie
   run:
@@ -24,6 +24,6 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
     jobs:
       - run
