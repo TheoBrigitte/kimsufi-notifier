@@ -18,7 +18,6 @@ _=$PLAN_CODE
 _=$DATACENTERS
 
 OPSGENIE_API_URL="https://api.opsgenie.com/v2/alerts"
-
 OVH_URL="https://eu.api.ovh.com/v1/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}&datacenters=${DATACENTERS}"
 
 # check availability from api
@@ -32,14 +31,16 @@ fi
 
 if ! echo "$DATA" | jq -e '.[].datacenters[] | select(.availability != "unavailable")' &>/dev/null; then
   echo_stderr "> checked  $PLAN_CODE unavailable  in $DATACENTERS"
-  exit 0
+  exit 1
 fi
 
 AVAILABLE_DATACENTERS="$(echo "$DATA" | jq -r '[.[].datacenters[] | select(.availability != "unavailable") | .datacenter] | join(",")')"
 echo_stderr "> checked  $PLAN_CODE available    in $AVAILABLE_DATACENTERS"
 
 # stop when NO_NOTIFICATION variable is set
-test ! -v NO_NOTIFICATION
+if $NO_NOTIFICATION; then
+  exit 0
+fi
 
 _=$OPSGENIE_API_KEY
 
