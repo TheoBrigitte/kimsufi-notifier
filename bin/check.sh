@@ -2,9 +2,12 @@
 #
 # Check Kimsufi server availability
 #
+# Allowed datacenters:
+#   bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw
+#
 # Usages:
-# 	PLAN_CODE=22sk010 DATACENTERS=fr OPSGENIE_API_KEY=******** check.sh
-# 	PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg NO_NOTIFICATION=true check.sh
+# 	PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg check.sh
+# 	PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg OPSGENIE_API_KEY=******** check.sh
 
 set -eu
 
