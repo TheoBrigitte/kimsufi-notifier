@@ -16,14 +16,15 @@ echo_stderr() {
 usage() {
   echo_stderr "Usage: PLAN_CODE=<plan code> DATACENTERS=<datacenters list> $0"
   echo_stderr "  Required:"
-  echo_stderr "    PLAN_CODE           Plan code to check (e.g. 22sk010)"
+  echo_stderr "    PLAN_CODE             Plan code to check (e.g. 22sk010)"
   echo_stderr "  Optional:"
-  echo_stderr "    DATACENTERS         Comma-separated list of datacenters"
-  echo_stderr "                        Allowed values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw"
-  echo_stderr "    OPSGENIE_API_KEY    API key for OpsGenie"
-  echo_stderr "    TELEGRAM_BOT_TOKEN  Bot token for Telegram"
-  echo_stderr "    TELEGRAM_CHAT_ID    Chat ID for Telegram"
-  echo_stderr "    DEBUG               Enable debug mode (default: false)"
+  echo_stderr "    DATACENTERS           Comma-separated list of datacenters"
+  echo_stderr "                          Allowed values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw"
+  echo_stderr "    OPSGENIE_API_KEY      API key for OpsGenie"
+  echo_stderr "    TELEGRAM_BOT_TOKEN    Bot token for Telegram"
+  echo_stderr "    TELEGRAM_CHAT_ID      Chat ID for Telegram"
+  echo_stderr "    HEALTHCHECKS_IO_UUID  UUID for healthchecks.io"
+  echo_stderr "    DEBUG                 Enable debug mode (default: false)"
   echo_stderr
   echo_stderr "Example:"
   echo_stderr "  PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg $0"
@@ -120,6 +121,11 @@ fi
 if test -z "$DATA" || ! echo "$DATA" | $JQ_BIN -e . &>/dev/null || echo "$DATA" | $JQ_BIN -e '. | length == 0' &>/dev/null; then
   echo "> failed to fetch data from $OVH_URL"
   exit 1
+fi
+
+# Ping healthchecks.io to ensure this script is running without errors
+if [ -n "${HEALTHCHECKS_IO_UUID-}" ]; then
+  curl -sS -o /dev/null "https://hc-ping.com/${HEALTHCHECKS_IO_UUID}"
 fi
 
 # Check for datacenters availability
