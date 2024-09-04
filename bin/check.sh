@@ -1,14 +1,6 @@
 #!/bin/bash
 #
 # Check OVH Eco (including Kimsufi) server availability
-#
-# Allowed datacenters:
-#   bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw
-#
-# Usage:
-# 	PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg check.sh
-# 	PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg OPSGENIE_API_KEY=******* check.sh
-# 	PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg TELEGRAM_BOT_TOKEN=******** TELEGRAM_CHAT_ID=******** check.sh
 
 set -eu
 
@@ -21,6 +13,31 @@ echo_stderr() {
     >&2 echo "$@"
 }
 
+usage() {
+  echo_stderr "Usage: PLAN_CODE=<plan code> DATACENTERS=<datacenters list> $0"
+  echo_stderr "  Required:"
+  echo_stderr "    PLAN_CODE           Plan code to check (e.g. 22sk010)"
+  echo_stderr "  Optional:"
+  echo_stderr "    DATACENTERS         Comma-separated list of datacenters"
+  echo_stderr "                        Allowed values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw"
+  echo_stderr "    OPSGENIE_API_KEY    API key for OpsGenie"
+  echo_stderr "    TELEGRAM_BOT_TOKEN  Bot token for Telegram"
+  echo_stderr "    TELEGRAM_CHAT_ID    Chat ID for Telegram"
+  echo_stderr "    DEBUG               Enable debug mode (default: false)"
+  echo_stderr
+  echo_stderr "Example:"
+  echo_stderr "  PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg $0"
+  echo_stderr "  PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg OPSGENIE_API_KEY=******* $0"
+  echo_stderr "  PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg TELEGRAM_BOT_TOKEN=******** TELEGRAM_CHAT_ID=******** $0"
+}
+
+if [ -z "${PLAN_CODE-}" ]; then
+  echo_stderr "Error: PLAN_CODE is not set"
+  echo_stderr
+  usage
+  exit 1
+fi
+
 notify_opsgenie() {
   local message="$1"
   if [ -z ${OPSGENIE_API_KEY+x} ]; then
@@ -32,6 +49,10 @@ notify_opsgenie() {
       -H "Content-Type: application/json" \
       -H "Authorization: GenieKey $OPSGENIE_API_KEY" \
       -d'{"message": "'"$message"'"}')"
+
+  if $DEBUG; then
+    echo_stderr "$RESULT"
+  fi
 
   if echo "$RESULT" | $JQ_BIN -e '.result | length > 0' &>/dev/null; then
     echo_stderr "> sent    OpsGenie notification"
@@ -56,6 +77,10 @@ notify_telegram() {
     -d parse_mode="HTML" \
     "${TG_WEBHOOK_URL}")"
 
+  if $DEBUG; then
+    echo_stderr "$RESULT"
+  fi
+
   if echo "$RESULT" | $JQ_BIN -e .ok &>/dev/null; then
     echo_stderr "> sent    Telegram notification"
   else
@@ -65,11 +90,31 @@ notify_telegram() {
 }
 
 OPSGENIE_API_URL="https://api.opsgenie.com/v2/alerts"
-OVH_URL="https://eu.api.ovh.com/v1/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}&datacenters=${DATACENTERS}"
+OVH_URL="https://eu.api.ovh.com/v1/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}"
+
+DEBUG=${DEBUG:-false}
+DATACENTERS_MESSAGE=""
+
+if [ -n "${DATACENTERS-}" ]; then
+  OVH_URL="${OVH_URL}&datacenters=${DATACENTERS}"
+  DATACENTERS_MESSAGE="$DATACENTERS datacenter(s)"
+else
+  DATACENTERS_MESSAGE="all datacenters"
+fi
 
 # Fetch availability from api
-echo_stderr "> checking $PLAN_CODE availability in $DATACENTERS"
+echo_stderr "> checking $PLAN_CODE availability in $DATACENTERS_MESSAGE"
+if $DEBUG; then
+  echo_stderr "> fetching data from $OVH_URL"
+fi
+
 DATA="$(curl -Ss "${OVH_URL}")"
+
+if $DEBUG; then
+  TMP_FILE="$(mktemp kimsufi-notifier.XXXXXX)"
+  echo "$DATA" | tee "$TMP_FILE"
+  echo_stderr "> saved    data to   $TMP_FILE"
+fi
 
 # Check for error: empty data, invalid json, or empty list
 if test -z "$DATA" || ! echo "$DATA" | $JQ_BIN -e . &>/dev/null || echo "$DATA" | $JQ_BIN -e '. | length == 0' &>/dev/null; then
@@ -79,7 +124,7 @@ fi
 
 # Check for datacenters availability
 if ! echo "$DATA" | $JQ_BIN -e '.[].datacenters[] | select(.availability != "unavailable")' &>/dev/null; then
-  echo_stderr "> checked  $PLAN_CODE unavailable  in $DATACENTERS"
+  echo_stderr "> checked  $PLAN_CODE unavailable  in $DATACENTERS_MESSAGE"
   exit 0
 fi
 
