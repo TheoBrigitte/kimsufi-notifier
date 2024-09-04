@@ -6,7 +6,7 @@ jobs:
     steps:
       - checkout
       - run: touch config.env
-      - run: DATACENTERS=fr,gra,rbx,sbg PLAN_CODE=22sk010 ./bin/check.sh
+      - run: PLAN_CODE=24ska01 ./bin/check.sh
 
 workflows:
   version: 2
