@@ -51,12 +51,12 @@ Usage: list.sh
 List servers from OVH Eco (including Kimsufi) catalog
 
 Arguments
-  -c, --country    Country code (required)
-                     Allowed values for ovh-eu: CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN
-                     Allowed values for ovh-ca: ASIA, AU, CA, IN, QC, SG, WE, WS
-                     Allowed values for ovh-us: US
   --category       Server category (default all)
                      Allowed values: kimsufi, soyoustart, rise, uncategorized
+  -c, --country    Country code (required)
+                     Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN
+                     Allowed values with -e ovh-ca : ASIA, AU, CA, IN, QC, SG, WE, WS
+                     Allowed values with -e ovh-us : US
   -e, --endpoint   OVH API endpoint (default: ovh-eu)
                      Allowed values: ovh-eu, ovh-ca, ovh-us
   -d, --debug      Enable debug mode (default: false)
@@ -77,13 +77,13 @@ Usage: check.sh
 Check OVH Eco (including Kimsufi) server availability
 
 Arguments
-  -p, --plan-code        Plan code to check (e.g. 24ska01)
-  --datacenters          Comma-separated list of datacenters to check availability for (default all)
-                           Allowed values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw (non exhaustive list)
-  -e, --endpoint         OVH API endpoint (default: ovh-eu)
-                           Allowed values: ovh-eu, ovh-ca, ovh-us
-  -d, --debug            Enable debug mode (default: false)
-  -h, --help             Display this help message
+  -p, --plan-code  Plan code to check (e.g. 24ska01)
+  --datacenters    Comma-separated list of datacenters to check availability for (default all)
+                     Example values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw (non exhaustive list)
+  -e, --endpoint   OVH API endpoint (default: ovh-eu)
+                     Allowed values: ovh-eu, ovh-ca, ovh-us
+  -d, --debug      Enable debug mode (default: false)
+  -h, --help       Display this help message
 
   Arguments can also be set as environment variables see config.env.example
   Command line arguments take precedence over environment variables
@@ -147,9 +147,9 @@ Supported notification services:
 
 In order to receive notifications the appropriate environment variables must be set:
 
-- `OPSGENIE_API_KEY`: required to use OpsGenie as notification service, see [OpsGenie API key](https://support.atlassian.com/opsgenie/docs/api-key-management/) or [OpsGenie integration](https://support.atlassian.com/opsgenie/docs/create-a-default-api-integration/)
-- `TELEGRAM_CHAT_ID`: required to use Telegram as notification service, see [Telegram bot creation guide](https://core.telegram.org/bots/features#creating-a-new-bot) or [this Gist](https://gist.github.com/nafiesl/4ad622f344cd1dc3bb1ecbe468ff9f8a#file-how_to_get_telegram_chat_id-md)
-- `TELEGRAM_BOT_TOKEN`: required to use Telegram as notification service
+- `OPSGENIE_API_KEY`: required to use OpsGenie notifications, see [OpsGenie API key](https://support.atlassian.com/opsgenie/docs/api-key-management/) or [OpsGenie integration](https://support.atlassian.com/opsgenie/docs/create-a-default-api-integration/)
+- `TELEGRAM_CHAT_ID`: required to use Telegram notifications, see [Telegram bot creation guide](https://core.telegram.org/bots/features#creating-a-new-bot) or [this Gist](https://gist.github.com/nafiesl/4ad622f344cd1dc3bb1ecbe468ff9f8a#file-how_to_get_telegram_chat_id-md)
+- `TELEGRAM_BOT_TOKEN`: required to use Telegram as notifications
 
 It is recommended to set those values in the config file, see [config.env.example](config.env.exampl).
 
