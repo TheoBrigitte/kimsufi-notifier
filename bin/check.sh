@@ -90,55 +90,59 @@ notify_telegram() {
   fi
 }
 
-OPSGENIE_API_URL="https://api.opsgenie.com/v2/alerts"
-OVH_URL="https://eu.api.ovh.com/v1/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}"
+main() {
+  OPSGENIE_API_URL="https://api.opsgenie.com/v2/alerts"
+  OVH_URL="https://eu.api.ovh.com/v1/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}"
 
-DEBUG=${DEBUG:-false}
-DATACENTERS_MESSAGE=""
+  DEBUG=${DEBUG:-false}
+  DATACENTERS_MESSAGE=""
 
-if [ -n "${DATACENTERS-}" ]; then
-  OVH_URL="${OVH_URL}&datacenters=${DATACENTERS}"
-  DATACENTERS_MESSAGE="$DATACENTERS datacenter(s)"
-else
-  DATACENTERS_MESSAGE="all datacenters"
-fi
+  if [ -n "${DATACENTERS-}" ]; then
+    OVH_URL="${OVH_URL}&datacenters=${DATACENTERS}"
+    DATACENTERS_MESSAGE="$DATACENTERS datacenter(s)"
+  else
+    DATACENTERS_MESSAGE="all datacenters"
+  fi
 
-# Fetch availability from api
-echo_stderr "> checking $PLAN_CODE availability in $DATACENTERS_MESSAGE"
-if $DEBUG; then
-  echo_stderr "> fetching data from $OVH_URL"
-fi
+  # Fetch availability from api
+  echo_stderr "> checking $PLAN_CODE availability in $DATACENTERS_MESSAGE"
+  if $DEBUG; then
+    echo_stderr "> fetching data from $OVH_URL"
+  fi
 
-DATA="$(curl -Ss "${OVH_URL}")"
+  DATA="$(curl -Ss "${OVH_URL}")"
 
-if $DEBUG; then
-  TMP_FILE="$(mktemp kimsufi-notifier.XXXXXX)"
-  echo "$DATA" | tee "$TMP_FILE"
-  echo_stderr "> saved    data to   $TMP_FILE"
-fi
+  if $DEBUG; then
+    TMP_FILE="$(mktemp kimsufi-notifier.XXXXXX)"
+    echo "$DATA" | tee "$TMP_FILE"
+    echo_stderr "> saved    data to   $TMP_FILE"
+  fi
 
-# Check for error: empty data, invalid json, or empty list
-if test -z "$DATA" || ! echo "$DATA" | $JQ_BIN -e . &>/dev/null || echo "$DATA" | $JQ_BIN -e '. | length == 0' &>/dev/null; then
-  echo "> failed to fetch data from $OVH_URL"
-  exit 1
-fi
+  # Check for error: empty data, invalid json, or empty list
+  if test -z "$DATA" || ! echo "$DATA" | $JQ_BIN -e . &>/dev/null || echo "$DATA" | $JQ_BIN -e '. | length == 0' &>/dev/null; then
+    echo "> failed to fetch data from $OVH_URL"
+    exit 1
+  fi
 
-# Ping healthchecks.io to ensure this script is running without errors
-if [ -n "${HEALTHCHECKS_IO_UUID-}" ]; then
-  curl -sS -o /dev/null "https://hc-ping.com/${HEALTHCHECKS_IO_UUID}"
-fi
+  # Ping healthchecks.io to ensure this script is running without errors
+  if [ -n "${HEALTHCHECKS_IO_UUID-}" ]; then
+    curl -sS -o /dev/null "https://hc-ping.com/${HEALTHCHECKS_IO_UUID}"
+  fi
 
-# Check for datacenters availability
-if ! echo "$DATA" | $JQ_BIN -e '.[].datacenters[] | select(.availability != "unavailable")' &>/dev/null; then
-  echo_stderr "> checked  $PLAN_CODE unavailable  in $DATACENTERS_MESSAGE"
-  exit 0
-fi
+  # Check for datacenters availability
+  if ! echo "$DATA" | $JQ_BIN -e '.[].datacenters[] | select(.availability != "unavailable")' &>/dev/null; then
+    echo_stderr "> checked  $PLAN_CODE unavailable  in $DATACENTERS_MESSAGE"
+    exit 0
+  fi
 
-# Print availability
-AVAILABLE_DATACENTERS="$(echo "$DATA" | $JQ_BIN -r '[.[].datacenters[] | select(.availability != "unavailable") | .datacenter] | join(",")')"
-echo_stderr "> checked  $PLAN_CODE available    in $AVAILABLE_DATACENTERS"
+  # Print availability
+  AVAILABLE_DATACENTERS="$(echo "$DATA" | $JQ_BIN -r '[.[].datacenters[] | select(.availability != "unavailable") | .datacenter] | join(",")')"
+  echo_stderr "> checked  $PLAN_CODE available    in $AVAILABLE_DATACENTERS"
 
-# Send notifications
-message="$PLAN_CODE is available https://eco.ovhcloud.com"
-notify_opsgenie "$message"
-notify_telegram "$message"
+  # Send notifications
+  message="$PLAN_CODE is available https://eco.ovhcloud.com"
+  notify_opsgenie "$message"
+  notify_telegram "$message"
+}
+
+main "$@"
