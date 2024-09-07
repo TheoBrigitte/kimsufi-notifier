@@ -24,8 +24,8 @@ usage() {
   echo_stderr
   echo_stderr "Arguments"
   echo_stderr "  -p, --plan-code        Plan code to check (e.g. 24ska01)"
-  echo_stderr "  --datacenters          Comma-separated list of datacenters"
-  echo_stderr "                           Allowed values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw"
+  echo_stderr "  --datacenters          Comma-separated list of datacenters to check availability for (default all)"
+  echo_stderr "                           Allowed values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw (non exhaustive list)"
   echo_stderr "  -e, --endpoint         OVH API endpoint (default: ovh-eu)"
   echo_stderr "                           Allowed values: ovh-eu, ovh-ca, ovh-us"
   echo_stderr "  -d, --debug            Enable debug mode (default: false)"
