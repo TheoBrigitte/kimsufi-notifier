@@ -6,8 +6,6 @@ set -eu
 
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
 
-source "${SCRIPT_DIR}/../config.env"
-source "${SCRIPT_DIR}/common.sh"
 
 echo_stderr() {
     >&2 echo "$@"
@@ -31,13 +29,6 @@ usage() {
   echo_stderr "  PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg OPSGENIE_API_KEY=******* $0"
   echo_stderr "  PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg TELEGRAM_BOT_TOKEN=******** TELEGRAM_CHAT_ID=******** $0"
 }
-
-if [ -z "${PLAN_CODE-}" ]; then
-  echo_stderr "Error: PLAN_CODE is not set"
-  echo_stderr
-  usage
-  exit 1
-fi
 
 notify_opsgenie() {
   local message="$1"
@@ -93,9 +84,18 @@ notify_telegram() {
 main() {
   OPSGENIE_API_URL="https://api.opsgenie.com/v2/alerts"
   OVH_URL="https://eu.api.ovh.com/v1/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}"
+  source "${SCRIPT_DIR}/../config.env"
+  source "${SCRIPT_DIR}/common.sh"
 
   DEBUG=${DEBUG:-false}
   DATACENTERS_MESSAGE=""
+
+  if [ -z "${PLAN_CODE-}" ]; then
+    echo_stderr "Error: PLAN_CODE is not set"
+    echo_stderr
+    usage
+    exit 1
+  fi
 
   if [ -n "${DATACENTERS-}" ]; then
     OVH_URL="${OVH_URL}&datacenters=${DATACENTERS}"
