@@ -5,6 +5,7 @@
 set -eu
 
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
+DEBUG=false
 
 OVH_API_ENDPOINT="https://eu.api.ovh.com/v1"
 OPSGENIE_API_URL="https://api.opsgenie.com/v2/alerts"
@@ -89,11 +90,6 @@ main() {
   source "${SCRIPT_DIR}/../config.env"
   source "${SCRIPT_DIR}/common.sh"
 
-  OVH_URL="${OVH_API_ENDPOINT}/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}"
-
-  DEBUG=${DEBUG:-false}
-  DATACENTERS_MESSAGE=""
-
   if [ -z "${PLAN_CODE-}" ]; then
     echo_stderr "Error: PLAN_CODE is not set"
     echo_stderr
@@ -101,6 +97,9 @@ main() {
     exit 1
   fi
 
+  OVH_URL="${OVH_API_ENDPOINT}/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}"
+
+  DATACENTERS_MESSAGE=""
   if [ -n "${DATACENTERS-}" ]; then
     OVH_URL="${OVH_URL}&datacenters=${DATACENTERS}"
     DATACENTERS_MESSAGE="$DATACENTERS datacenter(s)"
