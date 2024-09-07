@@ -90,6 +90,40 @@ main() {
   source "${SCRIPT_DIR}/../config.env"
   source "${SCRIPT_DIR}/common.sh"
 
+  ARGS=$(getopt -o 'de:hp:' --long 'datacenters:,debug,help,plan-code:' -- "$@")
+  eval set -- "$ARGS"
+  while true; do
+    case "$1" in
+      --datacenters)
+        DATACENTERS="$2"
+        shift 2
+        continue
+        ;;
+      -d | --debug)
+        DEBUG=true
+        shift 1
+        continue
+        ;;
+      -h | --help)
+        usage
+        exit 0
+        ;;
+      -p | --plan-code)
+        PLAN_CODE="$2"
+        shift 2
+        continue
+        ;;
+      '--')
+        shift
+        break
+        ;;
+      *)
+        echo_stderr 'Internal error!'
+        exit 1
+        ;;
+    esac
+  done
+
   if [ -z "${PLAN_CODE-}" ]; then
     echo_stderr "Error: PLAN_CODE is not set"
     echo_stderr
