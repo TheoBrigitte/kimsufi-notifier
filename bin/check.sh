@@ -23,7 +23,7 @@ usage() {
   echo_stderr "Check OVH Eco (including Kimsufi) server availability"
   echo_stderr
   echo_stderr "Arguments"
-  echo_stderr "  -p, --plan-code        Plan code to check (e.g. 22sk010)"
+  echo_stderr "  -p, --plan-code        Plan code to check (e.g. 24ska01)"
   echo_stderr "  --datacenters          Comma-separated list of datacenters"
   echo_stderr "                           Allowed values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw"
   echo_stderr "  -e, --endpoint         OVH API endpoint (default: ovh-eu)"
@@ -41,8 +41,8 @@ usage() {
   echo_stderr "    HEALTHCHECKS_IO_UUID  UUID for healthchecks.io to ping after successful run"
   echo_stderr
   echo_stderr "Example:"
-  echo_stderr "  $bin_name --plan-code 22sk010"
-  echo_stderr "  $bin_name --plan-code 22sk010 --datacenters fr,gra,rbx,sbg"
+  echo_stderr "  $bin_name --plan-code 24ska01"
+  echo_stderr "  $bin_name --plan-code 24ska01 --datacenters fr,gra,rbx,sbg"
 }
 
 notify_opsgenie() {
