@@ -17,22 +17,30 @@ echo_stderr() {
 }
 
 usage() {
-  echo_stderr "Usage: PLAN_CODE=<plan code> DATACENTERS=<datacenters list> $0"
-  echo_stderr "  Required:"
-  echo_stderr "    PLAN_CODE             Plan code to check (e.g. 22sk010)"
-  echo_stderr "  Optional:"
-  echo_stderr "    DATACENTERS           Comma-separated list of datacenters"
-  echo_stderr "                          Allowed values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw"
-  echo_stderr "    OPSGENIE_API_KEY      API key for OpsGenie"
-  echo_stderr "    TELEGRAM_BOT_TOKEN    Bot token for Telegram"
-  echo_stderr "    TELEGRAM_CHAT_ID      Chat ID for Telegram"
-  echo_stderr "    HEALTHCHECKS_IO_UUID  UUID for healthchecks.io"
-  echo_stderr "    DEBUG                 Enable debug mode (default: false)"
+  bin_name=$(basename "$0")
+  echo_stderr "Usage: $bin_name"
+  echo_stderr
+  echo_stderr "Check OVH Eco (including Kimsufi) server availability"
+  echo_stderr
+  echo_stderr "Arguments"
+  echo_stderr "  -p, --plan-code        Plan code to check (e.g. 22sk010)"
+  echo_stderr "  --datacenters          Comma-separated list of datacenters"
+  echo_stderr "                           Allowed values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw"
+  echo_stderr "  -d, --debug            Enable debug mode (default: false)"
+  echo_stderr "  -h, --help             Display this help message"
+  echo_stderr
+  echo_stderr "  Arguments can also be set as environment variables see config.env.example"
+  echo_stderr "  Command line arguments take precedence over environment variables"
+  echo_stderr
+  echo_stderr "Environment variables"
+  echo_stderr "    OPSGENIE_API_KEY      API key for OpsGenie to receive notifications"
+  echo_stderr "    TELEGRAM_BOT_TOKEN    Bot token for Telegram to receive notifications"
+  echo_stderr "    TELEGRAM_CHAT_ID      Chat ID for Telegram to receive notifications"
+  echo_stderr "    HEALTHCHECKS_IO_UUID  UUID for healthchecks.io to ping after successful run"
   echo_stderr
   echo_stderr "Example:"
-  echo_stderr "  PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg $0"
-  echo_stderr "  PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg OPSGENIE_API_KEY=******* $0"
-  echo_stderr "  PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg TELEGRAM_BOT_TOKEN=******** TELEGRAM_CHAT_ID=******** $0"
+  echo_stderr "  $bin_name --plan-code 22sk010"
+  echo_stderr "  $bin_name --plan-code 22sk010 --datacenters fr,gra,rbx,sbg"
 }
 
 notify_opsgenie() {
