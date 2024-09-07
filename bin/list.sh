@@ -6,7 +6,7 @@ set -eu
 
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
 
-DEBUG=${DEBUG:-false}
+DEBUG=false
 
 echo_stderr() {
     >&2 echo "$@"
