@@ -37,6 +37,7 @@ usage() {
   echo_stderr
   echo_stderr "Example:"
   echo_stderr "    $bin_name --country FR"
+  echo_stderr "    $bin_name --country FR --category kimsufi"
 }
 
 main() {
