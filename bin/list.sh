@@ -82,6 +82,7 @@ main() {
     usage
     exit 1
   fi
+  COUNTRY="${COUNTRY^^}"
 
   OVH_URL="${OVH_API_ENDPOINTS["$OVH_API_ENDPOINT"]}/order/catalog/public/eco?ovhSubsidiary=${COUNTRY}"
 
