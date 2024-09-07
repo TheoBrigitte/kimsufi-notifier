@@ -102,16 +102,16 @@ main() {
 
   install_tools
 
-  ARGS=$(getopt -o 'de:hp:' --long 'datacenters:,debug,endpoint:,help,plan-code:' -- "$@")
+  ARGS=$(getopt -o 'd:e:hp:' --long 'datacenters:,debug,endpoint:,help,plan-code:' -- "$@")
   eval set -- "$ARGS"
   while true; do
     case "$1" in
-      --datacenters)
+      -d | --datacenters)
         DATACENTERS="$2"
         shift 2
         continue
         ;;
-      -d | --debug)
+      --debug)
         DEBUG=true
         shift 1
         continue

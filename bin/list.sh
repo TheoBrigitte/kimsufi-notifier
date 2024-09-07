@@ -43,7 +43,7 @@ main() {
 
   install_tools
 
-  ARGS=$(getopt -o 'c:de:h' --long 'country:,debug,endpoint:,help' -- "$@")
+  ARGS=$(getopt -o 'c:e:h' --long 'country:,debug,endpoint:,help' -- "$@")
   eval set -- "$ARGS"
   while true; do
     case "$1" in
@@ -52,7 +52,7 @@ main() {
         shift 2
         continue
         ;;
-      -d | --debug)
+      --debug)
         DEBUG=true
         shift 1
         continue
