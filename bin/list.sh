@@ -8,11 +8,6 @@ SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
 
 DEBUG=false
 
-declare -A OVH_API_ENDPOINTS
-OVH_API_ENDPOINTS["ovh-eu"]="https://eu.api.ovh.com/v1"
-OVH_API_ENDPOINTS["ovh-ca"]="https://ca.api.ovh.com/v1"
-OVH_API_ENDPOINTS["ovh-us"]="https://api.us.ovhcloud.com/1.0"
-
 OVH_API_ENDPOINT="ovh-eu"
 
 echo_stderr() {
