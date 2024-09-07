@@ -16,7 +16,6 @@
 - List available servers from OVH Eco catalog
 - Check availability of a specific server in one or multiple datacenters
 - Send notifications to OpsGenie and/or Telegram when a server is available
-- Self health-checks
 
 ## Quickstart
 
