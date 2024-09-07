@@ -7,7 +7,7 @@ SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
 JQ_VERSION="1.7.1"
 JQ_BIN="${SCRIPT_DIR}/jq"
 
-function install_tool() {
+install_tool() {
     local binary="$(basename $1)" ; shift
     local version=$1 ; shift
     local url=$1 ; shift
@@ -23,4 +23,6 @@ function install_tool() {
     fi
 }
 
-install_tool "${JQ_BIN}" "${JQ_VERSION}" "https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64"
+install_tools() {
+  install_tool "${JQ_BIN}" "${JQ_VERSION}" "https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64"
+}

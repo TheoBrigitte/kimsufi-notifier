@@ -98,6 +98,8 @@ main() {
   source "${SCRIPT_DIR}/../config.env"
   source "${SCRIPT_DIR}/common.sh"
 
+  install_tools
+
   ARGS=$(getopt -o 'de:hp:' --long 'datacenters:,debug,help,plan-code:' -- "$@")
   eval set -- "$ARGS"
   while true; do
