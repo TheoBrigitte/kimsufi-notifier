@@ -7,7 +7,7 @@ set -eu
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
 DEBUG=false
 
-OVH_API_ENDPOINT="https://eu.api.ovh.com/v1"
+OVH_API_ENDPOINT="ovh-eu"
 OPSGENIE_API_URL="https://api.opsgenie.com/v2/alerts"
 TELEGRAM_API_URL="https://api.telegram.org"
 HEALTHCHECKS_IO_API_URL="https://hc-ping.com"
@@ -26,6 +26,8 @@ usage() {
   echo_stderr "  -p, --plan-code        Plan code to check (e.g. 22sk010)"
   echo_stderr "  --datacenters          Comma-separated list of datacenters"
   echo_stderr "                           Allowed values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw"
+  echo_stderr "  -e, --endpoint         OVH API endpoint (default: ovh-eu)"
+  echo_stderr "                           Allowed values: ovh-eu, ovh-ca, ovh-us"
   echo_stderr "  -d, --debug            Enable debug mode (default: false)"
   echo_stderr "  -h, --help             Display this help message"
   echo_stderr
@@ -100,7 +102,7 @@ main() {
 
   install_tools
 
-  ARGS=$(getopt -o 'de:hp:' --long 'datacenters:,debug,help,plan-code:' -- "$@")
+  ARGS=$(getopt -o 'de:hp:' --long 'datacenters:,debug,endpoint:,help,plan-code:' -- "$@")
   eval set -- "$ARGS"
   while true; do
     case "$1" in
@@ -112,6 +114,11 @@ main() {
       -d | --debug)
         DEBUG=true
         shift 1
+        continue
+        ;;
+      -e | --endpoint)
+        OVH_API_ENDPOINT="$2"
+        shift 2
         continue
         ;;
       -h | --help)
@@ -141,7 +148,7 @@ main() {
     exit 1
   fi
 
-  OVH_URL="${OVH_API_ENDPOINT}/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}"
+  OVH_URL="${OVH_API_ENDPOINTS["$OVH_API_ENDPOINT"]}/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}"
 
   DATACENTERS_MESSAGE=""
   if [ -n "${DATACENTERS-}" ]; then
