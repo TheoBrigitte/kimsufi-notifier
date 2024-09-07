@@ -47,7 +47,7 @@ main() {
   while true; do
     case "$1" in
       -c | --country)
-        COUNTRY=$2
+        COUNTRY="$2"
         shift 2
         continue
         ;;
