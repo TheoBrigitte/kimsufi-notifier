@@ -82,7 +82,7 @@ notify_telegram() {
     -d chat_id="${TELEGRAM_CHAT_ID}" \
     -d text="${message}" \
     -d parse_mode="HTML" \
-    "${TG_WEBHOOK_URL}")"
+    "${TELEGRAM_WEBHOOK_URL}")"
 
   if $DEBUG; then
     echo_stderr "$RESULT"
