@@ -6,63 +6,100 @@ set -eu
 
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
 
-source "${SCRIPT_DIR}/../config.env"
-source "${SCRIPT_DIR}/common.sh"
+DEBUG=${DEBUG:-false}
 
 echo_stderr() {
     >&2 echo "$@"
 }
 
 usage() {
-  echo_stderr "Usage: COUNTRY=XX $0"
-  echo_stderr "  Required:"
-  echo_stderr "    COUNTRY             Country code"
-  echo_stderr "                        Allowed values: CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
+  bin_name=$(basename "$0")
+  echo_stderr "Usage: $bin_name"
   echo_stderr
-  echo_stderr "Optional:"
-  echo_stderr "    DEBUG               Enable debug mode (default: false)"
+  echo_stderr "  Arguments"
+  echo_stderr "    -c, --country    Country code (required)"
+  echo_stderr "                     Allowed values: CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
+  echo_stderr "    -d, --debug      Enable debug mode (default: false)"
+  echo_stderr "    -h, --help       Display this help message"
+  echo_stderr
+  echo_stderr "    Arguments can also be set as environment variables see config.env.example"
+  echo_stderr "    Command line arguments take precedence over environment variables"
   echo_stderr
   echo_stderr "Example:"
-  echo_stderr "  COUNTRY=FR $0"
+  echo_stderr "    $bin_name --country FR"
 }
 
-if [ -z "${COUNTRY-}" ]; then
-  echo_stderr "Error: COUNTRY is not set"
-  echo_stderr
-  usage
-  exit 1
-fi
+main() {
+  source "${SCRIPT_DIR}/../config.env"
+  source "${SCRIPT_DIR}/common.sh"
 
-OVH_URL="https://eu.api.ovh.com/v1/order/catalog/public/eco?ovhSubsidiary=${COUNTRY}"
+  ARGS=$(getopt -o 'c:dh' --long 'country:,debug,help' -- "$@")
+  eval set -- "$ARGS"
+  while true; do
+    case "$1" in
+      -c | --country)
+        COUNTRY=$2
+        shift 2
+        continue
+        ;;
+      -d | --debug)
+        DEBUG=true
+        shift 1
+        continue
+        ;;
+      -h | --help)
+        usage
+        exit 0
+        ;;
+      '--')
+        shift
+        break
+        ;;
+      *)
+        echo_stderr 'Internal error!'
+        exit 1
+        ;;
+    esac
+  done
 
-DEBUG=${DEBUG:-false}
+  if [ -z "${COUNTRY-}" ]; then
+    echo_stderr "Error: COUNTRY is not set"
+    echo_stderr
+    usage
+    exit 1
+  fi
 
-# Fetch servers from OVH API
-echo_stderr "> fetching servers in $COUNTRY"
-if $DEBUG; then
-  echo_stderr "> fetching data from $OVH_URL"
-fi
+  OVH_URL="${OVH_API_ENDPOINTS["$OVH_API_ENDPOINT"]}/order/catalog/public/eco?ovhSubsidiary=${COUNTRY}"
 
-DATA=$(curl -qSs "${OVH_URL}")
+  # Fetch servers from OVH API
+  echo_stderr "> fetching servers in $COUNTRY"
+  if $DEBUG; then
+    echo_stderr "> fetching data from $OVH_URL"
+  fi
 
-if $DEBUG; then
-  TMP_FILE="$(mktemp kimsufi-notifier.XXXXXX)"
-  echo "$DATA" > "$TMP_FILE"
-  echo_stderr "> saved    data to   $TMP_FILE"
-fi
+  DATA=$(curl -qSs "${OVH_URL}")
 
-# Check for error: empty data, invalid json, or empty list
-if test -z "$DATA" || ! echo "$DATA" | $JQ_BIN -e . &>/dev/null || echo "$DATA" | $JQ_BIN -e '.plans | length == 0' &>/dev/null; then
-  echo "> failed to fetch data from $OVH_URL"
-  exit 1
-fi
-echo_stderr "> fetched  servers"
+  if $DEBUG; then
+    TMP_FILE="$(mktemp kimsufi-notifier.XXXXXX)"
+    echo "$DATA" > "$TMP_FILE"
+    echo_stderr "> saved    data to   $TMP_FILE"
+  fi
 
-# Get currency code
-CURRENCY="$(echo "$DATA" | $JQ_BIN -r '.locale.currencyCode')"
+  # Check for error: empty data, invalid json, or empty list
+  if test -z "$DATA" || ! echo "$DATA" | $JQ_BIN -e . &>/dev/null || echo "$DATA" | $JQ_BIN -e '.plans | length == 0' &>/dev/null; then
+    echo "> failed to fetch data from $OVH_URL"
+    exit 1
+  fi
+  echo_stderr "> fetched  servers"
 
-# Print servers
-echo "$DATA" | \
-  $JQ_BIN -r '.plans[] | [ .planCode, .blobs.commercial.range, .invoiceName, (.pricings[] | select(.phase == 1) | select(.mode == "default") | .price/100000000) ] | @tsv' | \
-  sort -k2,2 -k4n,4 -b -t $'\t' | \
-  column -s $'\t' -t -C "name=PlanCode" -C "name=Category" -C "name=Name" -C "name=Price ($CURRENCY)" -o '    '
+  # Get currency code
+  CURRENCY="$(echo "$DATA" | $JQ_BIN -r '.locale.currencyCode')"
+
+  # Print servers
+  echo "$DATA" | \
+    $JQ_BIN -r '.plans[] | [ .planCode, .blobs.commercial.range, .invoiceName, (.pricings[] | select(.phase == 1) | select(.mode == "default") | .price/100000000) ] | @tsv' | \
+    sort -k2,2 -k4n,4 -b -t $'\t' | \
+    column -s $'\t' -t -C "name=PlanCode" -C "name=Category" -C "name=Name" -C "name=Price ($CURRENCY)" -o '    '
+}
+
+main "$@"
