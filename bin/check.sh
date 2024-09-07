@@ -6,6 +6,10 @@ set -eu
 
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
 
+OVH_API_ENDPOINT="https://eu.api.ovh.com/v1"
+OPSGENIE_API_URL="https://api.opsgenie.com/v2/alerts"
+TELEGRAM_API_URL="https://api.telegram.org"
+HEALTHCHECKS_IO_API_URL="https://hc-ping.com"
 
 echo_stderr() {
     >&2 echo "$@"
@@ -60,7 +64,7 @@ notify_telegram() {
     return
   fi
 
-  TG_WEBHOOK_URL="https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
+  TELEGRAM_WEBHOOK_URL="${TELEGRAM_API_URL}/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
 
   echo_stderr "> sending Telegram notification"
   RESULT="$(curl -sSX POST \
@@ -82,10 +86,10 @@ notify_telegram() {
 }
 
 main() {
-  OPSGENIE_API_URL="https://api.opsgenie.com/v2/alerts"
-  OVH_URL="https://eu.api.ovh.com/v1/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}"
   source "${SCRIPT_DIR}/../config.env"
   source "${SCRIPT_DIR}/common.sh"
+
+  OVH_URL="${OVH_API_ENDPOINT}/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}"
 
   DEBUG=${DEBUG:-false}
   DATACENTERS_MESSAGE=""
@@ -126,7 +130,7 @@ main() {
 
   # Ping healthchecks.io to ensure this script is running without errors
   if [ -n "${HEALTHCHECKS_IO_UUID-}" ]; then
-    curl -sS -o /dev/null "https://hc-ping.com/${HEALTHCHECKS_IO_UUID}"
+    curl -sS -o /dev/null "${HEALTHCHECKS_IO_API_URL}/${HEALTHCHECKS_IO_UUID}"
   fi
 
   # Check for datacenters availability
