@@ -190,7 +190,7 @@ main() {
   fi
 
   # Print availability
-  AVAILABLE_DATACENTERS="$(echo "$DATA" | $JQ_BIN -r '[.[].datacenters[] | select(.availability != "unavailable") | .datacenter] | join(",")')"
+  AVAILABLE_DATACENTERS="$(echo "$DATA" | $JQ_BIN -r '[.[].datacenters[] | select(.availability != "unavailable") | .datacenter] | unique | join(",")')"
   echo_stderr "> checked  $PLAN_CODE available    in $AVAILABLE_DATACENTERS"
 
   # Send notifications
