@@ -8,6 +8,13 @@ SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
 
 DEBUG=false
 
+declare -A OVH_API_ENDPOINTS
+OVH_API_ENDPOINTS["ovh-eu"]="https://eu.api.ovh.com/v1"
+OVH_API_ENDPOINTS["ovh-ca"]="https://ca.api.ovh.com/v1"
+OVH_API_ENDPOINTS["ovh-us"]="https://api.us.ovhcloud.com/1.0"
+
+OVH_API_ENDPOINT="ovh-eu"
+
 echo_stderr() {
     >&2 echo "$@"
 }
@@ -20,6 +27,8 @@ usage() {
   echo_stderr "    -c, --country    Country code (required)"
   echo_stderr "                     Allowed values: CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
   echo_stderr "    -d, --debug      Enable debug mode (default: false)"
+  echo_stderr "    -e, --endpoint   OVH API endpoint (default: ovh-eu)"
+  echo_stderr "                     Allowed values: ovh-eu, ovh-ca, ovh-us"
   echo_stderr "    -h, --help       Display this help message"
   echo_stderr
   echo_stderr "    Arguments can also be set as environment variables see config.env.example"
@@ -33,7 +42,7 @@ main() {
   source "${SCRIPT_DIR}/../config.env"
   source "${SCRIPT_DIR}/common.sh"
 
-  ARGS=$(getopt -o 'c:dh' --long 'country:,debug,help' -- "$@")
+  ARGS=$(getopt -o 'c:de:h' --long 'country:,debug,endpoint:,help' -- "$@")
   eval set -- "$ARGS"
   while true; do
     case "$1" in
@@ -45,6 +54,11 @@ main() {
       -d | --debug)
         DEBUG=true
         shift 1
+        continue
+        ;;
+      -e | --endpoint)
+        OVH_API_ENDPOINT="$2"
+        shift 2
         continue
         ;;
       -h | --help)
