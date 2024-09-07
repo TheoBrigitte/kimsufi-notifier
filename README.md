@@ -46,7 +46,7 @@ More details can be found in the [config.env.example](config.env.example) file.
 List servers from OVH Eco catalog in a specific country.
 
 ```
-$ COUNTRY=FR bin/list.sh
+$ bin/list.sh --country FR
 > fetching servers in FR
 > fetched  servers
 PlanCode                Category      Name                 Price (EUR)

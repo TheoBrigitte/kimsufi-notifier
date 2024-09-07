@@ -25,6 +25,8 @@ usage() {
   echo_stderr "                     Allowed values for ovh-eu: CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
   echo_stderr "                     Allowed values for ovh-ca: ASIA, AU, CA, IN, QC, SG, WE, WS"
   echo_stderr "                     Allowed values for ovh-us: US"
+  echo_stderr "  --category       Server category (default all)"
+  echo_stderr "                     Allowed values: kimsufi, soyoustart, rise, uncategorized"
   echo_stderr "  -e, --endpoint   OVH API endpoint (default: ovh-eu)"
   echo_stderr "                     Allowed values: ovh-eu, ovh-ca, ovh-us"
   echo_stderr "  -d, --debug      Enable debug mode (default: false)"
@@ -43,10 +45,15 @@ main() {
 
   install_tools
 
-  ARGS=$(getopt -o 'c:e:h' --long 'country:,debug,endpoint:,help' -- "$@")
+  ARGS=$(getopt -o 'c:e:h' --long 'category:,country:,debug,endpoint:,help' -- "$@")
   eval set -- "$ARGS"
   while true; do
     case "$1" in
+      --category)
+        CATEGORY="$2"
+        shift 2
+        continue
+        ;;
       -c | --country)
         COUNTRY="$2"
         shift 2
@@ -111,9 +118,21 @@ main() {
   # Get currency code
   CURRENCY="$(echo "$DATA" | $JQ_BIN -r '.locale.currencyCode')"
 
+  # Filter by category
+  if [ -n "${CATEGORY-}" ]; then
+    if [ "$CATEGORY" == "uncategorized" ]; then
+      CATEGORY=null
+    else
+      CATEGORY="\"$CATEGORY\""
+    fi
+    category_filter='| select(.blobs.commercial.range == '"$CATEGORY"')'
+  else
+    category_filter=''
+  fi
+
   # Print servers
   echo "$DATA" | \
-    $JQ_BIN -r '.plans[] | [ .planCode, .blobs.commercial.range, .invoiceName, (.pricings[] | select(.phase == 1) | select(.mode == "default") | .price/100000000) ] | @tsv' | \
+    $JQ_BIN -r '.plans[] '"$category_filter"' | [ .planCode, .blobs.commercial.range, .invoiceName, (.pricings[] | select(.phase == 1) | select(.mode == "default") | .price/100000000) ] | @tsv' | \
     sort -k2,2 -k4n,4 -b -t $'\t' | \
     column -s $'\t' -t -C "name=PlanCode" -C "name=Category" -C "name=Name" -C "name=Price ($CURRENCY)" -o '    '
 }
