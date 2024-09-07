@@ -25,10 +25,12 @@ usage() {
   echo_stderr
   echo_stderr "  Arguments"
   echo_stderr "    -c, --country    Country code (required)"
-  echo_stderr "                     Allowed values: CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
-  echo_stderr "    -d, --debug      Enable debug mode (default: false)"
+  echo_stderr "                       Allowed values for ovh-eu: CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
+  echo_stderr "                       Allowed values for ovh-ca: ASIA, AU, CA, IN, QC, SG, WE, WS"
+  echo_stderr "                       Allowed values for ovh-us: US"
   echo_stderr "    -e, --endpoint   OVH API endpoint (default: ovh-eu)"
-  echo_stderr "                     Allowed values: ovh-eu, ovh-ca, ovh-us"
+  echo_stderr "                       Allowed values: ovh-eu, ovh-ca, ovh-us"
+  echo_stderr "    -d, --debug      Enable debug mode (default: false)"
   echo_stderr "    -h, --help       Display this help message"
   echo_stderr
   echo_stderr "    Arguments can also be set as environment variables see config.env.example"
