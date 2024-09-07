@@ -13,9 +13,10 @@
 
 ## Features
 
-- List available servers from OVH Eco catalog in a specific country
+- List available servers from OVH Eco catalog
 - Check availability of a specific server in one or multiple datacenters
 - Send notifications to OpsGenie and/or Telegram when a server is available
+- Self health-checks
 
 ## Quickstart
 
@@ -31,11 +32,14 @@ bin/check.sh
 Configuration is done through environment variables. The following variables are available:
 
 - `COUNTRY`: country code to list servers from (e.g. `FR`)
-- `PLAN_CODE`: plan code to check availability for (e.g. `22sk010`)
+- `CATEGORY`: server category to list servers from (e.g. `kimsufi`)
+- `PLAN_CODE`: plan code to check availability for (e.g. `24ska01`)
 - `DATACENTERS`: comma-separated list of datacenters to check availability in (e.g. `fr,gra,rbx,sbg`)
+- `ENDPOINT`: OVH API endpoint to use (e.g. `ovh-eu`)
 - `OPSGENIE_API_KEY`: API key to use OpsGenie notification service
 - `TELEGRAM_CHAT_ID`: chat ID to use Telegram notification service
 - `TELEGRAM_BOT_TOKEN`: bot token to use Telegram notification service
+- `HEALTHCHECKS_IO_UUID`: UUID for healthchecks.io to ping after successful run
 
 More details can be found in the [config.env.example](config.env.example) file.
 
@@ -126,7 +130,7 @@ PlanCode              Category    Name                            Price (EUR)
 
 #### Check availability
 
-Check availability of a specific server in one all datacenters.
+Check availability of a specific server in all datacenters.
 
 ```
 $ bin/check.sh --plan-code 24ska01
@@ -144,17 +148,16 @@ Supported notification services:
 
 In order to receive notifications the appropriate environment variables must be set:
 
-- `OPSGENIE_API_KEY`: API key to use OpsGenie notification service
-- `TELEGRAM_CHAT_ID`: chat ID to use Telegram notification service
-- `TELEGRAM_BOT_TOKEN`: bot token to use Telegram notification service
+- `OPSGENIE_API_KEY`: required to use OpsGenie as notification service, see [OpsGenie API key](https://support.atlassian.com/opsgenie/docs/api-key-management/) or [OpsGenie integration](https://support.atlassian.com/opsgenie/docs/create-a-default-api-integration/)
+- `TELEGRAM_CHAT_ID`: required to use Telegram as notification service, see [Telegram bot creation guide](https://core.telegram.org/bots/features#creating-a-new-bot) or [this Gist](https://gist.github.com/nafiesl/4ad622f344cd1dc3bb1ecbe468ff9f8a#file-how_to_get_telegram_chat_id-md)
+- `TELEGRAM_BOT_TOKEN`: required to use Telegram as notification service
 
-More details can be found in the [config.env.example](config.env.example) file.
+It is recommended to set those values in the config file, see [config.env.example](config.env.exampl).
 
 ### Examples
 
 Example with OpsGenie:
 ```
-$ export OPSGENIE_API_KEY=********
 $ bin/check.sh --plan-code 24ska01
 > checking 24ska01 availability in all datacenters
 > checked  24ska01 available    in fr,gra,rbx,sbg
@@ -164,14 +167,9 @@ $ bin/check.sh --plan-code 24ska01
 
 Example with Telegram:
 ```
-$ export TELEGRAM_BOT_TOKEN=********
-$ export TELEGRAM_CHAT_ID=********
 $ bin/check.sh --plan-code 24ska01
 > checking 24ska01 availability in all datacenters
 > checked  24ska01 available    in fr,gra,rbx,sbg
-$ PLAN_CODE=22sk010 DATACENTERS=fr,gra,rbx,sbg TELEGRAM_BOT_TOKEN=******** TELEGRAM_CHAT_ID=******** bin/check.sh
-> checking 22sk010 availability in fr,gra,rbx,sbg
-> checked  22sk010 available    in fr,gra,rbx,sbg
 > sending Telegram notification
 > sent    Telegram notification
 ```
