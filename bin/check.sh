@@ -191,10 +191,10 @@ main() {
 
   # Print availability
   AVAILABLE_DATACENTERS="$(echo "$DATA" | $JQ_BIN -r '[.[].datacenters[] | select(.availability != "unavailable") | .datacenter] | unique | join(",")')"
-  echo_stderr "> checked  $PLAN_CODE available    in $AVAILABLE_DATACENTERS"
+  echo_stderr "> checked  $PLAN_CODE available    in $AVAILABLE_DATACENTERS datacenter(s)"
 
   # Send notifications
-  message="$PLAN_CODE is available https://eco.ovhcloud.com"
+  message="$PLAN_CODE is available in $AVAILABLE_DATACENTERS datacenter(s), check https://eco.ovhcloud.com"
   notify_opsgenie "$message"
   notify_telegram "$message"
 }
