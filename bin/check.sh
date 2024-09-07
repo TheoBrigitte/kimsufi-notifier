@@ -7,7 +7,7 @@ set -eu
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
 DEBUG=false
 
-OVH_API_ENDPOINT="ovh-eu"
+ENDPOINT="ovh-eu"
 OPSGENIE_API_URL="https://api.opsgenie.com/v2/alerts"
 TELEGRAM_API_URL="https://api.telegram.org"
 HEALTHCHECKS_IO_API_URL="https://hc-ping.com"
@@ -117,7 +117,7 @@ main() {
         continue
         ;;
       -e | --endpoint)
-        OVH_API_ENDPOINT="$2"
+        ENDPOINT="$2"
         shift 2
         continue
         ;;
@@ -148,7 +148,7 @@ main() {
     exit 1
   fi
 
-  OVH_URL="${OVH_API_ENDPOINTS["$OVH_API_ENDPOINT"]}/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}"
+  OVH_URL="${OVH_API_ENDPOINTS["$ENDPOINT"]}/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}"
 
   DATACENTERS_MESSAGE=""
   if [ -n "${DATACENTERS-}" ]; then

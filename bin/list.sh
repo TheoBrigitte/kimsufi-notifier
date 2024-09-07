@@ -8,7 +8,7 @@ SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
 
 DEBUG=false
 
-OVH_API_ENDPOINT="ovh-eu"
+ENDPOINT="ovh-eu"
 
 echo_stderr() {
     >&2 echo "$@"
@@ -66,7 +66,7 @@ main() {
         continue
         ;;
       -e | --endpoint)
-        OVH_API_ENDPOINT="$2"
+        ENDPOINT="$2"
         shift 2
         continue
         ;;
@@ -93,7 +93,7 @@ main() {
   fi
   COUNTRY="${COUNTRY^^}"
 
-  OVH_URL="${OVH_API_ENDPOINTS["$OVH_API_ENDPOINT"]}/order/catalog/public/eco?ovhSubsidiary=${COUNTRY}"
+  OVH_URL="${OVH_API_ENDPOINTS["$ENDPOINT"]}/order/catalog/public/eco?ovhSubsidiary=${COUNTRY}"
 
   # Fetch servers from OVH API
   echo_stderr "> fetching servers in $COUNTRY"
