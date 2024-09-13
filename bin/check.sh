@@ -55,7 +55,7 @@ notify_gotify() {
     return
   fi
 
-  if [ -z ${GOTIFY_URL+x} ]; then
+  if [ -z ${GOTIFY_PRIORITY+x} ]; then
     return
   fi
 
