@@ -51,6 +51,14 @@ notify_gotify() {
     return
   fi
 
+  if [ -z ${GOTIFY_URL+x} ]; then
+    return
+  fi
+
+  if [ -z ${GOTIFY_URL+x} ]; then
+    return
+  fi
+
   echo_stderr "> sending Gotify notification"
   RESULT="$(curl -sSX POST "$GOTIFY_URL/message?token=$GOTIFY_TOKEN" \
       -F "title=OVH Availability" \
