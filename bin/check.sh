@@ -45,6 +45,38 @@ usage() {
   echo_stderr "  $bin_name --plan-code 24ska01 --datacenters fr,gra,rbx,sbg"
 }
 
+notify_gotify() {
+  local message="$1"
+  if [ -z ${GOTIFY_TOKEN+x} ]; then
+    return
+  fi
+
+  if [ -z ${GOTIFY_URL+x} ]; then
+    return
+  fi
+
+  if [ -z ${GOTIFY_PRIORITY+x} ]; then
+    return
+  fi
+
+  echo_stderr "> sending Gotify notification"
+  RESULT="$(curl -sSX POST "$GOTIFY_URL/message?token=$GOTIFY_TOKEN" \
+      -F "title=OVH Availability" \
+      -F "message=$message" \
+      -F "priority=$GOTIFY_PRIORITY")"
+
+  if $DEBUG; then
+    echo_stderr "$RESULT"
+  fi
+
+  if echo "$RESULT" | $JQ_BIN -e .error &>/dev/null; then
+    echo "$RESULT"
+    echo_stderr "> failed Gotify notification"
+  else
+    echo_stderr "> sent Gotify notification"
+  fi
+}
+
 notify_opsgenie() {
   local message="$1"
   if [ -z ${OPSGENIE_API_KEY+x} ]; then
@@ -197,6 +229,7 @@ main() {
   message="$PLAN_CODE is available in $AVAILABLE_DATACENTERS datacenter(s), check https://eco.ovhcloud.com"
   notify_opsgenie "$message"
   notify_telegram "$message"
+  notify_gotify "$message"
 }
 
 main "$@"
