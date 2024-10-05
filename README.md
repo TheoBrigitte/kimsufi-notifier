@@ -44,11 +44,20 @@ More details can be found in the [config.env.example](config.env.example) file.
 Notification(s) can be sent whenever a server is available. Either one or multiple notification services can be used.
 
 Supported notification services:
+- [Discord](https://discord.com/) via [Webhook](https://discord.com/developers/docs/resources/webhook)
 - [Gotify](https://gotify.net/)
 - [OpsGenie](https://www.atlassian.com/software/opsgenie) via [Alerts API](https://docs.opsgenie.com/docs/alert-api)
 - [Telegram](https://telegram.org/) via [Bots API#sendMessage](https://core.telegram.org/bots/api#sendmessage)
 
 In order to use a notification service, it is recommended to set its environment variables in the config file, see [config.env.example](config.env.example).
+
+### Discord
+
+In order to recieve notifications for Gotify, the appropriate environment variable must be set:
+
+- `DISCORD_WEBHOOK`: Webhook URL to use for Discord notification service
+
+See [Intro to Webhook](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) for how to make and use a Discord Webhook.
 
 ### Gotify
 
@@ -142,6 +151,7 @@ Arguments
   Command line arguments take precedence over environment variables
 
 Environment variables
+    DISCORD_WEBHOOK       Webhook URL to use for Discord notification service
     GOTIFY_URL            URL to use for Gotify notification service
     GOTIFY_TOKEN          token to use for Gotify notification service
     GOTIFY_PRIORITY       prority for Gotify notification service
