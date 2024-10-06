@@ -146,7 +146,7 @@ Supported notification services:
 - [OpsGenie](https://www.atlassian.com/software/opsgenie) via [Alerts API](https://docs.opsgenie.com/docs/alert-api)
 - [Telegram](https://telegram.org/) via [Bots API#sendMessage](https://core.telegram.org/bots/api#sendmessage)
 
-It is recommended to set those values in the config file, see [config.env.example](config.env.example).
+In order to use a notification service, it is recommended to set its environment variables in the config file, see [config.env.example](config.env.example).
 
 ### Gotify
 
