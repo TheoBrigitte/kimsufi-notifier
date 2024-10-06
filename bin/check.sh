@@ -35,6 +35,7 @@ usage() {
   echo_stderr "  Command line arguments take precedence over environment variables"
   echo_stderr
   echo_stderr "Environment variables"
+  echo_stderr "    DISCORD_WEBHOOK       Webhook URL to use for Discord notification service"
   echo_stderr "    GOTIFY_URL            URL to use for Gotify notification service"
   echo_stderr "    GOTIFY_TOKEN          token to use for Gotify notification service"
   echo_stderr "    GOTIFY_PRIORITY       prority for Gotify notification service"
@@ -46,6 +47,29 @@ usage() {
   echo_stderr "Example:"
   echo_stderr "  $bin_name --plan-code 24ska01"
   echo_stderr "  $bin_name --plan-code 24ska01 --datacenters fr,gra,rbx,sbg"
+}
+
+notify_discord() {
+  local message="$1"
+  if [ -z ${DISCORD_WEBHOOK+x} ]; then
+    return
+  fi
+
+  BODY="{\"content\": \"$message\"}"
+
+  echo_stderr "> sending Discord notification"
+  RESULT="$(curl -sSX POST -H "Content-Type: application/json" "$DISCORD_WEBHOOK" -d "$BODY")"
+
+  if $DEBUG; then
+    echo_stderr "$RESULT"
+  fi
+
+  if echo "$RESULT" | $JQ_BIN -e .message &>/dev/null; then
+    echo "$RESULT"
+    echo_stderr "> failed Discord notification"
+  else
+    echo_stderr "> sent Discord notification"
+  fi
 }
 
 notify_gotify() {
@@ -233,6 +257,7 @@ main() {
   notify_opsgenie "$message"
   notify_telegram "$message"
   notify_gotify "$message"
+  notify_discord "$message"
 }
 
 main "$@"
