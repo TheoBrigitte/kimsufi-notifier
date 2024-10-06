@@ -156,6 +156,8 @@ In order to recieve notifications for Gotify, the appropriate environment variab
 - `GOTIFY_TOKEN`: token to use for Gotify notification service
 - `GOTIFY_PRIORITY`: prority for Gotify notification service
 
+See [Gotify Push messages](https://gotify.net/docs/pushmsg) documentation for more information.
+
 ### OpsGenie
 
 In order to recieve notifications for OpsGenie, the appropriate environment variables must be set:
