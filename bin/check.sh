@@ -35,6 +35,9 @@ usage() {
   echo_stderr "  Command line arguments take precedence over environment variables"
   echo_stderr
   echo_stderr "Environment variables"
+  echo_stderr "    GOTIFY_URL            URL to use for Gotify notification service"
+  echo_stderr "    GOTIFY_TOKEN          token to use for Gotify notification service"
+  echo_stderr "    GOTIFY_PRIORITY       prority for Gotify notification service"
   echo_stderr "    OPSGENIE_API_KEY      API key for OpsGenie to receive notifications"
   echo_stderr "    TELEGRAM_BOT_TOKEN    Bot token for Telegram to receive notifications"
   echo_stderr "    TELEGRAM_CHAT_ID      Chat ID for Telegram to receive notifications"
