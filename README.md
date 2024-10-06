@@ -39,6 +39,62 @@ Configuration is done through environment variables. The following variables are
 
 More details can be found in the [config.env.example](config.env.example) file.
 
+## Notifications
+
+Notification(s) can be sent whenever a server is available. Either one or multiple notification services can be used.
+
+Supported notification services:
+- [Gotify](https://gotify.net/)
+- [OpsGenie](https://www.atlassian.com/software/opsgenie) via [Alerts API](https://docs.opsgenie.com/docs/alert-api)
+- [Telegram](https://telegram.org/) via [Bots API#sendMessage](https://core.telegram.org/bots/api#sendmessage)
+
+In order to use a notification service, it is recommended to set its environment variables in the config file, see [config.env.example](config.env.example).
+
+### Gotify
+
+In order to recieve notifications for Gotify, the appropriate environment variables must be set:
+
+- `GOTIFY_URL`: URL to use for Gotify notification service
+- `GOTIFY_TOKEN`: token to use for Gotify notification service
+- `GOTIFY_PRIORITY`: prority for Gotify notification service
+
+See [Gotify Push messages](https://gotify.net/docs/pushmsg) documentation for more information.
+
+### OpsGenie
+
+In order to recieve notifications for OpsGenie, the appropriate environment variables must be set:
+
+- `OPSGENIE_API_KEY`: API key to use OpsGenie notification service
+
+See [OpsGenie API key](https://support.atlassian.com/opsgenie/docs/api-key-management/) or [OpsGenie integration](https://support.atlassian.com/opsgenie/docs/create-a-default-api-integration/) for more information.
+
+Example with OpsGenie:
+```
+$ bin/check.sh --plan-code 24ska01
+> checking 24ska01 availability in all datacenters
+> checked  24ska01 available    in fr,gra,rbx,sbg
+> sending OpsGenie notification
+> sent    OpsGenie notification
+```
+
+### Telegram
+
+In order to recieve notifications for Telegram, the appropriate environment variables must be set:
+
+- `TELEGRAM_CHAT_ID`: chat ID to use Telegram notification service
+- `TELEGRAM_BOT_TOKEN`: bot token to use Telegram notification service
+
+See [Telegram bot creation guide](https://core.telegram.org/bots/features#creating-a-new-bot) or [this Gist](https://gist.github.com/nafiesl/4ad622f344cd1dc3bb1ecbe468ff9f8a#file-how_to_get_telegram_chat_id-md)
+
+Example with Telegram:
+```
+$ bin/check.sh --plan-code 24ska01
+> checking 24ska01 availability in all datacenters
+> checked  24ska01 available    in fr,gra,rbx,sbg
+> sending Telegram notification
+> sent    Telegram notification
+```
+
 ## Usage
 
 ```
@@ -135,62 +191,4 @@ Check availability of a specific server in all datacenters.
 $ bin/check.sh --plan-code 24ska01
 > checking 24ska01 availability in all datacenters
 > checked  24ska01 unavailable  in fr,gra,rbx,sbg
-```
-
-## Notifications
-
-Notification(s) can be sent whenever a server is available. Either one or multiple notification services can be used.
-
-Supported notification services:
-- [Gotify](https://gotify.net/)
-- [OpsGenie](https://www.atlassian.com/software/opsgenie) via [Alerts API](https://docs.opsgenie.com/docs/alert-api)
-- [Telegram](https://telegram.org/) via [Bots API#sendMessage](https://core.telegram.org/bots/api#sendmessage)
-
-In order to use a notification service, it is recommended to set its environment variables in the config file, see [config.env.example](config.env.example).
-
-### Gotify
-
-In order to recieve notifications for Gotify, the appropriate environment variables must be set:
-
-- `GOTIFY_URL`: URL to use for Gotify notification service
-- `GOTIFY_TOKEN`: token to use for Gotify notification service
-- `GOTIFY_PRIORITY`: prority for Gotify notification service
-
-See [Gotify Push messages](https://gotify.net/docs/pushmsg) documentation for more information.
-
-### OpsGenie
-
-In order to recieve notifications for OpsGenie, the appropriate environment variables must be set:
-
-- `OPSGENIE_API_KEY`: API key to use OpsGenie notification service
-
-See [OpsGenie API key](https://support.atlassian.com/opsgenie/docs/api-key-management/) or [OpsGenie integration](https://support.atlassian.com/opsgenie/docs/create-a-default-api-integration/) for more information.
-
-### Telegram
-
-In order to recieve notifications for Telegram, the appropriate environment variables must be set:
-
-- `TELEGRAM_CHAT_ID`: chat ID to use Telegram notification service
-- `TELEGRAM_BOT_TOKEN`: bot token to use Telegram notification service
-
-See [Telegram bot creation guide](https://core.telegram.org/bots/features#creating-a-new-bot) or [this Gist](https://gist.github.com/nafiesl/4ad622f344cd1dc3bb1ecbe468ff9f8a#file-how_to_get_telegram_chat_id-md)
-
-### Examples
-
-Example with OpsGenie:
-```
-$ bin/check.sh --plan-code 24ska01
-> checking 24ska01 availability in all datacenters
-> checked  24ska01 available    in fr,gra,rbx,sbg
-> sending OpsGenie notification
-> sent    OpsGenie notification
-```
-
-Example with Telegram:
-```
-$ bin/check.sh --plan-code 24ska01
-> checking 24ska01 availability in all datacenters
-> checked  24ska01 available    in fr,gra,rbx,sbg
-> sending Telegram notification
-> sent    Telegram notification
 ```
