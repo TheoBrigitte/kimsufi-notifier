@@ -53,7 +53,7 @@ In order to use a notification service, it is recommended to set its environment
 
 ### Discord
 
-In order to recieve notifications for Gotify, the appropriate environment variable must be set:
+In order to receive notifications for Discord, the appropriate environment variable must be set:
 
 - `DISCORD_WEBHOOK`: Webhook URL to use for Discord notification service
 
