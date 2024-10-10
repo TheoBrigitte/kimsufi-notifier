@@ -1,0 +1,307 @@
+#!/bin/bash
+
+set -eu
+
+SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
+
+DEBUG=false
+
+ENDPOINT="ovh-eu"
+
+DATACENTER=""
+QUANTITY=1
+PRICE_MODE="default"
+PRICE_DURATION="P1M"
+
+echo_stderr() {
+    >&2 echo "$@"
+}
+
+# Helper function - prints an error message and exits
+exit_error() {
+    echo_stderr "Error: $1"
+    exit 1
+}
+
+
+usage() {
+  bin_name=$(basename "$0")
+  echo_stderr "Usage: $bin_name"
+  echo_stderr
+  echo_stderr "Place an order for a servers from OVH Eco (including Kimsufi) catalog"
+  echo_stderr
+  echo_stderr "Arguments"
+  echo_stderr "  -c, --country     Country code (required)"
+  echo_stderr "                      Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
+  echo_stderr "                      Allowed values with -e ovh-ca : ASIA, AU, CA, IN, QC, SG, WE, WS"
+  echo_stderr "                      Allowed values with -e ovh-us : US"
+  echo_stderr "  --datacenter      Datacenter code (default: from config when only one is set)"
+  echo_stderr "                      Example values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw (non exhaustive list)"
+  echo_stderr "  -e, --endpoint    OVH API endpoint (default: $ENDPOINT)"
+  echo_stderr "                      Allowed values: ovh-eu, ovh-ca, ovh-us"
+  echo_stderr "  -i, --item-configuration"
+  echo_stderr "                      Item configuration in the form 'label=value'"
+  echo_stderr "  -d, --debug       Enable debug mode (default: false)"
+  echo_stderr "  -h, --help        Display this help message"
+  echo_stderr "  -q, --quantity    Quantity of items to order (default: $QUANTITY)"
+  echo_stderr "  --price-mode      Billing price type (default: $PRICE_MODE)"
+  echo_stderr "  --price-duration  Billing duration (default: $PRICE_DURATION)"
+  echo_stderr
+  echo_stderr "  Arguments can also be set as environment variables see config.env.example"
+  echo_stderr "  Command line arguments take precedence over environment variables"
+  echo_stderr
+  echo_stderr "Example:"
+  echo_stderr "    $bin_name"
+  echo_stderr "    $bin_name --item-configuration region=europe"
+  echo_stderr "    $bin_name --item-configuration region=europe --datacenter fra"
+}
+
+# request makes an HTTP request to the OVH API
+# Usage: request METHOD ENDPOINT [DATA] [OPTIONS]
+request() {
+  local method="$1"
+  local endpoint="$2"
+  local data="${3-}"
+  if [ $# -lt 3 ]; then
+    shift 2
+  else
+    shift 3
+  fi
+
+  curl -sX "${method}" "${OVH_URL}${endpoint}" \
+    --header "Accept: application/json"\
+    --header "Content-Type: application/json" \
+    --data "${data}" \
+    -w '%output{'$HTTP_CODE_FILE'}%{http_code}' \
+    "$@"
+
+  http_code=$(cat "$HTTP_CODE_FILE")
+  if [ $http_code -lt 200 ] || [ $http_code -gt 299 ]; then
+    echo_stderr "> error http_code=$http_code request=$method $OVH_URL$endpoint"
+    return 1
+  fi
+
+  return 0
+}
+
+# request_auth makes an authenticated HTTP request to the OVH API
+# Usage: request_auth METHOD ENDPOINT [DATA]
+request_auth() {
+  local method="$1"
+  local endpoint="$2"
+  local data="${3-}"
+
+  local timestamp="$(date +%s)"
+  local sig_key="${APPLICATION_SECRET}+${CONSUMER_KEY}+${method}+${OVH_URL}${endpoint}+${data}+${timestamp}"
+  local signature=$(echo "\$1\$$(echo -n "${sig_key}" | sha1sum - | awk '{print $1}')")
+
+  #local sig_key="${method}+${OVH_URL}+${endpoint}+${timestamp}+${APPLICATION_SECRET}"
+  #local signature=$(echo -n "$sig_key" | openssl sha1 -hmac "$APPLICATION_SECRET" | awk '{print $2}')
+
+  request "${method}" "${endpoint}" "${data}" \
+    --header "X-Ovh-Application: ${APPLICATION_KEY}" \
+    --header "X-Ovh-Consumer: ${CONSUMER_KEY}" \
+    --header "X-Ovh-Timestamp: ${timestamp}" \
+    --header "X-Ovh-Signature: ${signature}"
+}
+
+# item_auto_configuration automatically configures an item with required configuration having only one allowed value
+item_auto_configuration() {
+  local cart_id="$1"
+  local item_id="$2"
+  configurations="$(request GET "/order/cart/${cart_id}/item/${item_id}/requiredConfiguration" | $JQ_BIN -cr '.[]|select((.required==true) or (.label=="dedicated_datacenter"))|select(.allowedValues|length == 1)')"
+
+  local labels=()
+  for configuration in $configurations; do
+    label="$(echo "$configuration" | $JQ_BIN -r .label)"
+    value="$(echo "$configuration" | $JQ_BIN -r .allowedValues[0])"
+    echo_stderr "> item auto-configuration $label=$value"
+    request POST "/order/cart/${cart_id}/item/${item_id}/configuration" '{"label":"'"$label"'","value":"'"$value"'"}' &>/dev/null
+    labels+=("$label")
+  done
+
+  echo "${labels[@]}"
+}
+
+# item_user_configuration configures an item with configuration passed as arguments
+item_user_configuration() {
+  local cart_id="$1"
+  local item_id="$2"
+  shift 2
+  local configurations=("$@")
+
+  local labels=()
+  for configuration in ${configurations[@]}; do
+    label="$(echo "$configuration" | cut -d= -f1)"
+    value="$(echo "$configuration" | cut -d= -f2)"
+    echo_stderr "> item user-configuration $label=$value"
+    request POST "/order/cart/${cart_id}/item/${item_id}/configuration" '{"label":"'"$label"'","value":"'"$value"'"}' &>/dev/null
+    labels+=("$label")
+  done
+
+  echo "${labels[@]}"
+}
+
+# item_manual_configuration ask user to manually configures item with remaining required configuration
+item_manual_configuration() {
+  local cart_id="$1"
+  local item_id="$2"
+  shift 2
+  local labels_configured=("$@")
+
+  configurations="$(request GET "/order/cart/${cart_id}/item/${item_id}/requiredConfiguration" | $JQ_BIN -cr '.[]|select((.required==true) or (.label=="dedicated_datacenter"))')"
+
+  for configuration in $configurations; do
+    label="$(echo "$configuration" | $JQ_BIN -r .label)"
+    if [[ ${labels_configured[@]} =~ $label ]]; then
+      continue
+    fi
+    echo_stderr "> item configuration, select a value for $label"
+
+    i=0
+    for value in $(echo "$configuration" | $JQ_BIN -r '.allowedValues[]'); do
+      echo_stderr "> $i. $value"
+      i=$((i+1))
+    done
+    read -p "> Choice: " index
+    value="$(echo "$configuration" | $JQ_BIN -r .allowedValues[$index])"
+    echo_stderr "> item manual-configuration $label=$value"
+    request POST "/order/cart/${cart_id}/item/${item_id}/configuration" '{"label":"'"$label"'","value":"'"$value"'"}' &>/dev/null
+  done
+}
+
+main() {
+  # Load configuration and common tools
+  source "${SCRIPT_DIR}/../config.env"
+  source "${SCRIPT_DIR}/common.sh"
+
+  # Temporary file used to store HTTP reponse code
+  HTTP_CODE_FILE="$(mktemp -t kimsufi-notifier.XXXXXX)"
+  trap 'rm -f "$HTTP_CODE_FILE"' EXIT
+
+  # Use configured dataceter if only one is set
+  if [ -n "${DATACENTERS-}" ] && echo "$DATACENTERS"|grep -vq ,; then
+    DATACENTER="$DATACENTERS"
+  fi
+
+  install_tools
+
+  local item_configurations=()
+
+  ARGS=$(getopt -o 'c:d:e:hi:q:' --long 'country:,datacenter:,item-configuration:,debug,endpoint:,help,quantity:,price-duration:,price-mode:' -- "$@")
+  eval set -- "$ARGS"
+  while true; do
+    case "$1" in
+      -c | --country)
+        COUNTRY="$2"
+        shift 2
+        continue
+        ;;
+      -d | --datacenter)
+        DATACENTER="$2"
+        item_configurations+=("dedicated_datacenter=$2")
+        shift 2
+        continue
+        ;;
+      --debug)
+        DEBUG=true
+        shift 1
+        continue
+        ;;
+      -e | --endpoint)
+        ENDPOINT="$2"
+        shift 2
+        continue
+        ;;
+      -h | --help)
+        usage
+        exit 0
+        ;;
+      -i | --item-configuration)
+        echo "$2" | grep -q '=' || \
+          exit_error "Error: invalid item configuration '$2'"
+        item_configurations+=("$2")
+        shift 2
+        continue
+        ;;
+      -q | --quantity)
+        QUANTITY="$2"
+        shift 2
+        continue
+        ;;
+      --price-mode)
+        PRICE_MODE="$2"
+        shift 2
+        continue
+        ;;
+      --price-duration)
+        PRICE_DURATION="$2"
+        shift 2
+        continue
+        ;;
+      '--')
+        shift
+        break
+        ;;
+      *)
+        echo_stderr 'Internal error!'
+        exit 1
+        ;;
+    esac
+  done
+
+  if [ -z "${COUNTRY-}" ]; then
+    echo_stderr "Error: COUNTRY is not set"
+    echo_stderr
+    usage
+    exit 1
+  fi
+  COUNTRY="${COUNTRY^^}"
+
+  # OVH API endpoint
+  OVH_URL="${OVH_API_ENDPOINTS["$ENDPOINT"]}"
+
+  echo "> start order for plan=${PLAN_CODE} in datacenter=${DATACENTER}"
+
+  # Create cart
+  expire="$(date --iso-8601=seconds --date tomorrow)"
+  cart="$(request POST "/order/cart" '{"description":"kimsufi-notifier","expire":"'"$expire"'","ovhSubsidiary":"'"$COUNTRY"'"}')"
+  echo "$cart" | $JQ_BIN -cr .
+
+  cart_id="$(echo "$cart" | $JQ_BIN -r .cartId)"
+  if [ -z "$cart_id" ]; then
+    echo "cart_id is empty"
+    exit 1
+  fi
+  echo "> cart created id=$cart_id"
+
+  # Add item to cart
+  cart_updated="$(request POST "/order/cart/${cart_id}/eco" '{"planCode":"'"${PLAN_CODE}"'","quantity": '${QUANTITY}', "pricingMode":"'"${PRICE_MODE}"'","duration":"'${PRICE_DURATION}'"}')"
+  echo "$cart_updated" | $JQ_BIN -cr .
+
+  item_id="$(echo "$cart_updated" | $JQ_BIN -r .itemId)"
+  if [ -z "$item_id" ]; then
+    echo "item_id is empty"
+    exit 1
+  fi
+  echo "> cart updated with item id=$item_id"
+
+  # Configure item
+  labels_auto_configured="$(item_auto_configuration "$cart_id" "$item_id")"
+  labels_user_configured="$(item_user_configuration "$cart_id" "$item_id" "${item_configurations[@]}")"
+  labels_configured=( "${labels_auto_configured[@]}" "${labels_user_configured[@]}" )
+  item_manual_configuration "$cart_id" "$item_id" "${labels_configured[@]}"
+  echo "> item id=${item_id} configured"
+
+  #request GET "/order/cart/${cart_id}/summary"
+
+  # Checkout
+  request_auth POST "/order/cart/${cart_id}/assign" 1>/dev/null
+  echo "> cart id=${cart_id} assigned"
+
+  request_auth GET "/order/cart/${cart_id}/checkout"
+  request_auth POST "/order/cart/${cart_id}/checkout" '{"autoPayWithPreferredPaymentMethod":false,"waiveRetractationPeriod":false}'
+  echo "> completed order"
+}
+
+main "$@"
