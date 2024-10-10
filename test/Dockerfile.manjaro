@@ -1,1 +1,1 @@
-FROM manjarolinux/build-stable
+FROM manjarolinux/base:latest
