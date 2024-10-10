@@ -77,6 +77,7 @@ request() {
 
   http_code=$(cat "$HTTP_CODE_FILE")
   if [ $http_code -lt 200 ] || [ $http_code -gt 299 ]; then
+    echo_stderr
     echo_stderr "> error http_code=$http_code request=$method $OVH_URL$endpoint"
     return 1
   fi
