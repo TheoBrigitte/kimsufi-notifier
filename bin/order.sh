@@ -189,7 +189,7 @@ main() {
 
   local item_configurations=()
 
-  ARGS=$(getopt -o 'c:d:e:hi:q:' --long 'country:,datacenter:,item-configuration:,debug,endpoint:,help,quantity:,price-duration:,price-mode:' -- "$@")
+  ARGS=$(getopt -o 'c:d:e:hi:p:q:' --long 'country:,datacenter:,item-configuration:,debug,endpoint:,help,quantity:,plan-code:,price-duration:,price-mode:' -- "$@")
   eval set -- "$ARGS"
   while true; do
     case "$1" in
@@ -227,6 +227,11 @@ main() {
         ;;
       -q | --quantity)
         QUANTITY="$2"
+        shift 2
+        continue
+        ;;
+      -p | --plan-code)
+        PLAN_CODE="$2"
         shift 2
         continue
         ;;
