@@ -135,7 +135,7 @@ main() {
   echo "$DATA" | \
     $JQ_BIN -r '.plans[] '"$category_filter"' | [ .planCode, .blobs.commercial.range, .invoiceName, (.pricings[] | select(.phase == 1) | select(.mode == "default") | .price/100000000) ] | @tsv' | \
     sort -k2,2 -k4n,4 -b -t $'\t' | \
-    column -s $'\t' -t -C "name=PlanCode" -C "name=Category" -C "name=Name" -C "name=Price ($CURRENCY)" -o '    '
+    column -s $'\t' -t -N "PlanCode,Category,Name,Price ($CURRENCY)" -o '    '
 }
 
 main "$@"
