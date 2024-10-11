@@ -68,12 +68,16 @@ request() {
     shift 3
   fi
 
+  if echo "$@" |grep -q -- '-v'; then
+    set -x
+  fi
   curl -sX "${method}" "${OVH_URL}${endpoint}" \
     --header "Accept: application/json"\
     --header "Content-Type: application/json" \
     --data "${data}" \
     -w '%output{'$HTTP_CODE_FILE'}%{http_code}' \
     "$@"
+  set +x
 
   http_code=$(cat "$HTTP_CODE_FILE")
   if [ $http_code -lt 200 ] || [ $http_code -gt 299 ]; then
@@ -91,6 +95,11 @@ request_auth() {
   local method="$1"
   local endpoint="$2"
   local data="${3-}"
+  if [ $# -lt 3 ]; then
+    shift 2
+  else
+    shift 3
+  fi
 
   local timestamp="$(date +%s)"
   local sig_key="${APPLICATION_SECRET}+${CONSUMER_KEY}+${method}+${OVH_URL}${endpoint}+${data}+${timestamp}"
@@ -103,7 +112,8 @@ request_auth() {
     --header "X-Ovh-Application: ${APPLICATION_KEY}" \
     --header "X-Ovh-Consumer: ${CONSUMER_KEY}" \
     --header "X-Ovh-Timestamp: ${timestamp}" \
-    --header "X-Ovh-Signature: ${signature}"
+    --header "X-Ovh-Signature: ${signature}" \
+    "$@"
 }
 
 # item_auto_configuration automatically configures an item with required configuration having only one allowed value
