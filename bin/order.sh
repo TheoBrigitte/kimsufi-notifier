@@ -4,12 +4,12 @@ set -eu
 
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
 
+# Default values
 DEBUG=false
-
 ENDPOINT="ovh-eu"
-QUANTITY=1
-PRICE_MODE="default"
 PRICE_DURATION="P1M"
+PRICE_MODE="default"
+QUANTITY=1
 
 echo_stderr() {
     >&2 echo "$@"
@@ -39,7 +39,7 @@ usage() {
   echo_stderr "                      Allowed values: ovh-eu, ovh-ca, ovh-us"
   echo_stderr "  -i, --item-configuration"
   echo_stderr "                      Item configuration in the form 'label=value'"
-  echo_stderr "  -d, --debug       Enable debug mode (default: false)"
+  echo_stderr "  -d, --debug       Enable debug mode (default: $DEBUG)"
   echo_stderr "  -h, --help        Display this help message"
   echo_stderr "  -q, --quantity    Quantity of items to order (default: $QUANTITY)"
   echo_stderr "  --price-mode      Billing price type (default: $PRICE_MODE)"
