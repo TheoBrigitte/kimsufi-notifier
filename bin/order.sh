@@ -7,8 +7,6 @@ SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
 DEBUG=false
 
 ENDPOINT="ovh-eu"
-
-DATACENTER=""
 QUANTITY=1
 PRICE_MODE="default"
 PRICE_DURATION="P1M"
@@ -190,6 +188,8 @@ main() {
   HTTP_CODE_FILE="$(mktemp -t kimsufi-notifier.XXXXXX)"
   trap 'rm -f "$HTTP_CODE_FILE"' EXIT
 
+  DATACENTER=""
+
   # Use configured dataceter if only one is set
   if [ -n "${DATACENTERS-}" ] && echo "$DATACENTERS"|grep -vq ,; then
     DATACENTER="$DATACENTERS"
@@ -210,7 +210,6 @@ main() {
         ;;
       -d | --datacenter)
         DATACENTER="$2"
-        item_configurations+=("dedicated_datacenter=$2")
         shift 2
         continue
         ;;
@@ -273,6 +272,10 @@ main() {
     exit 1
   fi
   COUNTRY="${COUNTRY^^}"
+
+  if [ -n "${DATACENTER-}" ]; then
+    item_configurations+=("dedicated_datacenter=$DATACENTER")
+  fi
 
   # OVH API endpoint
   OVH_URL="${OVH_API_ENDPOINTS["$ENDPOINT"]}"
