@@ -1,69 +1,87 @@
 'use client'
 
-import ServerLine from './components/server';
-import useSWR from 'swr';
+import React from 'react'
+import ServersTable from './components/server';
+import useSWRSubscription from 'swr/subscription';
 
 const getServers = () => fetch('http://127.0.0.1:8080/list').then(res => res.json());
 
-export default function Home() {
-  const { data, error, isLoading } = useSWR('/list', getServers);
-
-  let content;
+function Status({ error, data, connectionRestored, setConnectionRestored }) {
+  let message;
+  let fadeOut;
 
   if (error) {
-    content =
-    <div className="flex flex-col justify-center text-center">
-      <div className="flex flex-row justify-center">
-        <div className="w-1/2 text-right px-1">Status :</div>
-        <div className="w-1/2 text-left px-1">Failed to load server list</div>
-      </div>
-      <div className="text-orange-700 font-mono">{error.toString()}</div>
-    </div>;
-  } else if (isLoading) {
-    content =
-    <div className="flex flex-col justify-center text-center">
-      <div className="flex flex-row justify-center">
-        <div className="w-1/2 text-right px-1">Status :</div>
-        <div className="w-1/2 text-left px-1">Loading ...</div>
-      </div>
-    </div>;
-  } else {
-    const serversByCategory = Object.groupBy(data, ({ category }) => category);
-
-    let categoryOrder = { "Kimsufi": {}, "So you Start": {}, "Rise": {}, "": {} }
-    const ordered = Object.assign(categoryOrder, serversByCategory);
-    console.log(ordered);
-
-    content = <table className="text-nowrap">
-        <thead>
-          <tr>
-            <th className="p-4">Plan Code</th>
-            <th className="p-4">Category</th>
-            <th className="p-4">Name</th>
-            <th className="p-4">Price</th>
-            <th className="p-4">Status</th>
-            <th className="p-4">Datacenters</th>
-          </tr>
-        </thead>
-        <tbody>
-          {Object.entries(ordered).map(([category, servers]) => (
-            <>
-            <ServerLine key={category} servers={servers} />
-            <tr key={category + " separator0"}><td className="p-2" colSpan={6}></td></tr>
-            <tr key={category + " separator1"}><td className="p-2" colSpan={6}></td></tr>
-            </>
-          ))}
-        </tbody>
-      </table>
+    message = "Failed to load server list"
+    details = <div className="text-orange-700">{error.toString()}</div>
+  } else if (!data||data==undefined) {
+    message = <div>Loading ...</div>
+  } else if (connectionRestored) {
+    message = <div className="text-green-700">Websocket connected</div>
+    fadeOut = "transition-opacity duration-[1000ms] opacity-0"
+    setTimeout(function() {
+      setConnectionRestored(false);
+    }, 5000);
   }
 
+  const hidden = !message ? "hidden" : ""
+
+  return (
+    <div className={`basis-1/4 flex flex-col justify-center font-mono ${hidden} ${fadeOut}`}>
+      {message}
+    </div>
+  )
+}
+
+export default function Home() {
+  const [data, setData] = React.useState(null);
+  const [connectionRestored, setConnectionRestored] = React.useState(false);
+
+  const startWS = (key, { next }) => {
+    let socket = new WebSocket("ws://127.0.0.1:8080/listWS",'echo-protocol');
+    socket.addEventListener('message', (event) => {
+      const res = JSON.parse(event.data)
+      next(null, res)
+      setData(res)
+    })
+    socket.addEventListener('error', (event) => {
+      next(event.error)
+      //ws.close()
+    })
+    socket.addEventListener('close', (event) => {
+      next(new Error("socket closed"))
+      setTimeout(function() {
+        startWS(key, { next })
+      }, 5000);
+    })
+    socket.addEventListener('open', () => {
+      setConnectionRestored(true)
+    })
+    return () => socket.close()
+  }
+  
+  const { error } = useSWRSubscription('/listWS', startWS)
+  const status = <Status error={error} data={data} connectionRestored={connectionRestored} setConnectionRestored={setConnectionRestored} />
+
+  //const setServers = (data) => {
+  //  setData(data);
+  //  return 5000;
+  //}
+  //const opts = {
+  //  revalidateOnFocus: false,
+  //  refreshInterval: setServers
+  //}
+  //const { error, isLoading } = useSWR('https://127.0.0.1:8080/list', getServers, opts);
 
   return (
     <div className="flex flex-row justify-center">
-    <div className="pt-10 pb-20">
-      <h1 className="text-center text-xl font-bold p-10">OVH Eco server availability</h1>
-      {content}
-    </div>
+      <div className="pt-10 pb-20 px-10">
+        <div className="flex flex-row min-w-fit flex-nowrap text-nowrap">
+          <div className="basis-1/4 flex-none"></div>
+          <div className="basis-2/4 px-40 py-5 flex-none text-center text-xl font-bold">OVH Eco server availability</div>
+          {status}
+        </div>
+        <ServersTable data={data} />
+      </div>
     </div>
   );
 }
