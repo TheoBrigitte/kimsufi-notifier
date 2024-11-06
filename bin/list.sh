@@ -29,7 +29,7 @@ usage() {
   echo_stderr "                     Allowed values with -e ovh-us : US"
   echo_stderr "  -e, --endpoint   OVH API endpoint (default: ovh-eu)"
   echo_stderr "                     Allowed values: ovh-eu, ovh-ca, ovh-us"
-  echo_stderr "  -d, --debug      Enable debug mode (default: false)"
+  echo_stderr "      --debug      Enable debug mode (default: false)"
   echo_stderr "  -h, --help       Display this help message"
   echo_stderr
   echo_stderr "  Arguments can also be set as environment variables see config.env.example"
