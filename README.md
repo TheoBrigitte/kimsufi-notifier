@@ -28,7 +28,7 @@ cp config.env.example config.env
 bin/check.sh
 ```
 
-## Run checks from CI <img src="./assets/rotate.svg" width="24">
+## Run from CI &nbsp;<img src="./assets/rotate.svg" width="24">
 
 See [RUN_IN_CI.md](RUN_IN_CI.md) for more information on how to run the check script using different CI services.
 
