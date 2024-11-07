@@ -20,3 +20,7 @@ workflows:
     triggers:
       - schedule:
           cron: "* * * * *"
+          filters:
+            branches:
+              ignore:
+                - main
