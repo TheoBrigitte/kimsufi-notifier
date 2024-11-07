@@ -66,20 +66,19 @@ request() {
     shift 3
   fi
 
-  if echo "$@" |grep -q -- '-v'; then
+  if echo "$@" |grep -q -- '-v' || $DEBUG; then
     set -x
   fi
   curl -sX "${method}" "${OVH_URL}${endpoint}" \
     --header "Accept: application/json"\
     --header "Content-Type: application/json" \
     --data "${data}" \
-    -w '%output{'$HTTP_CODE_FILE'}%{http_code}' \
+    -w '\n%output{'$HTTP_CODE_FILE'}%{http_code}' \
     "$@"
   set +x
 
   http_code=$(cat "$HTTP_CODE_FILE")
   if [ $http_code -lt 200 ] || [ $http_code -gt 299 ]; then
-    echo_stderr
     echo_stderr "> error http_code=$http_code request=$method $OVH_URL$endpoint"
     return 1
   fi
@@ -125,7 +124,7 @@ item_auto_configuration() {
     label="$(echo "$configuration" | $JQ_BIN -r .label)"
     value="$(echo "$configuration" | $JQ_BIN -r .allowedValues[0])"
     echo_stderr "> item auto-configuration $label=$value"
-    request POST "/order/cart/${cart_id}/item/${item_id}/configuration" '{"label":"'"$label"'","value":"'"$value"'"}' &>/dev/null
+    request POST "/order/cart/${cart_id}/item/${item_id}/configuration" '{"label":"'"$label"'","value":"'"$value"'"}'
     labels+=("$label")
   done
 
@@ -144,7 +143,7 @@ item_user_configuration() {
     label="$(echo "$configuration" | cut -d= -f1)"
     value="$(echo "$configuration" | cut -d= -f2)"
     echo_stderr "> item user-configuration $label=$value"
-    request POST "/order/cart/${cart_id}/item/${item_id}/configuration" '{"label":"'"$label"'","value":"'"$value"'"}' &>/dev/null
+    request POST "/order/cart/${cart_id}/item/${item_id}/configuration" '{"label":"'"$label"'","value":"'"$value"'"}'
     labels+=("$label")
   done
 
@@ -175,7 +174,43 @@ item_manual_configuration() {
     read -p "> Choice: " index
     value="$(echo "$configuration" | $JQ_BIN -r .allowedValues[$index])"
     echo_stderr "> item manual-configuration $label=$value"
-    request POST "/order/cart/${cart_id}/item/${item_id}/configuration" '{"label":"'"$label"'","value":"'"$value"'"}' &>/dev/null
+    request POST "/order/cart/${cart_id}/item/${item_id}/configuration" '{"label":"'"$label"'","value":"'"$value"'"}'
+  done
+}
+
+item_option_configuration() {
+  local cart_id="$1"
+  local item_id=$2
+  local plan_code="$3"
+  local price_mode="$4"
+  local price_duration="$5"
+
+  declare -A familyPlanCode
+  declare -A familyPrices
+  local bob
+
+  exec <<<$(request GET "/order/cart/${cart_id}/eco/options?planCode=${plan_code}" | $JQ_BIN -cr '.[]')
+
+  while read option; do
+    mandatory="$(echo "$option" | $JQ_BIN -r .mandatory)"
+    if [ "$mandatory" != "true" ]; then
+      continue
+    fi
+    family="$(echo "$option" | $JQ_BIN -r .family)"
+    code="$(echo "$option" | $JQ_BIN -r .planCode)"
+    price="$(echo "$option" | $JQ_BIN -r '.prices[]|select((.pricingMode == "'"$price_mode"'") and (.duration == "'"$price_duration"'"))|.priceInUcents')"
+    if ! [ "${familyPrices[$family]+x}" ]; then
+      familyPrices[$family]=$price
+      familyPlanCode[$family]="$code"
+    elif [ "$price" -lt "${familyPrices[$family]}" ]; then
+      familyPrices[$family]=$price
+      familyPlanCode[$family]="$code"
+    fi
+  done
+
+  for option in "${familyPlanCode[@]}"; do
+    echo_stderr "> item option $option"
+    request POST "/order/cart/${cart_id}/eco/options" '{"quantity": 1, "duration": "'"$price_duration"'", "pricingMode":"'"$price_mode"'", "planCode":"'"$option"'", "itemId": '$item_id'}' | $JQ_BIN -cr .
   done
 }
 
@@ -312,14 +347,14 @@ main() {
   item_manual_configuration "$cart_id" "$item_id" "${labels_configured[@]}"
   echo "> item id=${item_id} configured"
 
-  #request GET "/order/cart/${cart_id}/summary"
+  # Configure eco options
+  item_option_configuration "$cart_id" $item_id "$PLAN_CODE" "$PRICE_MODE" "$PRICE_DURATION"
 
   # Checkout
   request_auth POST "/order/cart/${cart_id}/assign" 1>/dev/null
   echo "> cart id=${cart_id} assigned"
 
-  request_auth GET "/order/cart/${cart_id}/checkout"
-  request_auth POST "/order/cart/${cart_id}/checkout" '{"autoPayWithPreferredPaymentMethod":false,"waiveRetractationPeriod":false}'
+  request_auth POST "/order/cart/${cart_id}/checkout" '{"autoPayWithPreferredPaymentMethod":false,"waiveRetractationPeriod":false}' | $JQ_BIN -cr .
   echo "> completed order"
 }
 
