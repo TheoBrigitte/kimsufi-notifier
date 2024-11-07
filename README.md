@@ -65,7 +65,7 @@ In order to receive notifications for Discord, the appropriate environment varia
 
 See [Intro to Webhook](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) for how to make and use a Discord Webhook.
 
-### Gotify <img src="./assets/gotify.svg" width="32">
+### Gotify <img src="./assets/gotify.png" width="32">
 
 In order to recieve notifications for Gotify, the appropriate environment variables must be set:
 
