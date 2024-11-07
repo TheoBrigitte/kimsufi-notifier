@@ -7,17 +7,19 @@
   <a href="https://dl.circleci.com/status-badge/redirect/gh/TheoBrigitte/kimsufi-notifier/tree/main"><img src="https://dl.circleci.com/status-badge/img/gh/TheoBrigitte/kimsufi-notifier/tree/main.svg?style=svg" alt="CircleCI"></a>
 </p>
 
-## About
+## About ![About](./assets/info.svg)
 
 [OVH Eco dedicated servers](https://eco.ovhcloud.com) are known for their low prices and high demand. As a result, they are often out of stock. This collection of bash scripts is used to check for server availability and send notifications when a server is available.
 
-## Features
+This is my playground to learn how the OVH API works, it is then ported into a Telegram Bot at [https://t.me/KimsufiNotifierBot](https://t.me/KimsufiNotifierBot) which is more user-friendly and provides more features.
+
+## Features ![Features](./assets/star.svg)
 
 - List available servers from OVH Eco catalog
 - Check availability of a specific server in one or multiple datacenters
 - Send notifications to OpsGenie and/or Telegram when a server is available
 
-## Quickstart
+## Quickstart ![Quickstart](./assets/rocket.svg)
 
 ```
 git clone git@github.com:TheoBrigitte/kimsufi-notifier.git
@@ -26,11 +28,11 @@ cp config.env.example config.env
 bin/check.sh
 ```
 
-## Run checks from CI
+## Run checks from CI ![CI](./assets/rotate.svg)
 
 See [RUN_IN_CI.md](RUN_IN_CI.md) for more information on how to run the check script using different CI services.
 
-## Configuration
+## Configuration ![Configuration](./assets/configuration.svg)
 
 Configuration is done through environment variables. The following variables are available:
 
@@ -43,7 +45,7 @@ Configuration is done through environment variables. The following variables are
 
 More details can be found in the [config.env.example](config.env.example) file.
 
-## Notifications
+## Notifications ![Notifications](./assets/notifications.svg)
 
 Notification(s) can be sent whenever a server is available. Either one or multiple notification services can be used.
 
@@ -55,7 +57,7 @@ Supported notification services:
 
 In order to use a notification service, it is recommended to set its environment variables in the config file, see [config.env.example](config.env.example).
 
-### Discord
+### Discord ![Discord](./assets/discord.svg)
 
 In order to receive notifications for Discord, the appropriate environment variable must be set:
 
@@ -63,7 +65,7 @@ In order to receive notifications for Discord, the appropriate environment varia
 
 See [Intro to Webhook](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) for how to make and use a Discord Webhook.
 
-### Gotify
+### Gotify ![Gotify](./assets/gotify.svg)
 
 In order to recieve notifications for Gotify, the appropriate environment variables must be set:
 
@@ -73,7 +75,7 @@ In order to recieve notifications for Gotify, the appropriate environment variab
 
 See [Gotify Push messages](https://gotify.net/docs/pushmsg) documentation for more information.
 
-### OpsGenie
+### OpsGenie ![OpsGenie](./assets/opsgenie.svg)
 
 In order to recieve notifications for OpsGenie, the appropriate environment variables must be set:
 
@@ -90,7 +92,8 @@ $ bin/check.sh --plan-code 24ska01
 > sent    OpsGenie notification
 ```
 
-### Telegram
+### Telegram ![Telegram](./assets/telegram.svg)
+
 
 In order to recieve notifications for Telegram, the appropriate environment variables must be set:
 
@@ -108,7 +111,7 @@ $ bin/check.sh --plan-code 24ska01
 > sent    Telegram notification
 ```
 
-## Usage
+## Usage ![Bash](./assets/bash.svg)
 
 ```
 $ bin/list.sh -h
