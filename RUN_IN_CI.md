@@ -4,7 +4,7 @@ This documentation describe how to run the check script using different CI servi
 
 Examples are provided, they will run the check script every hour and send a notifications to OpsGenie. You can customize them to fit your needs using environment variables described in [config.env.example](config.env.example) file.
 
-## GitHub Actions <img src="./assets/github-actions.svg" width="24">
+## GitHub Actions <img src="./assets/github.svg" width="24">
 
 Create a new workflow file in your repository under `.github/workflows/` directory. You can use the provided example [check.yaml.example](.github/workflows/check.yaml.example) file.
 
