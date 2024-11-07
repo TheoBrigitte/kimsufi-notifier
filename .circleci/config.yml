@@ -4,3 +4,12 @@ jobs:
     steps:
     - run:
         command: noop
+workflows:
+  version: 2
+  dummy:
+    jobs:
+    - dummy
+      filters:
+        branches:
+          ignore:
+          - *
