@@ -1,1 +1,6 @@
 version: 2
+jobs:
+  dummy:
+    steps:
+    - run:
+        command: noop
