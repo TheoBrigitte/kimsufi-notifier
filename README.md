@@ -7,19 +7,19 @@
   <a href="https://dl.circleci.com/status-badge/redirect/gh/TheoBrigitte/kimsufi-notifier/tree/main"><img src="https://dl.circleci.com/status-badge/img/gh/TheoBrigitte/kimsufi-notifier/tree/main.svg?style=svg" alt="CircleCI"></a>
 </p>
 
-## About <img src="./assets/info.svg" width="32">
+## About <img src="./assets/info.svg" width="24">
 
 [OVH Eco dedicated servers](https://eco.ovhcloud.com) are known for their low prices and high demand. As a result, they are often out of stock. This collection of bash scripts is used to check for server availability and send notifications when a server is available.
 
 This is my playground to learn how the OVH API works, it is then ported into a Telegram Bot at [https://t.me/KimsufiNotifierBot](https://t.me/KimsufiNotifierBot) which is more user-friendly and provides more features.
 
-## Features <img src="./assets/star.svg" width="32">
+## Features <img src="./assets/star.svg" width="24">
 
 - List available servers from OVH Eco catalog
 - Check availability of a specific server in one or multiple datacenters
 - Send notifications to OpsGenie and/or Telegram when a server is available
 
-## Quickstart <img src="./assets/rocket.svg" width="32">
+## Quickstart <img src="./assets/rocket.svg" width="24">
 
 ```
 git clone git@github.com:TheoBrigitte/kimsufi-notifier.git
@@ -28,11 +28,11 @@ cp config.env.example config.env
 bin/check.sh
 ```
 
-## Run checks from CI <img src="./assets/rotate.svg" width="32">
+## Run checks from CI <img src="./assets/rotate.svg" width="24">
 
 See [RUN_IN_CI.md](RUN_IN_CI.md) for more information on how to run the check script using different CI services.
 
-## Configuration <img src="./assets/configuration.svg" width="32">
+## Configuration <img src="./assets/configuration.svg" width="24">
 
 Configuration is done through environment variables. The following variables are available:
 
@@ -45,7 +45,7 @@ Configuration is done through environment variables. The following variables are
 
 More details can be found in the [config.env.example](config.env.example) file.
 
-## Notifications <img src="./assets/notifications.svg" width="32">
+## Notifications <img src="./assets/notifications.svg" width="24">
 
 Notification(s) can be sent whenever a server is available. Either one or multiple notification services can be used.
 
@@ -57,7 +57,7 @@ Supported notification services:
 
 In order to use a notification service, it is recommended to set its environment variables in the config file, see [config.env.example](config.env.example).
 
-### Discord <img src="./assets/discord.svg" width="32">
+### Discord <img src="./assets/discord.svg" width="24">
 
 In order to receive notifications for Discord, the appropriate environment variable must be set:
 
@@ -65,7 +65,7 @@ In order to receive notifications for Discord, the appropriate environment varia
 
 See [Intro to Webhook](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) for how to make and use a Discord Webhook.
 
-### Gotify <img src="./assets/gotify.png" width="32">
+### Gotify <img src="./assets/gotify.png" width="24">
 
 In order to recieve notifications for Gotify, the appropriate environment variables must be set:
 
@@ -75,7 +75,7 @@ In order to recieve notifications for Gotify, the appropriate environment variab
 
 See [Gotify Push messages](https://gotify.net/docs/pushmsg) documentation for more information.
 
-### OpsGenie <img src="./assets/opsgenie.svg" width="32">
+### OpsGenie <img src="./assets/opsgenie.svg" width="24">
 
 In order to recieve notifications for OpsGenie, the appropriate environment variables must be set:
 
@@ -92,7 +92,7 @@ $ bin/check.sh --plan-code 24ska01
 > sent    OpsGenie notification
 ```
 
-### Telegram <img src="./assets/telegram.svg" width="32">
+### Telegram <img src="./assets/telegram.svg" width="24">
 
 
 In order to recieve notifications for Telegram, the appropriate environment variables must be set:
@@ -111,7 +111,7 @@ $ bin/check.sh --plan-code 24ska01
 > sent    Telegram notification
 ```
 
-## Usage <img src="./assets/bash.svg" width="32">
+## Usage <img src="./assets/bash.svg" width="24">
 
 ```
 $ bin/list.sh -h
