@@ -26,6 +26,10 @@ cp config.env.example config.env
 bin/check.sh
 ```
 
+## Run checks from CI
+
+See [RUN_IN_CI.md](RUN_IN_CI.md) for more information on how to run the check script using different CI services.
+
 ## Configuration
 
 Configuration is done through environment variables. The following variables are available:

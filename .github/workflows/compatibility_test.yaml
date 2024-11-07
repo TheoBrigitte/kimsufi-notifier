@@ -3,7 +3,7 @@ name: compatibility_test
 on:
   push:
     branches-ignore:
-    - 'main'
+    - main
 
 jobs:
   compatibility_test:
