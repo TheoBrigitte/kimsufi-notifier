@@ -3,6 +3,9 @@ name: run
 on:
   schedule:
     - cron: "* * * * *"
+  push:
+    branches-ignore:
+      - main
 
 jobs:
   run:
@@ -13,4 +16,7 @@ jobs:
       - name: Run check
         run: |
           touch config.env
-          PLAN_CODE=24ska01 ./bin/check.sh
+          ./bin/check.sh
+        env:
+          PLAN_CODE: 24ska01
+          OPSGENIE_API_KEY: ${{ secrets.OPSGENIE_API_KEY }}
