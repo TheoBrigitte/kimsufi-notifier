@@ -1,14 +1,4 @@
 version: 2
-jobs:
-  check:
-    machine:
-      - image: ubuntu-2204:current
-    steps:
-      - checkout
-      - run: touch config.env
-      - run: ./bin/check.sh
-    environment:
-      - PLAN_CODE: 24ska01
 
 workflows:
   version: 2
@@ -24,3 +14,14 @@ workflows:
             branches:
               ignore:
                 - main
+
+jobs:
+  check:
+    machine:
+      - image: ubuntu-2204:current
+    steps:
+      - checkout
+      - run: touch config.env
+      - run: ./bin/check.sh
+    environment:
+      - PLAN_CODE: 24ska01
