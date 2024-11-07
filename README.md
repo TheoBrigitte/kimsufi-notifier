@@ -17,7 +17,7 @@ This is my playground to learn how the OVH API works, it is then ported into a T
 
 - [List available servers](#list-available-servers) from OVH Eco catalog
 - [Check availability](#check-availability) of a specific server in one or multiple datacenters
-- Send [notifications](#notifications) to OpsGenie and/or Telegram when a server is available
+- Send [notifications](#notifications-) to OpsGenie and/or Telegram when a server is available
 - [Order a server](#order-a-server) directly from the command line
 
 ## Quickstart <img src="./assets/rocket.svg" width="24">
