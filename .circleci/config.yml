@@ -9,7 +9,3 @@ workflows:
   dummy:
     jobs:
     - dummy
-      filters:
-        branches:
-          ignore:
-          - *
