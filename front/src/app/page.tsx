@@ -4,15 +4,16 @@ import React from 'react'
 import ServersTable from './components/server';
 import useSWRSubscription from 'swr/subscription';
 
-const getServers = () => fetch('http://127.0.0.1:8080/list').then(res => res.json());
-
 function Status({ error, data, connectionRestored, setConnectionRestored }) {
   let message;
   let fadeOut;
 
   if (error) {
-    message = "Failed to load server list"
-    details = <div className="text-orange-700">{error.toString()}</div>
+    message =
+      <>
+        <div>Failed to load server list</div>
+        <div className="text-orange-700">{error.toString()}</div>
+      </>
   } else if (!data||data==undefined) {
     message = <div>Loading ...</div>
   } else if (connectionRestored) {
@@ -37,7 +38,7 @@ export default function Home() {
   const [connectionRestored, setConnectionRestored] = React.useState(false);
 
   const startWS = (key, { next }) => {
-    let socket = new WebSocket("ws://127.0.0.1:8080/listWS",'echo-protocol');
+    let socket = new WebSocket("ws://127.0.0.1:8080/listWS", 'echo-protocol');
     socket.addEventListener('message', (event) => {
       const res = JSON.parse(event.data)
       next(null, res)
