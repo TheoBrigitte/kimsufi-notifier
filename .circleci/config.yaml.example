@@ -19,7 +19,7 @@ workflows:
          - opsgenie
     triggers:
       - schedule:
-          cron: "* * * * *"
+          cron: "0 * * * *"
           filters:
             branches:
               ignore:
