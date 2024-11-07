@@ -206,7 +206,8 @@ item_option_configuration() {
 
   for option in "${familyPlanCode[@]}"; do
     echo_stderr "> item option $option"
-    request POST "/order/cart/${cart_id}/eco/options" '{"quantity": 1, "duration": "'"$price_duration"'", "pricingMode":"'"$price_mode"'", "planCode":"'"$option"'", "itemId": '$item_id'}' | $JQ_BIN -cr .
+    result="$(request POST "/order/cart/${cart_id}/eco/options" '{"quantity": 1, "duration": "'"$price_duration"'", "pricingMode":"'"$price_mode"'", "planCode":"'"$option"'", "itemId": '$item_id'}')"
+    $DEBUG && echo "$result" $JQ_BIN -cr .
   done
 }
 
@@ -310,12 +311,10 @@ main() {
   # OVH API endpoint
   OVH_URL="${OVH_API_ENDPOINTS["$ENDPOINT"]}"
 
-  echo "> start order for plan=${PLAN_CODE} in datacenter=${DATACENTER}"
-
   # Create cart
   expire="$(date --iso-8601=seconds --date tomorrow)"
   cart="$(request POST "/order/cart" '{"description":"kimsufi-notifier","expire":"'"$expire"'","ovhSubsidiary":"'"$COUNTRY"'"}')"
-  echo "$cart" | $JQ_BIN -cr .
+  $DEBUG && echo "$cart" | $JQ_BIN -cr .
 
   cart_id="$(echo "$cart" | $JQ_BIN -r .cartId)"
   if [ -z "$cart_id" ]; then
@@ -326,7 +325,7 @@ main() {
 
   # Add item to cart
   cart_updated="$(request POST "/order/cart/${cart_id}/eco" '{"planCode":"'"${PLAN_CODE}"'","quantity": '${QUANTITY}', "pricingMode":"'"${PRICE_MODE}"'","duration":"'${PRICE_DURATION}'"}')"
-  echo "$cart_updated" | $JQ_BIN -cr .
+  $DEBUG && echo "$cart_updated" | $JQ_BIN -cr .
 
   item_id="$(echo "$cart_updated" | $JQ_BIN -r .itemId)"
   if [ -z "$item_id" ]; then
@@ -340,20 +339,20 @@ main() {
   labels_user_configured="$(item_user_configuration "$cart_id" "$item_id" "${item_configurations[@]}")"
   labels_configured=( "${labels_auto_configured[@]}" "${labels_user_configured[@]}" )
   item_manual_configuration "$cart_id" "$item_id" "${labels_configured[@]}"
-  echo "> item id=${item_id} configured"
 
   # Configure eco options
   item_option_configuration "$cart_id" $item_id "$PLAN_CODE" "$PRICE_MODE" "$PRICE_DURATION"
 
   # Assign cart to account
   request_auth POST "/order/cart/${cart_id}/assign" 1>/dev/null
-  echo "> cart id=${cart_id} assigned"
+  echo "> cart assigned to account"
 
   # Submit order
   order="$(request_auth POST "/order/cart/${cart_id}/checkout" '{"autoPayWithPreferredPaymentMethod":false,"waiveRetractationPeriod":false}' | $JQ_BIN -cr 'del(.contracts)')"
+  $DEBUG && echo "$order" | $JQ_BIN -cr .
+
   order_url="$(echo "$order" | $JQ_BIN -r .url)"
-  echo "$order" | $JQ_BIN -cr .
-  echo "> order completed, url=$order_url"
+  echo "> order completed url=$order_url"
 }
 
 main "$@"
