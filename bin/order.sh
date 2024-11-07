@@ -21,7 +21,6 @@ exit_error() {
     exit 1
 }
 
-
 usage() {
   bin_name=$(basename "$0")
   echo_stderr "Usage: $bin_name"
@@ -66,7 +65,7 @@ request() {
     shift 3
   fi
 
-  if echo "$@" |grep -q -- '-v' || $DEBUG; then
+  if echo "$@" | grep -q -- '-v' || $DEBUG; then
     set -x
   fi
   curl -sX "${method}" "${OVH_URL}${endpoint}" \
@@ -102,9 +101,6 @@ request_auth() {
   local sig_key="${APPLICATION_SECRET}+${CONSUMER_KEY}+${method}+${OVH_URL}${endpoint}+${data}+${timestamp}"
   local signature=$(echo "\$1\$$(echo -n "${sig_key}" | sha1sum - | awk '{print $1}')")
 
-  #local sig_key="${method}+${OVH_URL}+${endpoint}+${timestamp}+${APPLICATION_SECRET}"
-  #local signature=$(echo -n "$sig_key" | openssl sha1 -hmac "$APPLICATION_SECRET" | awk '{print $2}')
-
   request "${method}" "${endpoint}" "${data}" \
     --header "X-Ovh-Application: ${APPLICATION_KEY}" \
     --header "X-Ovh-Consumer: ${CONSUMER_KEY}" \
@@ -117,10 +113,11 @@ request_auth() {
 item_auto_configuration() {
   local cart_id="$1"
   local item_id="$2"
-  configurations="$(request GET "/order/cart/${cart_id}/item/${item_id}/requiredConfiguration" | $JQ_BIN -cr '.[]|select((.required==true) or (.label=="dedicated_datacenter"))|select(.allowedValues|length == 1)')"
+
+  exec <<<$(request GET "/order/cart/${cart_id}/item/${item_id}/requiredConfiguration" | $JQ_BIN -cr '.[]|select((.required==true) or (.label=="dedicated_datacenter"))|select(.allowedValues|length == 1)')
 
   local labels=()
-  for configuration in $configurations; do
+  while read configuration; do
     label="$(echo "$configuration" | $JQ_BIN -r .label)"
     value="$(echo "$configuration" | $JQ_BIN -r .allowedValues[0])"
     echo_stderr "> item auto-configuration $label=$value"
@@ -157,9 +154,9 @@ item_manual_configuration() {
   shift 2
   local labels_configured=("$@")
 
-  configurations="$(request GET "/order/cart/${cart_id}/item/${item_id}/requiredConfiguration" | $JQ_BIN -cr '.[]|select((.required==true) or (.label=="dedicated_datacenter"))')"
+  exec <<<$(request GET "/order/cart/${cart_id}/item/${item_id}/requiredConfiguration" | $JQ_BIN -cr '.[]|select((.required==true) or (.label=="dedicated_datacenter"))')
 
-  for configuration in $configurations; do
+  while read configuration; do
     label="$(echo "$configuration" | $JQ_BIN -r .label)"
     if [[ ${labels_configured[@]} =~ $label ]]; then
       continue
@@ -178,6 +175,7 @@ item_manual_configuration() {
   done
 }
 
+# item_option_configuration configures item with mandatory options, choosing the cheapest available
 item_option_configuration() {
   local cart_id="$1"
   local item_id=$2
@@ -185,12 +183,10 @@ item_option_configuration() {
   local price_mode="$4"
   local price_duration="$5"
 
-  declare -A familyPlanCode
-  declare -A familyPrices
-  local bob
-
   exec <<<$(request GET "/order/cart/${cart_id}/eco/options?planCode=${plan_code}" | $JQ_BIN -cr '.[]')
 
+  declare -A familyPlanCode
+  declare -A familyPrices
   while read option; do
     mandatory="$(echo "$option" | $JQ_BIN -r .mandatory)"
     if [ "$mandatory" != "true" ]; then
@@ -223,9 +219,8 @@ main() {
   HTTP_CODE_FILE="$(mktemp -t kimsufi-notifier.XXXXXX)"
   trap 'rm -f "$HTTP_CODE_FILE"' EXIT
 
-  DATACENTER=""
-
   # Use configured dataceter if only one is set
+  DATACENTER=""
   if [ -n "${DATACENTERS-}" ] && echo "$DATACENTERS"|grep -vq ,; then
     DATACENTER="$DATACENTERS"
   fi
@@ -350,12 +345,15 @@ main() {
   # Configure eco options
   item_option_configuration "$cart_id" $item_id "$PLAN_CODE" "$PRICE_MODE" "$PRICE_DURATION"
 
-  # Checkout
+  # Assign cart to account
   request_auth POST "/order/cart/${cart_id}/assign" 1>/dev/null
   echo "> cart id=${cart_id} assigned"
 
-  request_auth POST "/order/cart/${cart_id}/checkout" '{"autoPayWithPreferredPaymentMethod":false,"waiveRetractationPeriod":false}' | $JQ_BIN -cr .
-  echo "> completed order"
+  # Submit order
+  order="$(request_auth POST "/order/cart/${cart_id}/checkout" '{"autoPayWithPreferredPaymentMethod":false,"waiveRetractationPeriod":false}' | $JQ_BIN -cr 'del(.contracts)')"
+  order_url="$(echo "$order" | $JQ_BIN -r .url)"
+  echo "$order" | $JQ_BIN -cr .
+  echo "> order completed, url=$order_url"
 }
 
 main "$@"
