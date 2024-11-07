@@ -1,0 +1,16 @@
+name: run
+
+on:
+  schedule:
+    - cron: "* * * * *"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run check
+        run: |
+          touch config.env
+          PLAN_CODE=24ska01 ./bin/check.sh
