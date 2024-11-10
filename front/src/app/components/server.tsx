@@ -53,9 +53,11 @@ function ServerLines({ category, servers }) {
   return (
       servers.map((server) => (
       <tr ref={React.createRef()} key={category + server.planCode} className={`${changedRows.has(server.planCode) ? 'bg-yellow-200' : 'transition duration-1000 delay-150 even:bg-blue-300 odd:bg-blue-100'} font-mono`}>
-        <td>{server.planCode}</td>
-        <td>{server.category||"uncategorized"}</td>
         <td>{server.name}</td>
+        <td>{server.cpu}</td>
+        <td>{server.memory}</td>
+        <td>{server.storage}</td>
+        <td>{server.bandwidth}</td>
         <td>{server.price} {server.currencyCode}</td>
         <td className="flex flex-row justify-end">{server.status}<div className={statusColor.get(server.status).color + " pl-2"}><FontAwesomeIcon icon={statusColor.get(server.status).icon} /></div></td>
         <td>{server.datacenters?.join(", ")||"-"}</td>
@@ -76,9 +78,8 @@ const ServersTable = ({data} : Props) => {
 
   const tableBody = Object.entries(ordered).map(([category, servers]) => (
     <>
+      <tr key={category + " name"}><td className="p-2 font-mono" colSpan={6}>{category||"Uncategorized"}</td></tr>
       <ServerLines key={category + " servers"} catagory={category} servers={servers} />
-      <tr key={category + " separator0"}><td className="p-2" colSpan={6}></td></tr>
-      <tr key={category + " separator1"}><td className="p-2" colSpan={6}></td></tr>
     </>
   ));
 
@@ -86,9 +87,11 @@ const ServersTable = ({data} : Props) => {
       <table className="text-nowrap">
         <thead>
           <tr>
-            <th className="p-4">Plan Code</th>
-            <th className="p-4">Category</th>
             <th className="p-4">Name</th>
+            <th className="p-4">CPU</th>
+            <th className="p-4">RAM</th>
+            <th className="p-4">Storage</th>
+            <th className="p-4">Bandwidth</th>
             <th className="p-4">Price</th>
             <th className="p-4">Status</th>
             <th className="p-4">Datacenters</th>
