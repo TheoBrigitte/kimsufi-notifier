@@ -4,7 +4,7 @@ import React from 'react'
 import ServersTable from './components/server';
 import useSWRSubscription from 'swr/subscription';
 
-function Status({ error, data, connectionRestored, setConnectionRestored }) {
+function Status({ error, data, connectionRestored, setConnectionRestored, lastMessage, setLastMessage }) {
   let message;
   let fadeOut;
 
@@ -22,6 +22,9 @@ function Status({ error, data, connectionRestored, setConnectionRestored }) {
     setTimeout(function() {
       setConnectionRestored(false);
     }, 5000);
+  } else if (lastMessage > 0) {
+    const date = new Date(lastMessage).toTimeString().split(' ')[0]
+    message = <div>Last update received at {date}</div>
   }
 
   const hidden = !message ? "hidden" : ""
@@ -36,6 +39,7 @@ function Status({ error, data, connectionRestored, setConnectionRestored }) {
 export default function Home() {
   const [data, setData] = React.useState(null);
   const [connectionRestored, setConnectionRestored] = React.useState(false);
+  const [lastMessage, setLastMessage] = React.useState(0);
 
   const startWS = (key, { next }) => {
     let socket = new WebSocket("ws://127.0.0.1:9779/list", 'echo-protocol');
@@ -43,6 +47,7 @@ export default function Home() {
       const res = JSON.parse(event.data)
       next(null, res)
       setData(res)
+      setLastMessage(Date.now())
     })
     socket.addEventListener('error', (event) => {
       next(event.error)
@@ -60,8 +65,15 @@ export default function Home() {
     return () => socket.close()
   }
   
-  const { error } = useSWRSubscription('/listWS', startWS)
-  const status = <Status error={error} data={data} connectionRestored={connectionRestored} setConnectionRestored={setConnectionRestored} />
+  const { error } = useSWRSubscription('/list', startWS)
+  const status = <Status
+    error={error}
+    data={data}
+    connectionRestored={connectionRestored}
+    setConnectionRestored={setConnectionRestored}
+    lastMessage={lastMessage}
+    setLastMessage={setLastMessage}
+  />
 
   //const setServers = (data) => {
   //  setData(data);
