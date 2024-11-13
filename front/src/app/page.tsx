@@ -38,7 +38,7 @@ export default function Home() {
   const [connectionRestored, setConnectionRestored] = React.useState(false);
 
   const startWS = (key, { next }) => {
-    let socket = new WebSocket("ws://127.0.0.1:8080/listWS", 'echo-protocol');
+    let socket = new WebSocket("ws://127.0.0.1:9779/list", 'echo-protocol');
     socket.addEventListener('message', (event) => {
       const res = JSON.parse(event.data)
       next(null, res)
