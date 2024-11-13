@@ -1,10 +1,10 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react';
 import ServersTable from './components/server';
-import useSWRSubscription from 'swr/subscription';
+import useWebSocket  from 'react-use-websocket';
 
-function Status({ error, data, connectionRestored, setConnectionRestored, lastMessage, setLastMessage }) {
+function Status({ error, data, connectionRestored, setConnectionRestored, lastMessage }) {
   let message;
   let fadeOut;
 
@@ -18,7 +18,7 @@ function Status({ error, data, connectionRestored, setConnectionRestored, lastMe
     message = <div>Loading ...</div>
   } else if (connectionRestored) {
     message = <div className="text-green-700">Websocket connected</div>
-    fadeOut = "transition-opacity duration-[1000ms] opacity-0"
+    fadeOut = "transition-opacity duration-[2000ms] opacity-0"
     setTimeout(function() {
       setConnectionRestored(false);
     }, 5000);
@@ -37,42 +37,39 @@ function Status({ error, data, connectionRestored, setConnectionRestored, lastMe
 }
 
 export default function Home() {
-  const [data, setData] = React.useState(null);
-  const [connectionRestored, setConnectionRestored] = React.useState(false);
-  const [lastMessage, setLastMessage] = React.useState(0);
+  const websocketURL = "ws://127.0.0.1:9779/list";
 
-  const startWS = (key, { next }) => {
-    let socket = new WebSocket("ws://127.0.0.1:9779/list", 'echo-protocol');
-    socket.addEventListener('message', (event) => {
-      const res = JSON.parse(event.data)
-      next(null, res)
-      setData(res)
-      setLastMessage(Date.now())
-    })
-    socket.addEventListener('error', (event) => {
-      next(event.error)
-      //ws.close()
-    })
-    socket.addEventListener('close', (event) => {
-      next(new Error("socket closed"))
-      setTimeout(function() {
-        startWS(key, { next })
-      }, 5000);
-    })
-    socket.addEventListener('open', () => {
-      setConnectionRestored(true)
-    })
-    return () => socket.close()
-  }
-  
-  const { error } = useSWRSubscription('/list', startWS)
+  const [data, setData] = useState(null);
+  const [connectionRestored, setConnectionRestored] = useState(false);
+  const [lastMessage, setLastMessage] = useState(0);
+  const [error, setError] = useState(null);
+
+  useWebSocket(
+    websocketURL,
+    {
+      share: false,
+      onMessage: (event) => {
+        setError(null)
+        setData(JSON.parse(event.data))
+        setLastMessage(Date.now())
+      },
+      onOpen: () => {
+        setError(null)
+        setConnectionRestored(true)
+      },
+      onClose: () => setError(new Error("socket closed")),
+      onError: () => setError(new Error("socket error")),
+      reconnectInterval: (attemptNumber) => Math.min(Math.pow(2, attemptNumber) * 1000, 10000),
+      shouldReconnect: () => true,
+    },
+  );
+
   const status = <Status
     error={error}
     data={data}
     connectionRestored={connectionRestored}
     setConnectionRestored={setConnectionRestored}
     lastMessage={lastMessage}
-    setLastMessage={setLastMessage}
   />
 
   //const setServers = (data) => {
