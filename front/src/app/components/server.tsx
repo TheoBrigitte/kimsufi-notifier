@@ -1,29 +1,29 @@
 'use client';
 
-import { ReactNode } from "react";
 import React from 'react';
 import { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheckCircle, faTimesCircle } from '@fortawesome/free-regular-svg-icons';
+import { faCheckCircle, faTimesCircle, faCircle } from '@fortawesome/free-regular-svg-icons';
+import { Server, Status } from './types';
 
 interface Props {
-    data: Object
+    data: Server[];
 }
 
-function ServerLines({ category, servers }) {
-  let statusColor = new Map<string, Object>([
-      ["available", {"color":"text-lime-600", "icon":faCheckCircle}],
-      ["unavailable", {"color":"text-rose-600", "icon":faTimesCircle}],
+function ServerLines({category, servers} : {category: string, servers: Server[]}) {
+  const statusColor = new Map<string, Status>([
+      ["available", {color:"text-lime-600", icon:faCheckCircle}],
+      ["unavailable", {color:"text-rose-600", icon:faTimesCircle}],
   ]);
 
-  const [rowsData, setRowsData] = useState({});
+  const [rowsData, setRowsData] = useState(new Map<string, Server>());
   const [changedRows, setChangedRows] = useState(new Set());
   useEffect(() => {
-    const newRowsData = {};
+    const newRowsData = new Map<string, Server>();
 
     // Detect changes by comparing the current data to the previous data
     servers.forEach((server) => {
-      const previousData = rowsData[server.planCode];
+      const previousData = rowsData.get(server.planCode);
       const currentData = server;
 
       // Check if the data has changed
@@ -33,7 +33,7 @@ function ServerLines({ category, servers }) {
       }
 
       // Update the data for the current row
-      newRowsData[server.planCode] = currentData;
+      newRowsData.set(server.planCode, currentData);
     });
 
     setRowsData(newRowsData);
@@ -44,7 +44,7 @@ function ServerLines({ category, servers }) {
     if (changedRows.size > 0) {
       const timer = setTimeout(() => {
         setChangedRows(new Set()); // Clear changed rows
-      }, 0); // Duration for highlight in milliseconds
+      }, 10000); // Duration for highlight in milliseconds
 
       return () => clearTimeout(timer);
     }
@@ -59,9 +59,20 @@ function ServerLines({ category, servers }) {
         <td>{server.storage}</td>
         <td>{server.bandwidth}</td>
         <td>{server.price} {server.currencyCode}</td>
-        <td className="flex flex-row justify-end">{server.status}<div className={statusColor.get(server.status).color + " pl-2"}><FontAwesomeIcon icon={statusColor.get(server.status).icon} /></div></td>
+        <td className="flex flex-row justify-end">{server.status}<div className={statusColor.get(server.status)?.color + " pl-2"}><FontAwesomeIcon icon={statusColor.get(server.status)?.icon||faCircle} /></div></td>
         <td>{server.datacenters?.join(", ")||"-"}</td>
       </tr>
+    ))
+  )
+}
+
+function ServerCategories({ordered} : {ordered: {[key: string]: Server[]}}) {
+  return (
+    Object.entries(ordered).map(([category, servers]) => (
+      <>
+        <tr><td className="p-2 font-mono" colSpan={8}>{category||"Uncategorized"}</td></tr>
+        <ServerLines category={category} servers={servers} />
+      </>
     ))
   )
 }
@@ -71,17 +82,10 @@ const ServersTable = ({data} : Props) => {
     return
   }
 
-  const serversByCategory = Object.groupBy(data, ({ category }) => category);
+  const serversByCategory = Object.groupBy(data, ( server: Server ) => server.category);
 
-  let categoryOrder = { "Kimsufi": [], "So you Start": [], "Rise": [], "": [], }
+  const categoryOrder: {[key: string] :Server[]} = { "Kimsufi": [], "So you Start": [], "Rise": [], "": [], }
   const ordered = Object.assign(categoryOrder, serversByCategory);
-
-  const tableBody = Object.entries(ordered).map(([category, servers]) => (
-    <>
-      <tr key={category + " name"}><td className="p-2 font-mono" colSpan={6}>{category||"Uncategorized"}</td></tr>
-      <ServerLines key={category + " servers"} catagory={category} servers={servers} />
-    </>
-  ));
 
   return (
       <table className="text-nowrap">
@@ -98,7 +102,7 @@ const ServersTable = ({data} : Props) => {
           </tr>
         </thead>
         <tbody>
-          {tableBody}
+          <ServerCategories ordered={ordered} />
         </tbody>
       </table>
   );

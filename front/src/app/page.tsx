@@ -3,8 +3,19 @@
 import React, { useState } from 'react';
 import ServersTable from './components/server';
 import useWebSocket  from 'react-use-websocket';
+import { Server } from './components/types';
 
-function Status({ error, data, connectionRestored, setConnectionRestored, lastMessage }) {
+type ErrorNull = Error | null;
+
+type StatusProps = {
+  error: ErrorNull;
+  data: Server[];
+  connectionRestored: boolean;
+  setConnectionRestored: (value: boolean) => void;
+  lastMessage: number;
+};
+
+function Status({error, data, connectionRestored, setConnectionRestored, lastMessage}: StatusProps) {
   let message;
   let fadeOut;
 
@@ -39,10 +50,11 @@ function Status({ error, data, connectionRestored, setConnectionRestored, lastMe
 export default function Home() {
   const websocketURL = "ws://127.0.0.1:9779/list";
 
-  const [data, setData] = useState(null);
+  const emptyData = Array<Server>();
+  const [data, setData] = useState(emptyData);
   const [connectionRestored, setConnectionRestored] = useState(false);
   const [lastMessage, setLastMessage] = useState(0);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null as ErrorNull);
 
   useWebSocket(
     websocketURL,
@@ -57,8 +69,8 @@ export default function Home() {
         setError(null)
         setConnectionRestored(true)
       },
-      onClose: () => setError(new Error("socket closed")),
-      onError: () => setError(new Error("socket error")),
+      onClose: () => setError(Error("socket closed")),
+      onError: () => setError(Error("socket error")),
       reconnectInterval: (attemptNumber) => Math.min(Math.pow(2, attemptNumber) * 1000, 10000),
       shouldReconnect: () => true,
     },
