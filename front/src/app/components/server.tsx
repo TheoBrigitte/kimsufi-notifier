@@ -44,7 +44,7 @@ function ServerLines({category, servers} : {category: string, servers: Server[]}
     if (changedRows.size > 0) {
       const timer = setTimeout(() => {
         setChangedRows(new Set()); // Clear changed rows
-      }, 10000); // Duration for highlight in milliseconds
+      }, 500); // Duration for highlight in milliseconds
 
       return () => clearTimeout(timer);
     }
