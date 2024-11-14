@@ -10,12 +10,15 @@ interface Props {
     data: Server[];
 }
 
+// ServerLines displays the servers table lines
 function ServerLines({category, servers} : {category: string, servers: Server[]}) {
+  // Define the color and icon the status column
   const statusColor = new Map<string, Status>([
       ["available", {color:"text-lime-600", icon:faCheckCircle}],
       ["unavailable", {color:"text-rose-600", icon:faTimesCircle}],
   ]);
 
+  // Highlight changed rows
   const [rowsData, setRowsData] = useState(new Map<string, Server>());
   const [changedRows, setChangedRows] = useState(new Set());
   useEffect(() => {
@@ -39,7 +42,7 @@ function ServerLines({category, servers} : {category: string, servers: Server[]}
     setRowsData(newRowsData);
   }, [servers]); // Re-run effect when servers data changes
 
-    // Clear highlight after a delay
+  // Clear highlight after a delay
   useEffect(() => {
     if (changedRows.size > 0) {
       const timer = setTimeout(() => {
@@ -66,6 +69,7 @@ function ServerLines({category, servers} : {category: string, servers: Server[]}
   )
 }
 
+// ServerCategories displays the servers table lines with a category line before
 function ServerCategories({ordered} : {ordered: {[key: string]: Server[]}}) {
   return (
     Object.entries(ordered).map(([category, servers]) => (
@@ -82,9 +86,11 @@ const ServersTable = ({data} : Props) => {
     return
   }
 
+  // Group servers by category
   const serversByCategory = Object.groupBy(data, ( server: Server ) => server.category);
-
+  // Define the order of categories
   const categoryOrder: {[key: string] :Server[]} = { "Kimsufi": [], "So you Start": [], "Rise": [], "": [], }
+  // Merge the server and respect the categories order
   const ordered = Object.assign(categoryOrder, serversByCategory);
 
   return (
