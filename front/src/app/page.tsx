@@ -48,7 +48,7 @@ function Status({error, data, connectionRestored, setConnectionRestored, lastMes
 }
 
 export default function Home() {
-  const websocketURL = "ws://127.0.0.1:9779/list";
+  const websocketURL = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost';
 
   const emptyData = Array<Server>();
   const [data, setData] = useState(emptyData);
