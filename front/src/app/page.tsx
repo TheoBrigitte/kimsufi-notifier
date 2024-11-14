@@ -76,14 +76,6 @@ export default function Home() {
     },
   );
 
-  const status = <Status
-    error={error}
-    data={data}
-    connectionRestored={connectionRestored}
-    setConnectionRestored={setConnectionRestored}
-    lastMessage={lastMessage}
-  />
-
   //const setServers = (data) => {
   //  setData(data);
   //  return 5000;
@@ -97,10 +89,16 @@ export default function Home() {
   return (
     <div className="flex flex-row justify-center">
       <div className="pt-10 pb-20 px-10">
-        <div className="flex flex-row min-w-fit flex-nowrap text-nowrap">
+        <div className="flex flex-row min-w-fit justify-center flex-nowrap text-nowrap">
           <div className="basis-1/4 flex-none"></div>
           <div className="basis-2/4 px-40 py-5 flex-none text-center text-xl font-bold">OVH Eco server availability</div>
-          {status}
+          <Status
+            error={error}
+            data={data}
+            connectionRestored={connectionRestored}
+            setConnectionRestored={setConnectionRestored}
+            lastMessage={lastMessage}
+          />
         </div>
         <ServersTable data={data} />
       </div>
