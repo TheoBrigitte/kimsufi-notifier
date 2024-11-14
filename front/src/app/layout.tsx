@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import localFont from "next/font/local";
 
 import { library } from '@fortawesome/fontawesome-svg-core';

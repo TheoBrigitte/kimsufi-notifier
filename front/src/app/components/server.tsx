@@ -37,7 +37,7 @@ function ServerLines({category, servers} : {category: string, servers: Server[]}
     });
 
     setRowsData(newRowsData);
-  }, [servers]); // Re-run effect when servers data changes
+  }, [servers, rowsData]); // Re-run effect when servers data changes
 
     // Clear highlight after a delay
   useEffect(() => {
