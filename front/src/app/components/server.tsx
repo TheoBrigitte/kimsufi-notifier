@@ -78,7 +78,7 @@ function ServerCategories({ordered} : {ordered: {[key: string]: Server[]}}) {
 }
 
 const ServersTable = ({data} : Props) => {
-  if (!data) {
+  if (!data || data.length === 0) {
     return
   }
 
