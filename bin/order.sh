@@ -78,20 +78,22 @@ request() {
   if echo "$@" | grep -q -- '-v' || $DEBUG; then
     set -x
   fi
-  curl -sX "${method}" "${OVH_URL}${endpoint}" \
+  result="$(curl -sX "${method}" "${OVH_URL}${endpoint}" \
     --header "Accept: application/json"\
     --header "Content-Type: application/json" \
     --data "${data}" \
     -w '%{stderr}%{http_code}' \
-    "$@" 2>$HTTP_CODE_FILE
+    "$@" 2>$HTTP_CODE_FILE)"
   set +x
 
   http_code=$(cat "$HTTP_CODE_FILE")
   if [ $http_code -lt 200 ] || [ $http_code -gt 299 ]; then
     echo_stderr "> error http_code=$http_code request=$method $OVH_URL$endpoint"
+    echo_stderr "$result"
     return 1
   fi
 
+  echo "$result"
   return 0
 }
 
