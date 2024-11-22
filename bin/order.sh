@@ -11,6 +11,7 @@ ENDPOINT="ovh-eu"
 PRICE_DURATION="P1M"
 PRICE_MODE="default"
 QUANTITY=1
+SHOW_CONFIGURATIONS=false
 SHOW_OPTIONS=false
 
 echo_stderr() {
@@ -39,6 +40,8 @@ usage() {
   echo_stderr "  -e, --endpoint             OVH API endpoint (default: $ENDPOINT)"
   echo_stderr "                              Allowed values: ovh-eu, ovh-ca, ovh-us"
   echo_stderr "  -i, --item-configuration   Item configuration in the form 'label=value'"
+  echo_stderr "                               use --show-configurations to list available configurations"
+  echo_stderr "      --show-configurations  Show available configurations for the selected server"
   echo_stderr "      --item-option          Item option in the form label=value (e.g. memory=ram-64g-noecc-2133-24ska01)"
   echo_stderr "                               use --show-options to list available options"
   echo_stderr "                               default to cheapest option when multiple are available"
@@ -260,6 +263,26 @@ item_user_option() {
   echo "${keys[@]}"
 }
 
+print_server_configurations() {
+  local cart_id="$1"
+  local item_id="$2"
+
+  exec 6<<<$(request GET "/order/cart/${cart_id}/item/${item_id}/requiredConfiguration" | $JQ_BIN -cr '.[]|select(.required==true)|select(.allowedValues|length != 1)')
+
+  output=""
+  while read <&6 configuration; do
+    label="$(echo "$configuration" | $JQ_BIN -r .label)"
+    exec 7<<<$(echo "$configuration" | $JQ_BIN -cr .allowedValues[])
+    while read <&7 value; do
+      output+="$label=$value\n"
+    done
+  done
+
+  exec 6<&- 7<&-
+
+  echo -e "$output" | column -t -N "Configuration" -o '    '
+}
+
 print_server_options() {
   cart_id="$1"
   plan_code="$2"
@@ -330,7 +353,7 @@ main() {
   local item_configurations=()
   local item_options=()
 
-  ARGS=$(getopt -o 'c:d:e:hi:p:q:' --long 'country:,datacenter:,item-configuration:,item-option:,debug,dry-run,endpoint:,help,quantity:,plan-code:,price-duration:,price-mode:,show-options' -- "$@")
+  ARGS=$(getopt -o 'c:d:e:hi:p:q:' --long 'country:,datacenter:,item-configuration:,item-option:,debug,dry-run,endpoint:,help,quantity:,plan-code:,price-duration:,price-mode:,show-configurations,show-options' -- "$@")
   eval set -- "$ARGS"
   while true; do
     case "$1" in
@@ -397,6 +420,11 @@ main() {
         shift 2
         continue
         ;;
+      --show-configurations)
+        SHOW_CONFIGURATIONS=true
+        shift 1
+        continue
+        ;;
       --show-options)
         SHOW_OPTIONS=true
         shift 1
@@ -459,6 +487,11 @@ main() {
     exit 1
   fi
   echo "> cart updated with item id=$item_id"
+
+  if $SHOW_CONFIGURATIONS; then
+    print_server_configurations "$cart_id" "$item_id"
+    exit 0
+  fi
 
   # Configure item
   labels_auto_configured="$(item_auto_configuration "$cart_id" "$item_id")"
