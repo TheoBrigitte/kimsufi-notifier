@@ -11,6 +11,7 @@ ENDPOINT="ovh-eu"
 PRICE_DURATION="P1M"
 PRICE_MODE="default"
 QUANTITY=1
+SHOW_OPTIONS=false
 
 echo_stderr() {
     >&2 echo "$@"
@@ -29,22 +30,22 @@ usage() {
   echo_stderr "Place an order for a servers from OVH Eco (including Kimsufi) catalog"
   echo_stderr
   echo_stderr "Arguments"
-  echo_stderr "  -c, --country     Country code (required)"
-  echo_stderr "                      Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
-  echo_stderr "                      Allowed values with -e ovh-ca : ASIA, AU, CA, IN, QC, SG, WE, WS"
-  echo_stderr "                      Allowed values with -e ovh-us : US"
-  echo_stderr "  --datacenter      Datacenter code (default: from config when only one is set)"
-  echo_stderr "                      Example values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw (non exhaustive list)"
-  echo_stderr "  -e, --endpoint    OVH API endpoint (default: $ENDPOINT)"
-  echo_stderr "                      Allowed values: ovh-eu, ovh-ca, ovh-us"
-  echo_stderr "  -i, --item-configuration"
-  echo_stderr "                      Item configuration in the form 'label=value'"
-  echo_stderr "  -d, --debug       Enable debug mode (default: $DEBUG)"
-  echo_stderr "      --dry-run     Do not create the order, only configure the cart (default: $DRY_RUN)"
-  echo_stderr "  -h, --help        Display this help message"
-  echo_stderr "  -q, --quantity    Quantity of items to order (default: $QUANTITY)"
-  echo_stderr "  --price-mode      Billing price type (default: $PRICE_MODE)"
-  echo_stderr "  --price-duration  Billing duration (default: $PRICE_DURATION)"
+  echo_stderr "  -c, --country              Country code (required)"
+  echo_stderr "                               Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
+  echo_stderr "                               Allowed values with -e ovh-ca : ASIA, AU, CA, IN, QC, SG, WE, WS"
+  echo_stderr "                               Allowed values with -e ovh-us : US"
+  echo_stderr "  --datacenter               Datacenter code (default: from config when only one is set)"
+  echo_stderr "                               Example values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw (non exhaustive list)"
+  echo_stderr "  -e, --endpoint             OVH API endpoint (default: $ENDPOINT)"
+  echo_stderr "                              Allowed values: ovh-eu, ovh-ca, ovh-us"
+  echo_stderr "  -i, --item-configuration   Item configuration in the form 'label=value'"
+  echo_stderr "      --show-options         Show available options for the selected server"
+  echo_stderr "  -d, --debug                Enable debug mode (default: $DEBUG)"
+  echo_stderr "      --dry-run              Do not create the order, only configure the cart (default: $DRY_RUN)"
+  echo_stderr "  -h, --help                 Display this help message"
+  echo_stderr "  -q, --quantity             Quantity of items to order (default: $QUANTITY)"
+  echo_stderr "  --price-mode               Billing price type (default: $PRICE_MODE)"
+  echo_stderr "  --price-duration           Billing duration (default: $PRICE_DURATION)"
   echo_stderr
   echo_stderr "  Arguments can also be set as environment variables see config.env.example"
   echo_stderr "  Command line arguments take precedence over environment variables"
@@ -226,6 +227,56 @@ item_option_configuration() {
   done
 }
 
+print_server_options() {
+  cart_id="$1"
+  plan_code="$2"
+  price_mode="$3"
+  price_duration="$4"
+
+  exec 6<<<$(request GET "/order/cart/${cart_id}/eco/options?planCode=${plan_code}" | $JQ_BIN -cr '.[]')
+  declare -A familyOptions
+  declare -A familyDetails
+  declare -A familyDefaults
+  declare -A familyPrices
+  while read <&6 option; do
+    mandatory="$(echo "$option" | $JQ_BIN -r .mandatory)"
+    if [ "$mandatory" != "true" ]; then
+      continue
+    fi
+    family="$(echo "$option" | $JQ_BIN -r .family)"
+    code="$(echo "$option" | $JQ_BIN -r .planCode)"
+    name="$(echo "$option" | $JQ_BIN -r .productName)"
+    price="$(echo "$option" | $JQ_BIN -r '.prices[]|select((.pricingMode == "'"$price_mode"'") and (.duration == "'"$price_duration"'"))|.priceInUcents')"
+    if ! [ "${familyOptions[$family]+x}" ]; then
+      familyOptions[$family]="$code"
+      familyDetails[$code]="$name:$mandatory"
+    else
+      familyOptions[$family]="${familyOptions[$family]}:$code"
+      familyDetails[$code]="$name:$mandatory"
+    fi
+
+    if ! [ "${familyPrices[$family]+x}" ]; then
+      familyDefaults[$family]=$code
+      familyPrices[$family]=$price
+    elif [ "$price" -lt "${familyPrices[$family]}" ]; then
+      familyDefaults[$family]=$code
+      familyPrices[$family]=$price
+    fi
+  done
+
+  output=""
+  for key in ${!familyOptions[@]}; do
+    while read option; do
+      default=false
+      if [ "$option" == "${familyDefaults[$key]}" ]; then
+        default=true
+      fi
+      output+="$key=$option:${familyDetails[$option]}:$default\n"
+    done <<<$(echo ${familyOptions[$key]} | tr ':' '\n')
+  done
+  echo -e "$output" | column -t -s ':' -N "Option,Name,Mandatory,Default" -o '    '
+}
+
 main() {
   # Load configuration and common tools
   source "${SCRIPT_DIR}/../config.env"
@@ -305,6 +356,11 @@ main() {
         shift 2
         continue
         ;;
+      --show-options)
+        SHOW_OPTIONS=true
+        shift 1
+        continue
+        ;;
       '--')
         shift
         break
@@ -344,6 +400,12 @@ main() {
     exit 1
   fi
   echo "> cart created id=$cart_id"
+
+  if $SHOW_OPTIONS; then
+    print_server_options "$cart_id" "$PLAN_CODE" "$PRICE_MODE" "$PRICE_DURATION"
+    exit 0
+  fi
+
 
   # Add item to cart
   cart_updated="$(request POST "/order/cart/${cart_id}/eco" '{"planCode":"'"${PLAN_CODE}"'","quantity": '${QUANTITY}', "pricingMode":"'"${PRICE_MODE}"'","duration":"'${PRICE_DURATION}'"}')"
