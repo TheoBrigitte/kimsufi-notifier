@@ -21,7 +21,7 @@ usage() {
   echo_stderr "List servers from OVH Eco (including Kimsufi) catalog"
   echo_stderr
   echo_stderr "Arguments"
-  echo_stderr "  --category       Server category (default all)"
+  echo_stderr "      --category   Server category (default all)"
   echo_stderr "                     Allowed values: kimsufi, soyoustart, rise, uncategorized"
   echo_stderr "  -c, --country    Country code (required)"
   echo_stderr "                     Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
