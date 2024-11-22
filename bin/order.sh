@@ -175,7 +175,10 @@ item_manual_configuration() {
     read -p "> Choice: " index
     value="$(echo "$configuration" | $JQ_BIN -r .allowedValues[$index])"
     echo_stderr "> item manual-configuration $label=$value"
-    request POST "/order/cart/${cart_id}/item/${item_id}/configuration" '{"label":"'"$label"'","value":"'"$value"'"}'
+    result="$(request POST "/order/cart/${cart_id}/item/${item_id}/configuration" '{"label":"'"$label"'","value":"'"$value"'"}')"
+    if $DEBUG; then
+      echo "$result" | $JQ_BIN -cr .
+    fi
   done
 
   exec 6<&-
@@ -215,7 +218,9 @@ item_option_configuration() {
   for option in "${familyPlanCode[@]}"; do
     echo_stderr "> item option $option"
     result="$(request POST "/order/cart/${cart_id}/eco/options" '{"quantity": 1, "duration": "'"$price_duration"'", "pricingMode":"'"$price_mode"'", "planCode":"'"$option"'", "itemId": '$item_id'}')"
-    $DEBUG && echo "$result" $JQ_BIN -cr .
+    if $DEBUG; then
+      echo "$result" | $JQ_BIN -cr .
+    fi
   done
 }
 
@@ -327,7 +332,9 @@ main() {
   # Create cart
   expire="$(date --iso-8601=seconds --date tomorrow)"
   cart="$(request POST "/order/cart" '{"description":"kimsufi-notifier","expire":"'"$expire"'","ovhSubsidiary":"'"$COUNTRY"'"}')"
-  $DEBUG && echo "$cart" | $JQ_BIN -cr .
+  if $DEBUG; then
+    echo "$cart" | $JQ_BIN -cr .
+  fi
 
   cart_id="$(echo "$cart" | $JQ_BIN -r .cartId)"
   if [ -z "$cart_id" ]; then
@@ -338,7 +345,9 @@ main() {
 
   # Add item to cart
   cart_updated="$(request POST "/order/cart/${cart_id}/eco" '{"planCode":"'"${PLAN_CODE}"'","quantity": '${QUANTITY}', "pricingMode":"'"${PRICE_MODE}"'","duration":"'${PRICE_DURATION}'"}')"
-  $DEBUG && echo "$cart_updated" | $JQ_BIN -cr .
+  if $DEBUG; then
+    echo "$cart_updated" | $JQ_BIN -cr .
+  fi
 
   item_id="$(echo "$cart_updated" | $JQ_BIN -r .itemId)"
   if [ -z "$item_id" ]; then
@@ -367,7 +376,9 @@ main() {
 
   # Submit order
   order="$(request_auth POST "/order/cart/${cart_id}/checkout" '{"autoPayWithPreferredPaymentMethod":false,"waiveRetractationPeriod":false}' | $JQ_BIN -cr 'del(.contracts)')"
-  $DEBUG && echo "$order" | $JQ_BIN -cr .
+  if $DEBUG; then
+    echo "$order" | $JQ_BIN -cr .
+  fi
 
   order_url="$(echo "$order" | $JQ_BIN -r .url)"
   echo "> order completed url=$order_url"
