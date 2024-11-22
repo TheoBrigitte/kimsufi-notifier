@@ -116,16 +116,18 @@ item_auto_configuration() {
   local cart_id="$1"
   local item_id="$2"
 
-  exec <<<$(request GET "/order/cart/${cart_id}/item/${item_id}/requiredConfiguration" | $JQ_BIN -cr '.[]|select((.required==true) or (.label=="dedicated_datacenter"))|select(.allowedValues|length == 1)')
+  exec 6<<<$(request GET "/order/cart/${cart_id}/item/${item_id}/requiredConfiguration" | $JQ_BIN -cr '.[]|select((.required==true) or (.label=="dedicated_datacenter"))|select(.allowedValues|length == 1)')
 
   local labels=()
-  while read configuration; do
+  while read <&6 configuration; do
     label="$(echo "$configuration" | $JQ_BIN -r .label)"
     value="$(echo "$configuration" | $JQ_BIN -r .allowedValues[0])"
     echo_stderr "> item auto-configuration $label=$value"
     request POST "/order/cart/${cart_id}/item/${item_id}/configuration" '{"label":"'"$label"'","value":"'"$value"'"}'
     labels+=("$label")
   done
+
+  exec 6<&-
 
   echo "${labels[@]}"
 }
@@ -156,9 +158,9 @@ item_manual_configuration() {
   shift 2
   local labels_configured=("$@")
 
-  exec <<<$(request GET "/order/cart/${cart_id}/item/${item_id}/requiredConfiguration" | $JQ_BIN -cr '.[]|select((.required==true) or (.label=="dedicated_datacenter"))')
+  exec 6<<<$(request GET "/order/cart/${cart_id}/item/${item_id}/requiredConfiguration" | $JQ_BIN -cr '.[]|select((.required==true) or (.label=="dedicated_datacenter"))')
 
-  while read configuration; do
+  while read <&6 configuration; do
     label="$(echo "$configuration" | $JQ_BIN -r .label)"
     if [[ ${labels_configured[@]} =~ $label ]]; then
       continue
@@ -175,6 +177,8 @@ item_manual_configuration() {
     echo_stderr "> item manual-configuration $label=$value"
     request POST "/order/cart/${cart_id}/item/${item_id}/configuration" '{"label":"'"$label"'","value":"'"$value"'"}'
   done
+
+  exec 6<&-
 }
 
 # item_option_configuration configures item with mandatory options, choosing the cheapest available
@@ -185,11 +189,11 @@ item_option_configuration() {
   local price_mode="$4"
   local price_duration="$5"
 
-  exec <<<$(request GET "/order/cart/${cart_id}/eco/options?planCode=${plan_code}" | $JQ_BIN -cr '.[]')
+  exec 6<<<$(request GET "/order/cart/${cart_id}/eco/options?planCode=${plan_code}" | $JQ_BIN -cr '.[]')
 
   declare -A familyPlanCode
   declare -A familyPrices
-  while read option; do
+  while read <&6 option; do
     mandatory="$(echo "$option" | $JQ_BIN -r .mandatory)"
     if [ "$mandatory" != "true" ]; then
       continue
@@ -205,6 +209,8 @@ item_option_configuration() {
       familyPlanCode[$family]="$code"
     fi
   done
+
+  exec 6<&-
 
   for option in "${familyPlanCode[@]}"; do
     echo_stderr "> item option $option"
