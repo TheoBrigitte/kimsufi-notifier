@@ -6,6 +6,7 @@ SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
 
 # Default values
 DEBUG=false
+DRY_RUN=false
 ENDPOINT="ovh-eu"
 PRICE_DURATION="P1M"
 PRICE_MODE="default"
@@ -39,6 +40,7 @@ usage() {
   echo_stderr "  -i, --item-configuration"
   echo_stderr "                      Item configuration in the form 'label=value'"
   echo_stderr "  -d, --debug       Enable debug mode (default: $DEBUG)"
+  echo_stderr "      --dry-run     Do not create the order, only configure the cart (default: $DRY_RUN)"
   echo_stderr "  -h, --help        Display this help message"
   echo_stderr "  -q, --quantity    Quantity of items to order (default: $QUANTITY)"
   echo_stderr "  --price-mode      Billing price type (default: $PRICE_MODE)"
@@ -230,7 +232,7 @@ main() {
 
   local item_configurations=()
 
-  ARGS=$(getopt -o 'c:d:e:hi:p:q:' --long 'country:,datacenter:,item-configuration:,debug,endpoint:,help,quantity:,plan-code:,price-duration:,price-mode:' -- "$@")
+  ARGS=$(getopt -o 'c:d:e:hi:p:q:' --long 'country:,datacenter:,item-configuration:,debug,dry-run,endpoint:,help,quantity:,plan-code:,price-duration:,price-mode:' -- "$@")
   eval set -- "$ARGS"
   while true; do
     case "$1" in
@@ -246,6 +248,11 @@ main() {
         ;;
       --debug)
         DEBUG=true
+        shift 1
+        continue
+        ;;
+      --dry-run)
+        DRY_RUN=true
         shift 1
         continue
         ;;
@@ -342,6 +349,11 @@ main() {
 
   # Configure eco options
   item_option_configuration "$cart_id" $item_id "$PLAN_CODE" "$PRICE_MODE" "$PRICE_DURATION"
+
+  if $DRY_RUN; then
+    echo_stderr "> dry-run enabled, skipping order completion"
+    return
+  fi
 
   # Assign cart to account
   request_auth POST "/order/cart/${cart_id}/assign" 1>/dev/null
