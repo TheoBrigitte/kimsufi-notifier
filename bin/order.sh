@@ -74,8 +74,8 @@ request() {
     --header "Accept: application/json"\
     --header "Content-Type: application/json" \
     --data "${data}" \
-    -w '\n%output{'$HTTP_CODE_FILE'}%{http_code}' \
-    "$@"
+    -w '%{stderr}%{http_code}' \
+    "$@" 2>$HTTP_CODE_FILE
   set +x
 
   http_code=$(cat "$HTTP_CODE_FILE")
