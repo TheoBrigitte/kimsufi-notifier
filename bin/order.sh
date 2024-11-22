@@ -369,7 +369,7 @@ main() {
 
   if $DRY_RUN; then
     echo_stderr "> dry-run enabled, skipping order completion"
-    return
+    exit 0
   fi
 
   # Assign cart to account

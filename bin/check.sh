@@ -245,7 +245,7 @@ main() {
   # Check for datacenters availability
   if ! echo "$DATA" | $JQ_BIN -e '.[].datacenters[] | select(.availability != "unavailable")' &>/dev/null; then
     echo_stderr "> checked  $PLAN_CODE unavailable  in $DATACENTERS_MESSAGE"
-    exit 0
+    exit 1
   fi
 
   # Print availability
