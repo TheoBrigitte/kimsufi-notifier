@@ -39,6 +39,9 @@ usage() {
   echo_stderr "  -e, --endpoint             OVH API endpoint (default: $ENDPOINT)"
   echo_stderr "                              Allowed values: ovh-eu, ovh-ca, ovh-us"
   echo_stderr "  -i, --item-configuration   Item configuration in the form 'label=value'"
+  echo_stderr "      --item-option          Item option in the form label=value (e.g. memory=ram-64g-noecc-2133-24ska01)"
+  echo_stderr "                               use --show-options to list available options"
+  echo_stderr "                               default to cheapest option when multiple are available"
   echo_stderr "      --show-options         Show available options for the selected server"
   echo_stderr "  -d, --debug                Enable debug mode (default: $DEBUG)"
   echo_stderr "      --dry-run              Do not create the order, only configure the cart (default: $DRY_RUN)"
@@ -187,13 +190,15 @@ item_manual_configuration() {
   exec 6<&-
 }
 
-# item_option_configuration configures item with mandatory options, choosing the cheapest available
-item_option_configuration() {
+# item_auto_option configures item with mandatory options, choosing the cheapest available
+item_auto_option() {
   local cart_id="$1"
   local item_id=$2
   local plan_code="$3"
   local price_mode="$4"
   local price_duration="$5"
+  shift 5
+  local options_configured=("$@")
 
   exec 6<<<$(request GET "/order/cart/${cart_id}/eco/options?planCode=${plan_code}" | $JQ_BIN -cr '.[]')
 
@@ -205,6 +210,9 @@ item_option_configuration() {
       continue
     fi
     family="$(echo "$option" | $JQ_BIN -r .family)"
+    if [[ ${options_configured[@]} =~ $family ]]; then
+      continue
+    fi
     code="$(echo "$option" | $JQ_BIN -r .planCode)"
     price="$(echo "$option" | $JQ_BIN -r '.prices[]|select((.pricingMode == "'"$price_mode"'") and (.duration == "'"$price_duration"'"))|.priceInUcents')"
     if ! [ "${familyPrices[$family]+x}" ]; then
@@ -218,13 +226,38 @@ item_option_configuration() {
 
   exec 6<&-
 
-  for option in "${familyPlanCode[@]}"; do
-    echo_stderr "> item option $option"
+  for family in "${!familyPlanCode[@]}"; do
+    option="${familyPlanCode[$family]}"
+    echo_stderr "> item auto option $family=$option"
     result="$(request POST "/order/cart/${cart_id}/eco/options" '{"quantity": 1, "duration": "'"$price_duration"'", "pricingMode":"'"$price_mode"'", "planCode":"'"$option"'", "itemId": '$item_id'}')"
     if $DEBUG; then
       echo "$result" | $JQ_BIN -cr .
     fi
   done
+}
+
+# item_user_option configures item with mandatory options, choosing the cheapest available
+item_user_option() {
+  local cart_id="$1"
+  local item_id=$2
+  local price_mode="$3"
+  local price_duration="$4"
+  shift 4
+  local options=("$@")
+
+  local keys=()
+  for option in "${options[@]}"; do
+    family="$(echo "$option" | cut -d= -f1)"
+    planCode="$(echo "$option" | cut -d= -f2)"
+    echo_stderr "> item user option $family=$planCode"
+    result="$(request POST "/order/cart/${cart_id}/eco/options" '{"quantity": 1, "duration": "'"$price_duration"'", "pricingMode":"'"$price_mode"'", "planCode":"'"$planCode"'", "itemId": '$item_id'}')"
+    if $DEBUG; then
+      echo "$result" | $JQ_BIN -cr .
+    fi
+    keys+=("$family")
+  done
+
+  echo "${keys[@]}"
 }
 
 print_server_options() {
@@ -295,8 +328,9 @@ main() {
   install_tools
 
   local item_configurations=()
+  local item_options=()
 
-  ARGS=$(getopt -o 'c:d:e:hi:p:q:' --long 'country:,datacenter:,item-configuration:,debug,dry-run,endpoint:,help,quantity:,plan-code:,price-duration:,price-mode:' -- "$@")
+  ARGS=$(getopt -o 'c:d:e:hi:p:q:' --long 'country:,datacenter:,item-configuration:,item-option:,debug,dry-run,endpoint:,help,quantity:,plan-code:,price-duration:,price-mode:,show-options' -- "$@")
   eval set -- "$ARGS"
   while true; do
     case "$1" in
@@ -333,6 +367,13 @@ main() {
         echo "$2" | grep -q '=' || \
           exit_error "Error: invalid item configuration '$2'"
         item_configurations+=("$2")
+        shift 2
+        continue
+        ;;
+      --item-option)
+        echo "$2" | grep -q '=' || \
+          exit_error "Error: invalid item option '$2'"
+        item_options+=("$2")
         shift 2
         continue
         ;;
@@ -406,7 +447,6 @@ main() {
     exit 0
   fi
 
-
   # Add item to cart
   cart_updated="$(request POST "/order/cart/${cart_id}/eco" '{"planCode":"'"${PLAN_CODE}"'","quantity": '${QUANTITY}', "pricingMode":"'"${PRICE_MODE}"'","duration":"'${PRICE_DURATION}'"}')"
   if $DEBUG; then
@@ -427,7 +467,8 @@ main() {
   item_manual_configuration "$cart_id" "$item_id" "${labels_configured[@]}"
 
   # Configure eco options
-  item_option_configuration "$cart_id" $item_id "$PLAN_CODE" "$PRICE_MODE" "$PRICE_DURATION"
+  options_configured="$(item_user_option "$cart_id" "$item_id" "$PRICE_MODE" "$PRICE_DURATION" "${item_options[@]}")"
+  item_auto_option "$cart_id" $item_id "$PLAN_CODE" "$PRICE_MODE" "$PRICE_DURATION" "${options_configured[@]}"
 
   if $DRY_RUN; then
     echo_stderr "> dry-run enabled, skipping order completion"
