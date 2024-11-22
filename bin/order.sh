@@ -172,7 +172,9 @@ item_manual_configuration() {
       echo_stderr "> $i. $value"
       i=$((i+1))
     done
-    read -p "> Choice: " index
+
+    echo_stderr -n "> Choice: "
+    read index
     value="$(echo "$configuration" | $JQ_BIN -r .allowedValues[$index])"
     echo_stderr "> item manual-configuration $label=$value"
     result="$(request POST "/order/cart/${cart_id}/item/${item_id}/configuration" '{"label":"'"$label"'","value":"'"$value"'"}')"
