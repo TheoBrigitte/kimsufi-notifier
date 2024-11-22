@@ -297,6 +297,7 @@ print_server_options() {
   declare -A familyDetails
   declare -A familyDefaults
   declare -A familyPrices
+  declare -A familyLowestPrices
   while read <&6 option; do
     mandatory="$(echo "$option" | $JQ_BIN -r .mandatory)"
     if [ "$mandatory" != "true" ]; then
@@ -305,21 +306,24 @@ print_server_options() {
     family="$(echo "$option" | $JQ_BIN -r .family)"
     code="$(echo "$option" | $JQ_BIN -r .planCode)"
     name="$(echo "$option" | $JQ_BIN -r .productName)"
-    price="$(echo "$option" | $JQ_BIN -r '.prices[]|select((.pricingMode == "'"$price_mode"'") and (.duration == "'"$price_duration"'"))|.priceInUcents')"
+    price="$(echo "$option" | $JQ_BIN -r '.prices[]|select((.pricingMode == "'"$price_mode"'") and (.duration == "'"$price_duration"'"))')"
+    priceText="$(echo "$price" | $JQ_BIN -r .price.text)"
+    priceUcents="$(echo "$price" | $JQ_BIN -r .priceInUcents)"
+
     if ! [ "${familyOptions[$family]+x}" ]; then
       familyOptions[$family]="$code"
-      familyDetails[$code]="$name:$mandatory"
+      familyDetails[$code]="$name:$mandatory:$priceText"
     else
       familyOptions[$family]="${familyOptions[$family]}:$code"
-      familyDetails[$code]="$name:$mandatory"
+      familyDetails[$code]="$name:$mandatory:$priceText"
     fi
 
-    if ! [ "${familyPrices[$family]+x}" ]; then
+    if ! [ "${familyLowestPrices[$family]+x}" ]; then
       familyDefaults[$family]=$code
-      familyPrices[$family]=$price
-    elif [ "$price" -lt "${familyPrices[$family]}" ]; then
+      familyLowestPrices[$family]=$priceUcents
+    elif [ "$priceUcents" -lt "${familyLowestPrices[$family]}" ]; then
       familyDefaults[$family]=$code
-      familyPrices[$family]=$price
+      familyLowestPrices[$family]=$priceUcents
     fi
   done
 
@@ -333,7 +337,7 @@ print_server_options() {
       output+="$key=$option:${familyDetails[$option]}:$default\n"
     done <<<$(echo ${familyOptions[$key]} | tr ':' '\n')
   done
-  echo -e "$output" | column -t -s ':' -N "Option,Name,Mandatory,Default" -o '    '
+  echo -e "$output" | column -t -s ':' -N "Option,Name,Mandatory,Price,Default" -o '    '
 }
 
 main() {
