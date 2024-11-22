@@ -13,6 +13,7 @@ PRICE_MODE="default"
 QUANTITY=1
 SHOW_CONFIGURATIONS=false
 SHOW_OPTIONS=false
+SHOW_PRICES=false
 
 echo_stderr() {
     >&2 echo "$@"
@@ -51,8 +52,11 @@ usage() {
   echo_stderr "      --dry-run              Do not create the order, only configure the cart (default: $DRY_RUN)"
   echo_stderr "  -h, --help                 Display this help message"
   echo_stderr "  -q, --quantity             Quantity of items to order (default: $QUANTITY)"
-  echo_stderr "  --price-mode               Billing price type (default: $PRICE_MODE)"
-  echo_stderr "  --price-duration           Billing duration (default: $PRICE_DURATION)"
+  echo_stderr "      --price-mode           Billing price type (default: $PRICE_MODE)"
+  echo_stderr "                               use --show-prices to list available price modes"
+  echo_stderr "      --price-duration       Billing duration (default: $PRICE_DURATION)"
+  echo_stderr "                               use --show-prices to list available price durations"
+  echo_stderr "      --show-prices          Show available prices for the selected server"
   echo_stderr
   echo_stderr "  Arguments can also be set as environment variables see config.env.example"
   echo_stderr "  Command line arguments take precedence over environment variables"
@@ -297,6 +301,7 @@ print_server_options() {
   declare -A familyDetails
   declare -A familyDefaults
   declare -A familyPrices
+  declare -A familyLowestPrices
   while read <&6 option; do
     mandatory="$(echo "$option" | $JQ_BIN -r .mandatory)"
     if [ "$mandatory" != "true" ]; then
@@ -305,21 +310,24 @@ print_server_options() {
     family="$(echo "$option" | $JQ_BIN -r .family)"
     code="$(echo "$option" | $JQ_BIN -r .planCode)"
     name="$(echo "$option" | $JQ_BIN -r .productName)"
-    price="$(echo "$option" | $JQ_BIN -r '.prices[]|select((.pricingMode == "'"$price_mode"'") and (.duration == "'"$price_duration"'"))|.priceInUcents')"
+    price="$(echo "$option" | $JQ_BIN -r '.prices[]|select((.pricingMode == "'"$price_mode"'") and (.duration == "'"$price_duration"'"))')"
+    priceText="$(echo "$price" | $JQ_BIN -r .price.text)"
+    priceUcents="$(echo "$price" | $JQ_BIN -r .priceInUcents)"
+
     if ! [ "${familyOptions[$family]+x}" ]; then
       familyOptions[$family]="$code"
-      familyDetails[$code]="$name:$mandatory"
+      familyDetails[$code]="$name:$mandatory:$priceText"
     else
       familyOptions[$family]="${familyOptions[$family]}:$code"
-      familyDetails[$code]="$name:$mandatory"
+      familyDetails[$code]="$name:$mandatory:$priceText"
     fi
 
-    if ! [ "${familyPrices[$family]+x}" ]; then
+    if ! [ "${familyLowestPrices[$family]+x}" ]; then
       familyDefaults[$family]=$code
-      familyPrices[$family]=$price
-    elif [ "$price" -lt "${familyPrices[$family]}" ]; then
+      familyLowestPrices[$family]=$priceUcents
+    elif [ "$priceUcents" -lt "${familyLowestPrices[$family]}" ]; then
       familyDefaults[$family]=$code
-      familyPrices[$family]=$price
+      familyLowestPrices[$family]=$priceUcents
     fi
   done
 
@@ -333,7 +341,17 @@ print_server_options() {
       output+="$key=$option:${familyDetails[$option]}:$default\n"
     done <<<$(echo ${familyOptions[$key]} | tr ':' '\n')
   done
-  echo -e "$output" | column -t -s ':' -N "Option,Name,Mandatory,Default" -o '    '
+  echo -e "$output" | column -t -s ':' -N "Option,Name,Mandatory,Price,Default" -o '    '
+}
+
+print_server_prices() {
+  cart_id="$1"
+  plan_code="$2"
+
+  request GET "/order/cart/${cart_id}/eco?planCode=${plan_code}" | \
+    $JQ_BIN -r '.[] | select(.planCode == "'"$plan_code"'") | .prices[] | [ .duration, .pricingMode, .price.text, .description ] | @tsv' | \
+    sort -k1,1 -k2n,2 -b -t $'\t' | \
+    column -s $'\t' -t -N "Duration,Mode,Price,Description" -o '    '
 }
 
 main() {
@@ -356,7 +374,7 @@ main() {
   local item_configurations=()
   local item_options=()
 
-  ARGS=$(getopt -o 'c:d:e:hi:p:q:' --long 'country:,datacenter:,item-configuration:,item-option:,debug,dry-run,endpoint:,help,quantity:,plan-code:,price-duration:,price-mode:,show-configurations,show-options' -- "$@")
+  ARGS=$(getopt -o 'c:d:e:hi:p:q:' --long 'country:,datacenter:,item-configuration:,item-option:,debug,dry-run,endpoint:,help,quantity:,plan-code:,price-duration:,price-mode:,show-configurations,show-options,show-prices' -- "$@")
   eval set -- "$ARGS"
   while true; do
     case "$1" in
@@ -433,6 +451,11 @@ main() {
         shift 1
         continue
         ;;
+      --show-prices)
+        SHOW_PRICES=true
+        shift 1
+        continue
+        ;;
       '--')
         shift
         break
@@ -475,6 +498,11 @@ main() {
 
   if $SHOW_OPTIONS; then
     print_server_options "$cart_id" "$PLAN_CODE" "$PRICE_MODE" "$PRICE_DURATION"
+    exit 0
+  fi
+
+  if $SHOW_PRICES; then
+    print_server_prices "$cart_id" "$PLAN_CODE"
     exit 0
   fi
 
