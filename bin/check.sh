@@ -6,6 +6,8 @@ set -eu
 
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
 DEBUG=false
+SHOW_OPTIONS=false
+VERBOSE=false
 
 ENDPOINT="ovh-eu"
 OPSGENIE_API_URL="https://api.opsgenie.com/v2/alerts"
@@ -23,13 +25,22 @@ usage() {
   echo_stderr "Check OVH Eco (including Kimsufi) server availability"
   echo_stderr
   echo_stderr "Arguments"
-  echo_stderr "  -p, --plan-code  Plan code to check (e.g. 24ska01)"
-  echo_stderr "  -d, --datacenters    Comma-separated list of datacenters to check availability for (default all)"
-  echo_stderr "                         Example values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw (non exhaustive list)"
-  echo_stderr "  -e, --endpoint       OVH API endpoint (default: ovh-eu)"
-  echo_stderr "                         Allowed values: ovh-eu, ovh-ca, ovh-us"
-  echo_stderr "      --debug          Enable debug mode (default: false)"
-  echo_stderr "  -h, --help           Display this help message"
+  echo_stderr "  -p, --plan-code     Plan code to check (e.g. 24ska01)"
+  echo_stderr "  -d, --datacenters   Comma-separated list of datacenters to check availability for (default all)"
+  echo_stderr "                        Example values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw (non exhaustive list)"
+  echo_stderr "  -o, --option        Additional options to check for specific server options"
+  echo_stderr "                        format key=value"
+  echo_stderr "                        use --show-options to see available options"
+  echo_stderr "      --show-options  Show available options for the plan code, requires --plan-code and --country"
+  echo_stderr "      --country       Country code"
+  echo_stderr "                        Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
+  echo_stderr "                        Allowed values with -e ovh-ca : ASIA, AU, CA, IN, QC, SG, WE, WS"
+  echo_stderr "                        Allowed values with -e ovh-us : US"
+  echo_stderr "  -e, --endpoint      OVH API endpoint (default: ovh-eu)"
+  echo_stderr "                        Allowed values: ovh-eu, ovh-ca, ovh-us"
+  echo_stderr "      --verbose       Enable verbose mode to display detailed results, requires --country"
+  echo_stderr "      --debug         Enable debug mode (default: false)"
+  echo_stderr "  -h, --help          Display this help message"
   echo_stderr
   echo_stderr "  Arguments can also be set as environment variables see config.env.example"
   echo_stderr "  Command line arguments take precedence over environment variables"
@@ -155,16 +166,111 @@ notify_telegram() {
   fi
 }
 
+join() {
+  local d=${1-} f=${2-}
+  if shift 2; then
+    printf %s "$f" "${@/#/$d}"
+  fi
+}
+
+get_catalog() {
+  local country="$1"
+
+  if [ -z "${country}" ]; then
+    echo_stderr "Error: country is not set"
+    return 1
+  fi
+  country="${country^^}"
+
+  ovh_url="${OVH_API_ENDPOINTS["$ENDPOINT"]}/order/catalog/public/eco?ovhSubsidiary=${country}"
+  data=$(curl -qSs "${ovh_url}")
+
+  if test -z "$data" || ! echo "$data" | $JQ_BIN -e . &>/dev/null || echo "$data" | $JQ_BIN -e '.plans | length == 0' &>/dev/null; then
+    echo_stderr "> failed to fetch data from $ovh_url"
+    exit 1
+  fi
+
+  echo "$data"
+}
+
+print_server_options() {
+  local plan_code="$1"
+  local catalog="$2"
+
+  local plan_data="$(echo "$catalog" | $JQ_BIN -r '.plans[] | select(.planCode == "'"$plan_code"'")')"
+  local products="$(echo "$catalog" | $JQ_BIN -r '.products')"
+
+  output=""
+
+  exec 6<<<$(echo "$plan_data" | $JQ_BIN -cr '.addonFamilies[]')
+  while read <&6 addon; do
+    mandatory="$(echo "$addon" | $JQ_BIN -r '.mandatory')"
+    if [ "$mandatory" != "true" ]; then
+      continue
+    fi
+    name="$(echo "$addon" | $JQ_BIN -r '.name')"
+    if [ "$name" != "memory" ] && [ "$name" != "storage" ]; then
+      continue
+    fi
+
+    default="$(echo "$addon" | $JQ_BIN -r '.default')"
+
+    exec 7<<<$(echo "$addon" | $JQ_BIN -cr '.addons[]')
+    while read <&7 value; do
+      # cut last field
+      real_value="$(echo "$value" | rev | cut -d'-' -f 2- | rev)"
+      is_default=false
+      if [[ "$value" == "$default" ]]; then
+        is_default=true
+      fi
+      description="$(echo "$products" | $JQ_BIN -r '.[] | select(.name == "'"$real_value"'") | .description')"
+
+      output+="$name=$real_value:$description:$is_default\n"
+    done
+  done
+  exec 6<&-
+
+  echo -e "$output" | column -t -s ':' -N "Option,Description,Default" -o '    '
+}
+
+print_verbose_availability() {
+  local data="$1"
+
+  output=""
+
+  exec 6<<<$(echo "$data" | $JQ_BIN -cr '.[]')
+  while read <&6 availability; do
+    memory="$(echo "$availability" | $JQ_BIN -r '.memory')"
+    storage="$(echo "$availability" | $JQ_BIN -r '.storage')"
+    datacenters="$(echo "$availability" | $JQ_BIN -r '[.datacenters[] | select(.availability != "unavailable") | .datacenter] | unique | join(",")')"
+    if [ -z "$datacenters" ]; then
+      datacenters="unavailable"
+    fi
+
+    output+="  $memory:$storage:$datacenters\n"
+  done
+  exec 6<&-
+
+  echo -e "$output" | column -t -s ':' -N "  Memory,Storage,Datacenters" -o '    '
+}
+
 main() {
   source "${SCRIPT_DIR}/../config.env"
   source "${SCRIPT_DIR}/common.sh"
 
   install_tools
 
-  ARGS=$(getopt -o 'd:e:hp:' --long 'datacenters:,debug,endpoint:,help,plan-code:' -- "$@")
+  local options=()
+
+  ARGS=$(getopt -o 'd:e:ho:p:v' --long 'country:,datacenters:,debug,endpoint:,help,option:,plan-code:,show-options,verbose' -- "$@")
   eval set -- "$ARGS"
   while true; do
     case "$1" in
+      --country)
+        COUNTRY="$2"
+        shift 2
+        continue
+        ;;
       -d | --datacenters)
         DATACENTERS="$2"
         shift 2
@@ -184,9 +290,26 @@ main() {
         usage
         exit 0
         ;;
+      -o | --option)
+        echo "$2" | grep -q '=' || \
+          exit_error "Error: invalid option '$2'"
+        options+=("$2")
+        shift 2
+        continue
+        ;;
+      --show-options)
+        SHOW_OPTIONS=true
+        shift 1
+        continue
+        ;;
       -p | --plan-code)
         PLAN_CODE="$2"
         shift 2
+        continue
+        ;;
+      -v | --verbose)
+        VERBOSE=true
+        shift 1
         continue
         ;;
       '--')
@@ -207,6 +330,12 @@ main() {
     exit 1
   fi
 
+  if $SHOW_OPTIONS; then
+    catalog=$(get_catalog "$COUNTRY")
+    print_server_options "$PLAN_CODE" "$catalog"
+    exit 0
+  fi
+
   OVH_URL="${OVH_API_ENDPOINTS["$ENDPOINT"]}/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}"
 
   DATACENTERS_MESSAGE=""
@@ -215,6 +344,10 @@ main() {
     DATACENTERS_MESSAGE="$DATACENTERS datacenter(s)"
   else
     DATACENTERS_MESSAGE="all datacenters"
+  fi
+
+  if [ ${#options[@]} -gt 0 ]; then
+    OVH_URL="${OVH_URL}&$(join '\&' "${options[@]}")"
   fi
 
   # Fetch availability from api
@@ -251,6 +384,9 @@ main() {
   # Print availability
   AVAILABLE_DATACENTERS="$(echo "$DATA" | $JQ_BIN -r '[.[].datacenters[] | select(.availability != "unavailable") | .datacenter] | unique | join(",")')"
   echo_stderr "> checked  $PLAN_CODE available    in $AVAILABLE_DATACENTERS datacenter(s)"
+  if $VERBOSE; then
+    print_verbose_availability "$DATA"
+  fi
 
   # Send notifications
   message="$PLAN_CODE is available in $AVAILABLE_DATACENTERS datacenter(s), check https://eco.ovhcloud.com"
