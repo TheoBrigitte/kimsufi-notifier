@@ -28,8 +28,8 @@ usage() {
   echo_stderr "  -p, --plan-code     Plan code to check (e.g. 24ska01)"
   echo_stderr "  -d, --datacenters   Comma-separated list of datacenters to check availability for (default all)"
   echo_stderr "                        Example values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw (non exhaustive list)"
-  echo_stderr "  -o, --option        Additional options to make the check more specific"
-  echo_stderr "                        format is key=value"
+  echo_stderr "  -o, --option        Additional options to check for specific server options"
+  echo_stderr "                        format key=value"
   echo_stderr "                        use --show-options to see available options"
   echo_stderr "      --show-options  Show available options for the plan code, requires --plan-code and --country"
   echo_stderr "      --country       Country code"
@@ -38,7 +38,7 @@ usage() {
   echo_stderr "                        Allowed values with -e ovh-us : US"
   echo_stderr "  -e, --endpoint      OVH API endpoint (default: ovh-eu)"
   echo_stderr "                        Allowed values: ovh-eu, ovh-ca, ovh-us"
-  echo_stderr "      --verbose       Enable verbose mode, requires --country"
+  echo_stderr "      --verbose       Enable verbose mode to display detailed results, requires --country"
   echo_stderr "      --debug         Enable debug mode (default: false)"
   echo_stderr "  -h, --help          Display this help message"
   echo_stderr
@@ -235,7 +235,6 @@ print_server_options() {
 
 print_verbose_availability() {
   local data="$1"
-  local catalog="$2"
 
   output=""
 
@@ -248,16 +247,7 @@ print_verbose_availability() {
       datacenters="unavailable"
     fi
 
-    memory_description="$(echo "$catalog" | $JQ_BIN -r '.products[] | select(.name == "'"$memory"'") | .description')"
-    if [ -z "$memory_description" ]; then
-      memory_description="$memory"
-    fi
-    storage_description="$(echo "$catalog" | $JQ_BIN -r '.products[] | select(.name == "'"$storage"'") | .description')"
-    if [ -z "$storage_description" ]; then
-      storage_description="$storage"
-    fi
-
-    output+="  $memory_description:$storage_description:$datacenters\n"
+    output+="  $memory:$storage:$datacenters\n"
   done
   exec 6<&-
 
@@ -395,8 +385,7 @@ main() {
   AVAILABLE_DATACENTERS="$(echo "$DATA" | $JQ_BIN -r '[.[].datacenters[] | select(.availability != "unavailable") | .datacenter] | unique | join(",")')"
   echo_stderr "> checked  $PLAN_CODE available    in $AVAILABLE_DATACENTERS datacenter(s)"
   if $VERBOSE; then
-    catalog=$(get_catalog "$COUNTRY")
-    print_verbose_availability "$DATA" "$catalog"
+    print_verbose_availability "$DATA"
   fi
 
   # Send notifications
