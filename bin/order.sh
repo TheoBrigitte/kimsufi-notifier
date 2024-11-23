@@ -330,6 +330,7 @@ print_server_options() {
       familyLowestPrices[$family]=$priceUcents
     fi
   done
+  exec 6<&-
 
   output=""
   for key in ${!familyOptions[@]}; do
