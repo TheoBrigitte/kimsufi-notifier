@@ -8,6 +8,8 @@ import { far } from '@fortawesome/free-regular-svg-icons';
 import '@fortawesome/fontawesome-svg-core/styles.css';
 library.add(fas, fab, far)
 
+import { GoogleAnalytics } from '@next/third-parties/google'
+
 import "./globals.css";
 
 const geistSans = localFont({
@@ -38,6 +40,7 @@ export default function RootLayout({
       >
         {children}
       </body>
+      <GoogleAnalytics gaId="G-5XXSRSMV4K" />
     </html>
   );
 }
