@@ -109,6 +109,21 @@ main() {
     echo_stderr "> saved    data to   $TMP_FILE"
   fi
 
+  if test -z "$DATA"; then
+    echo "> empty data"
+    exit 1
+  fi
+
+  if ! echo "$DATA" | $JQ_BIN -e . &>/dev/null; then
+    echo "> invalid json"
+    exit 1
+  fi
+
+  if echo "$DATA" | $JQ_BIN -e '.plans | length == 0' &>/dev/null; then
+    echo "> empty list"
+    exit 1
+  fi
+
   # Check for error: empty data, invalid json, or empty list
   if test -z "$DATA" || ! echo "$DATA" | $JQ_BIN -e . &>/dev/null || echo "$DATA" | $JQ_BIN -e '.plans | length == 0' &>/dev/null; then
     echo "> failed to fetch data from $OVH_URL"
