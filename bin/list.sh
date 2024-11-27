@@ -114,12 +114,12 @@ main() {
     exit 1
   fi
 
-  if ! echo "$DATA" | $JQ_BIN -e . &>/dev/null; then
+  if ! echo "$DATA" | $JQ_BIN -e . 1>/dev/null; then
     echo "> invalid json"
     exit 1
   fi
 
-  if echo "$DATA" | $JQ_BIN -e '.plans | length == 0' &>/dev/null; then
+  if echo "$DATA" | $JQ_BIN -e '.plans | length == 0' 1>/dev/null; then
     echo "> empty list"
     exit 1
   fi
