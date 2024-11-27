@@ -20,44 +20,44 @@ echo_stderr() {
 
 usage() {
   bin_name=$(basename "$0")
-  echo_stderr "Usage: $bin_name"
-  echo_stderr
-  echo_stderr "Check OVH Eco (including Kimsufi) server availability"
-  echo_stderr
-  echo_stderr "Arguments"
-  echo_stderr "  -p, --plan-code     Plan code to check (e.g. 24ska01)"
-  echo_stderr "  -d, --datacenters   Comma-separated list of datacenters to check availability for (default all)"
-  echo_stderr "                        Example values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw (non exhaustive list)"
-  echo_stderr "  -o, --option        Additional options to check for specific server options"
-  echo_stderr "                        format key=value"
-  echo_stderr "                        use --show-options to see available options"
-  echo_stderr "      --show-options  Show available options for the plan code, requires --plan-code and --country"
-  echo_stderr "      --country       Country code"
-  echo_stderr "                        Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
-  echo_stderr "                        Allowed values with -e ovh-ca : ASIA, AU, CA, IN, QC, SG, WE, WS"
-  echo_stderr "                        Allowed values with -e ovh-us : US"
-  echo_stderr "  -e, --endpoint      OVH API endpoint (default: ovh-eu)"
-  echo_stderr "                        Allowed values: ovh-eu, ovh-ca, ovh-us"
-  echo_stderr "      --verbose       Enable verbose mode to display detailed results, requires --country"
-  echo_stderr "      --debug         Enable debug mode (default: false)"
-  echo_stderr "  -h, --help          Display this help message"
-  echo_stderr
-  echo_stderr "  Arguments can also be set as environment variables see config.env.example"
-  echo_stderr "  Command line arguments take precedence over environment variables"
-  echo_stderr
-  echo_stderr "Environment variables"
-  echo_stderr "    DISCORD_WEBHOOK       Webhook URL to use for Discord notification service"
-  echo_stderr "    GOTIFY_URL            URL to use for Gotify notification service"
-  echo_stderr "    GOTIFY_TOKEN          token to use for Gotify notification service"
-  echo_stderr "    GOTIFY_PRIORITY       prority for Gotify notification service"
-  echo_stderr "    OPSGENIE_API_KEY      API key for OpsGenie to receive notifications"
-  echo_stderr "    TELEGRAM_BOT_TOKEN    Bot token for Telegram to receive notifications"
-  echo_stderr "    TELEGRAM_CHAT_ID      Chat ID for Telegram to receive notifications"
-  echo_stderr "    HEALTHCHECKS_IO_UUID  UUID for healthchecks.io to ping after successful run"
-  echo_stderr
-  echo_stderr "Example:"
-  echo_stderr "  $bin_name --plan-code 24ska01"
-  echo_stderr "  $bin_name --plan-code 24ska01 --datacenters fr,gra,rbx,sbg"
+  echo "Usage: $bin_name"
+  echo
+  echo "Check OVH Eco (including Kimsufi) server availability"
+  echo
+  echo "Arguments"
+  echo "  -p, --plan-code     Plan code to check (e.g. 24ska01)"
+  echo "  -d, --datacenters   Comma-separated list of datacenters to check availability for (default all)"
+  echo "                        Example values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw (non exhaustive list)"
+  echo "  -o, --option        Additional options to check for specific server options"
+  echo "                        format key=value"
+  echo "                        use --show-options to see available options"
+  echo "      --show-options  Show available options for the plan code, requires --plan-code and --country"
+  echo "      --country       Country code"
+  echo "                        Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
+  echo "                        Allowed values with -e ovh-ca : ASIA, AU, CA, IN, QC, SG, WE, WS"
+  echo "                        Allowed values with -e ovh-us : US"
+  echo "  -e, --endpoint      OVH API endpoint (default: ovh-eu)"
+  echo "                        Allowed values: ovh-eu, ovh-ca, ovh-us"
+  echo "      --verbose       Enable verbose mode to display detailed results, requires --country"
+  echo "      --debug         Enable debug mode (default: false)"
+  echo "  -h, --help          Display this help message"
+  echo
+  echo "  Arguments can also be set as environment variables see config.env.example"
+  echo "  Command line arguments take precedence over environment variables"
+  echo
+  echo "Environment variables"
+  echo "    DISCORD_WEBHOOK       Webhook URL to use for Discord notification service"
+  echo "    GOTIFY_URL            URL to use for Gotify notification service"
+  echo "    GOTIFY_TOKEN          token to use for Gotify notification service"
+  echo "    GOTIFY_PRIORITY       prority for Gotify notification service"
+  echo "    OPSGENIE_API_KEY      API key for OpsGenie to receive notifications"
+  echo "    TELEGRAM_BOT_TOKEN    Bot token for Telegram to receive notifications"
+  echo "    TELEGRAM_CHAT_ID      Chat ID for Telegram to receive notifications"
+  echo "    HEALTHCHECKS_IO_UUID  UUID for healthchecks.io to ping after successful run"
+  echo
+  echo "Example:"
+  echo "  $bin_name --plan-code 24ska01"
+  echo "  $bin_name --plan-code 24ska01 --datacenters fr,gra,rbx,sbg"
 }
 
 notify_discord() {
@@ -68,7 +68,7 @@ notify_discord() {
 
   BODY="{\"content\": \"$message\"}"
 
-  echo_stderr "> sending Discord notification"
+  echo "> sending Discord notification"
   RESULT="$(curl -sSX POST -H "Content-Type: application/json" "$DISCORD_WEBHOOK" -d "$BODY")"
 
   if $DEBUG; then
@@ -79,7 +79,7 @@ notify_discord() {
     echo "$RESULT"
     echo_stderr "> failed Discord notification"
   else
-    echo_stderr "> sent Discord notification"
+    echo "> sent Discord notification"
   fi
 }
 
@@ -97,7 +97,7 @@ notify_gotify() {
     return
   fi
 
-  echo_stderr "> sending Gotify notification"
+  echo "> sending Gotify notification"
   RESULT="$(curl -sSX POST "$GOTIFY_URL/message?token=$GOTIFY_TOKEN" \
       -F "title=OVH Availability" \
       -F "message=$message" \
@@ -111,7 +111,7 @@ notify_gotify() {
     echo "$RESULT"
     echo_stderr "> failed Gotify notification"
   else
-    echo_stderr "> sent Gotify notification"
+    echo "> sent Gotify notification"
   fi
 }
 
@@ -121,7 +121,7 @@ notify_opsgenie() {
     return
   fi
 
-  echo_stderr "> sending OpsGenie notification"
+  echo "> sending OpsGenie notification"
   RESULT="$(curl -sSX POST "$OPSGENIE_API_URL" \
       -H "Content-Type: application/json" \
       -H "Authorization: GenieKey $OPSGENIE_API_KEY" \
@@ -132,7 +132,7 @@ notify_opsgenie() {
   fi
 
   if echo "$RESULT" | $JQ_BIN -e '.result | length > 0' &>/dev/null; then
-    echo_stderr "> sent    OpsGenie notification"
+    echo "> sent    OpsGenie notification"
   else
     echo "$RESULT"
     echo_stderr "> failed  OpsGenie notification"
@@ -147,7 +147,7 @@ notify_telegram() {
 
   TELEGRAM_WEBHOOK_URL="${TELEGRAM_API_URL}/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
 
-  echo_stderr "> sending Telegram notification"
+  echo "> sending Telegram notification"
   RESULT="$(curl -sSX POST \
     -d chat_id="${TELEGRAM_CHAT_ID}" \
     -d text="${message}" \
@@ -159,7 +159,7 @@ notify_telegram() {
   fi
 
   if echo "$RESULT" | $JQ_BIN -e .ok &>/dev/null; then
-    echo_stderr "> sent    Telegram notification"
+    echo "> sent    Telegram notification"
   else
     echo "$RESULT"
     echo_stderr "> failed  Telegram notification"
@@ -187,10 +187,44 @@ get_catalog() {
 
   if test -z "$data" || ! echo "$data" | $JQ_BIN -e . &>/dev/null || echo "$data" | $JQ_BIN -e '.plans | length == 0' &>/dev/null; then
     echo_stderr "> failed to fetch data from $ovh_url"
-    exit 1
+    exit 2
   fi
 
   echo "$data"
+}
+
+# request makes an HTTP request to the OVH API
+# Usage: request METHOD ENDPOINT [DATA] [OPTIONS]
+request() {
+  local method="$1"
+  local endpoint="$2"
+  local data="${3-}"
+  if [ $# -lt 3 ]; then
+    shift 2
+  else
+    shift 3
+  fi
+
+  if echo "$@" | grep -q -- '-v' || $DEBUG; then
+    set -x
+  fi
+  result="$(curl -sX "${method}" "${OVH_URL}${endpoint}" \
+    --header "Accept: application/json"\
+    --header "Content-Type: application/json" \
+    --data "${data}" \
+    -w '%{stderr}%{http_code}' \
+    "$@" 2>$HTTP_CODE_FILE)"
+  set +x
+
+  http_code=$(cat "$HTTP_CODE_FILE")
+  if [ $http_code -lt 200 ] || [ $http_code -gt 299 ]; then
+    echo_stderr "> error http_code=$http_code request=$method $OVH_URL$endpoint"
+    echo_stderr "$result"
+    return 1
+  fi
+
+  echo "$result"
+  return 0
 }
 
 print_server_options() {
@@ -258,6 +292,10 @@ main() {
   source "${SCRIPT_DIR}/../config.env"
   source "${SCRIPT_DIR}/common.sh"
 
+  # Temporary file used to store HTTP reponse code
+  HTTP_CODE_FILE="$(mktemp -t kimsufi-notifier.XXXXXX)"
+  trap 'rm -f "$HTTP_CODE_FILE"' EXIT
+
   install_tools
 
   local options=()
@@ -318,7 +356,7 @@ main() {
         ;;
       *)
         echo_stderr 'Internal error!'
-        exit 1
+        exit 3
         ;;
     esac
   done
@@ -327,7 +365,7 @@ main() {
     echo_stderr "Error: PLAN_CODE is not set"
     echo_stderr
     usage
-    exit 1
+    exit 3
   fi
 
   if $SHOW_OPTIONS; then
@@ -336,27 +374,28 @@ main() {
     exit 0
   fi
 
-  OVH_URL="${OVH_API_ENDPOINTS["$ENDPOINT"]}/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}"
+  OVH_URL="${OVH_API_ENDPOINTS["$ENDPOINT"]}"
+  endpoint="/dedicated/server/datacenter/availabilities?planCode=${PLAN_CODE}"
 
   DATACENTERS_MESSAGE=""
   if [ -n "${DATACENTERS-}" ]; then
-    OVH_URL="${OVH_URL}&datacenters=${DATACENTERS}"
+    endpoint="${endpoint}&datacenters=${DATACENTERS}"
     DATACENTERS_MESSAGE="$DATACENTERS datacenter(s)"
   else
     DATACENTERS_MESSAGE="all datacenters"
   fi
 
   if [ ${#options[@]} -gt 0 ]; then
-    OVH_URL="${OVH_URL}&$(join '\&' "${options[@]}")"
+    endpoint="${endpoint}&$(join '\&' "${options[@]}")"
   fi
 
   # Fetch availability from api
-  echo_stderr "> checking $PLAN_CODE availability in $DATACENTERS_MESSAGE"
+  echo "> checking $PLAN_CODE availability in $DATACENTERS_MESSAGE"
   if $DEBUG; then
-    echo_stderr "> fetching data from $OVH_URL"
+    echo_stderr "> fetching data from $endpoint"
   fi
 
-  DATA="$(curl -Ss "${OVH_URL}")"
+  DATA="$(request GET "${endpoint}")"
 
   if $DEBUG; then
     TMP_FILE="$(mktemp kimsufi-notifier.XXXXXX)"
@@ -366,8 +405,8 @@ main() {
 
   # Check for error: empty data, invalid json, or empty list
   if test -z "$DATA" || ! echo "$DATA" | $JQ_BIN -e . &>/dev/null || echo "$DATA" | $JQ_BIN -e '. | length == 0' &>/dev/null; then
-    echo "> failed to fetch data from $OVH_URL"
-    exit 1
+    echo "> failed to fetch data from $endpoint"
+    exit 2
   fi
 
   # Ping healthchecks.io to ensure this script is running without errors
@@ -377,13 +416,13 @@ main() {
 
   # Check for datacenters availability
   if ! echo "$DATA" | $JQ_BIN -e '.[].datacenters[] | select(.availability != "unavailable")' &>/dev/null; then
-    echo_stderr "> checked  $PLAN_CODE unavailable  in $DATACENTERS_MESSAGE"
-    exit 1
+    echo "> checked  $PLAN_CODE unavailable  in $DATACENTERS_MESSAGE"
+    exit 4
   fi
 
   # Print availability
   AVAILABLE_DATACENTERS="$(echo "$DATA" | $JQ_BIN -r '[.[].datacenters[] | select(.availability != "unavailable") | .datacenter] | unique | join(",")')"
-  echo_stderr "> checked  $PLAN_CODE available    in $AVAILABLE_DATACENTERS datacenter(s)"
+  echo "> checked  $PLAN_CODE available    in $AVAILABLE_DATACENTERS datacenter(s)"
   if $VERBOSE; then
     print_verbose_availability "$DATA"
   fi
