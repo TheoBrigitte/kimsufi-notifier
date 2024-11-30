@@ -74,7 +74,7 @@ function ServerCategories({ordered} : {ordered: {[key: string]: Server[]}}) {
   return (
     Object.entries(ordered).map(([category, servers]) => (
       <>
-        <tr><td className="p-2 font-mono" colSpan={8}>{category||"Uncategorized"}</td></tr>
+        <tr><td className="p-2 font-mono" colSpan={8}>{category}</td></tr>
         <ServerLines category={category} servers={servers} />
       </>
     ))
@@ -89,7 +89,7 @@ const ServersTable = ({data} : Props) => {
   // Group servers by category
   const serversByCategory = Object.groupBy(data, ( server: Server ) => server.category);
   // Define the order of categories
-  const categoryOrder: {[key: string] :Server[]} = { "Kimsufi": [], "So you Start": [], "Rise": [], "": [], }
+  const categoryOrder: {[key: string] :Server[]} = { "Kimsufi": [], "So you Start": [], "Rise": [], "uncategorized": [], }
   // Merge the server and respect the categories order
   const ordered = Object.assign(categoryOrder, serversByCategory);
 
