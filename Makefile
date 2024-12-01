@@ -9,6 +9,7 @@ BIN := ${BUILD_DIR}/${NAME}
 PKG_LIST := $(shell go list ${PKG}/... | grep -v /vendor/)
 
 LD_FLAGS := -s -w \
+	-extldflags=-static \
 	-X github.com/prometheus/common/version.Version=$(shell git describe --tags) \
 	-X github.com/prometheus/common/version.Revision=$(shell git rev-parse HEAD) \
 	-X github.com/prometheus/common/version.Branch=$(shell git rev-parse --abbrev-ref HEAD) \

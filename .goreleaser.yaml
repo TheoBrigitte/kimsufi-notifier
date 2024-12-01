@@ -5,15 +5,31 @@ before:
     - go mod tidy
 
 builds:
-  - builder: prebuilt
+  - flags:
+    - -v
+    ldflags:
+    - -s -w
+    - -extldflags=-static
+    - -X github.com/prometheus/common/version.Version={{.Version}}
+    - -X github.com/prometheus/common/version.Revision={{.FullCommit}}
+    - -X github.com/prometheus/common/version.Branch={{.Branch}}
+    - -X github.com/prometheus/common/version.BuildUser=goreleaser
+    - -X github.com/prometheus/common/version.BuildDate={{.Date}}
+    env:
+      - CGO_ENABLED=1
     goos:
-      - linux
       - darwin
+      - linux
     goarch:
       - amd64
       - arm64
-    prebuilt:
-      path: build/kimsufi-notifier_{{ .Os }}_{{ .Arch }}
+    overrides:
+      - goos: linux
+        goarch: arm64
+        env:
+          - CGO_ENABLED=1
+          - CC=aarch64-linux-gnu-gcc
+          - CXX=aarch64-linux-gnu-g++
     binary: bin/kimsufi-notifier
 
 archives:
@@ -26,10 +42,6 @@ archives:
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
-    # use zip for windows archives
-    format_overrides:
-      - goos: windows
-        format: zip
 
 changelog:
   sort: asc
