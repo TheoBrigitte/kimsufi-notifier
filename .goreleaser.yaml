@@ -4,6 +4,18 @@ before:
   hooks:
     - go mod tidy
 
+builds:
+  - builder: prebuilt
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    prebuilt:
+      path: build/kimsufi-notifier_{{ .Os }}_{{ .Arch }}
+    binary: bin/kimsufi-notifier
+
 archives:
   - format: tar.gz
     # this name template makes the OS and Arch compatible with the results of `uname`.
