@@ -9,7 +9,7 @@
 
 ## About <img src="./assets/info.svg" width="24">
 
-[OVH Eco dedicated servers](https://eco.ovhcloud.com) are known for their low prices and high demand. As a result, they are often out of stock. This collection of bash scripts is used to check for server availability and send notifications when a server is available.
+[OVH Eco dedicated servers](https://eco.ovhcloud.com) are known for their low prices and high demand. As a result, they are often out of stock. This program is used to check for server availability, and to place order for servers. Note: the previous Bash script collection was moved to [`bash`](https://github.com/TheoBrigitte/kimsufi-notifier/tree/bash) branch.
 
 This is my playground to learn how the OVH API works, it is then ported into a Telegram Bot at [https://t.me/KimsufiNotifierBot](https://t.me/KimsufiNotifierBot) which is more user-friendly and provides more features.
 
@@ -93,4 +93,4 @@ $ kimsufi-notifier order --plan-code 25skle01 --datacenter bhs --item-option mem
 > order completed: url=https://www.ovh.com/cgi-bin/order/display-order.cgi?orderId=xxxxxxxxx&orderPassword=xxxxxxxxxx
  ```
 
- More info on scripts usage can be found in [USAGE.md](USAGE.md).
+ More info on usage can be found in [USAGE.md](USAGE.md).
