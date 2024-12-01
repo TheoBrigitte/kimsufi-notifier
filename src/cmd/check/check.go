@@ -28,17 +28,21 @@ var (
 	options     map[string]string
 	planCode    string
 	humanLevel  int
+
+	listOptions bool
 )
 
 // init registers all flags
 func init() {
 	flag.BindPlanCodeFlag(Cmd, &planCode)
 	flag.BindDatacentersFlag(Cmd, &datacenters)
-	flag.BindOptionsFlag(Cmd, &options)
 
 	Cmd.PersistentFlags().CountVarP(&humanLevel, "human", "h", "Human output, more h makes it better (e.g. -h, -hh)")
 	// Redefine help flag to only be a long --help flag, to avoid conflict with human flag
 	Cmd.Flags().Bool("help", false, "help for "+Cmd.Name())
+
+	Cmd.PersistentFlags().BoolVar(&listOptions, "list-options", false, "list available item options")
+	Cmd.PersistentFlags().StringToStringVarP(&options, "option", "o", nil, "options to filter on, comma separated list of key=value, see --list-options for available options (e.g. memory=ram-64g-noecc-2133)")
 }
 
 // runner is the main function for the check command
@@ -56,12 +60,16 @@ func runner(cmd *cobra.Command, args []string) error {
 	}
 
 	var catalog *kimsuficatalog.Catalog
-	if humanLevel > 0 {
+	if humanLevel > 0 || listOptions {
 		// Get the catalog to display human readable information.
 		catalog, err = k.ListServers(cmd.Flag(flag.CountryFlagName).Value.String())
 		if err != nil {
 			return fmt.Errorf("failed to list servers: %w", err)
 		}
+	}
+
+	if listOptions {
+		return printItemOptions(catalog, planCode)
 	}
 
 	// Check availability
@@ -144,4 +152,36 @@ func datacenterAvailableMessageFormatter(datacenters []string) string {
 	}
 
 	return message
+}
+
+func printItemOptions(catalog *kimsuficatalog.Catalog, planCode string) error {
+	plan := catalog.GetPlan(planCode)
+	if plan == nil {
+		return fmt.Errorf("plan %s not found\n", planCode)
+	}
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0)
+	fmt.Fprintln(w, "option\tdescription\tdefault")
+	fmt.Fprintln(w, "-----------\t-----------\t-------")
+
+	for _, addon := range plan.AddonFamilies {
+		if !addon.Mandatory {
+			continue
+		}
+
+		for _, value := range addon.Addons {
+			isDefault := value == addon.Default
+			description := ""
+			genericValue := kimsufi.AddonGenericName(value)
+			product := catalog.GetProduct(genericValue)
+			if product != nil {
+				description = product.Description
+			}
+
+			fmt.Fprintf(w, "%s=%s\t%s\t%t\n", addon.Name, genericValue, description, isDefault)
+		}
+	}
+	w.Flush()
+
+	return nil
 }

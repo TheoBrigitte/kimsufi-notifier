@@ -17,9 +17,6 @@ const (
 	DatacentersFlagName      = "datacenters"
 	DatacentersFlagShortName = "d"
 
-	OptionsFlagName      = "options"
-	OptionsFlagShortName = "o"
-
 	HumanFlagName      = "human"
 	HumanFlagShortName = "h"
 
@@ -40,11 +37,6 @@ func BindCategoryFlag(cmd *cobra.Command, value *string) {
 // BindDatacentersFlag binds the datacenters flag to the provided cmd and value.
 func BindDatacentersFlag(cmd *cobra.Command, value *[]string) {
 	cmd.PersistentFlags().StringSliceVarP(value, DatacentersFlagName, DatacentersFlagShortName, nil, fmt.Sprintf("datacenter(s) to filter on, comma separated list (known values: %s)", strings.Join(kimsufiavailability.GetDatacentersKnownCodes(), ", ")))
-}
-
-// BindOptionsFlag binds the datacenters flag to the provided cmd and value.
-func BindOptionsFlag(cmd *cobra.Command, value *map[string]string) {
-	cmd.PersistentFlags().StringToStringVarP(value, OptionsFlagName, OptionsFlagShortName, nil, "options in key=value format, comma separated list, keys are column names (e.g. memory=ram-64g-noecc-2133)")
 }
 
 // BindHumanFlag binds the verbose flag to the provided cmd and value.
