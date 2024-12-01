@@ -224,7 +224,7 @@ func runner(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("error: %w", err)
 	}
-	fmt.Printf("> cart checked out %s\n", checkoutResp.URL)
+	fmt.Printf("> order completed: %s\n", checkoutResp.URL)
 
 	return nil
 }
