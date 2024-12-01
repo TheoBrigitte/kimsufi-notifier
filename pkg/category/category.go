@@ -1,7 +1,7 @@
 package category
 
 var (
-	// List of known plan categories, including an empty string for uncategorized plans
+	// Categories is a list of known plan categories, including an empty string for uncategorized plans
 	Categories = []category{
 		{"kimsufi", "Kimsufi"},
 		{"soyoustart", "So you Start"},
@@ -15,6 +15,7 @@ type category struct {
 	DisplayName string
 }
 
+// Contains checks if a category name is in the list of known categories.
 func Contains(name string) bool {
 	for _, category := range Categories {
 		if category.Name == name {
@@ -25,6 +26,7 @@ func Contains(name string) bool {
 	return false
 }
 
+// Names returns a list of known category names.
 func Names() []string {
 	var values []string
 	for _, category := range Categories {

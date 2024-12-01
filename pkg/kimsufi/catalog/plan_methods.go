@@ -160,6 +160,6 @@ func (price PlanPricing) Equals(other PlanPricing) bool {
 }
 
 // GetPrice returns the human readable price as a float64.
-func (p PlanPricing) GetPrice() float64 {
-	return float64(p.Price) / priceDivider
+func (price PlanPricing) GetPrice() float64 {
+	return float64(price.Price) / priceDivider
 }

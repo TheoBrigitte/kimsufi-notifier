@@ -252,7 +252,7 @@ func printItemOptions(options []kimsufiorder.EcoItemOption, priceConfig kimsufio
 func printPrices(ecoInfos kimsufiorder.EcoItemInfos, planCode string) error {
 	planInfo := ecoInfos.GetByPlanCode(planCode)
 	if planInfo == nil {
-		return fmt.Errorf("plan %s not found\n", planCode)
+		return fmt.Errorf("plan %s not found", planCode)
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0)

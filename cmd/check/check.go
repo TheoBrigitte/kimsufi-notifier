@@ -157,7 +157,7 @@ func datacenterAvailableMessageFormatter(datacenters []string) string {
 func printItemOptions(catalog *kimsuficatalog.Catalog, planCode string) error {
 	plan := catalog.GetPlan(planCode)
 	if plan == nil {
-		return fmt.Errorf("plan %s not found\n", planCode)
+		return fmt.Errorf("plan %s not found", planCode)
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0)

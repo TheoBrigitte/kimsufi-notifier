@@ -28,7 +28,7 @@ func (s *Service) CreateCart(ovhSubsidiary string, expire time.Time) (*kimsufior
 	return &resp, nil
 }
 
-// AddItem adds an OVH eco item to the cart with the given planCode, quantity and duration, mode from priceConfig.
+// AddEcoItem adds an OVH eco item to the cart with the given planCode, quantity and duration, mode from priceConfig.
 func (s *Service) AddEcoItem(cartID, planCode string, quantity int, priceConfig kimsufiorder.EcoItemPriceConfig) (*kimsufiorder.EcoItemResponse, error) {
 	u := fmt.Sprintf("/order/cart/%s/eco", cartID)
 
@@ -49,7 +49,7 @@ func (s *Service) AddEcoItem(cartID, planCode string, quantity int, priceConfig 
 	return &resp, nil
 }
 
-// GetEcoItems returns information about an eco item in the cart.
+// GetEcoInfo returns information about an eco item in the cart.
 func (s *Service) GetEcoInfo(cartID, planCode string) (kimsufiorder.EcoItemInfos, error) {
 	u, err := url.Parse(fmt.Sprintf("/order/cart/%s/eco", cartID))
 	if err != nil {

@@ -25,7 +25,7 @@ const (
 	PlanCodeExample       = "24ska01"
 )
 
-// BindCountryFlag binds the country flag to the provided cmd and value.
+// BindCategoryFlag binds the country flag to the provided cmd and value.
 func BindCategoryFlag(cmd *cobra.Command, value *string) {
 	categories := slices.DeleteFunc(category.Names(), func(s string) bool {
 		return s == ""

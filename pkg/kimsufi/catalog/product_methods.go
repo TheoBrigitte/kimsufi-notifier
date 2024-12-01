@@ -23,7 +23,7 @@ func (c ProductBlobsTechnicalCPU) Format() string {
 func (m ProductBlobsTechnicalMemory) Format() string {
 	return fmt.Sprintf("%d Go %s",
 		m.Size,
-		m.RamType,
+		m.RAMType,
 	)
 }
 

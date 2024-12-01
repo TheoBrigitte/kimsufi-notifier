@@ -28,7 +28,7 @@ type ProductBlobsTechnicalMemory struct {
 	ECC       bool   `json:"ecc"`
 	Frequency int    `json:"frequency"`
 	Interface string `json:"interface"`
-	RamType   string `json:"ramType"`
+	RAMType   string `json:"ramType"`
 	Size      int    `json:"size"`
 }
 

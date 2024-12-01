@@ -2,7 +2,7 @@ package order
 
 type EcoItemOptions []EcoItemOption
 
-// EcoItemOptions represents the options for an eco item.
+// EcoItemOption represents the options for an eco item.
 type EcoItemOption struct {
 	Option `json:",inline"`
 
