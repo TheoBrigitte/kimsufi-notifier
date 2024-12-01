@@ -24,7 +24,9 @@ var (
 		Use:   "list",
 		Short: "List available servers",
 		Long:  "List servers from OVH Eco (including Kimsufi) catalog",
-		RunE:  runner,
+		Example: `  kimsufi-notifier list --category kimsufi
+  kimsufi-notifier list --country US --endpoint ovh-us`,
+		RunE: runner,
 	}
 
 	// Flags variables

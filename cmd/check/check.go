@@ -20,7 +20,9 @@ var (
 		Use:   "check",
 		Short: "Check server availability",
 		Long:  "Check OVH Eco (including Kimsufi) server availability\n\ndatacenters are the available datacenters for this plan",
-		RunE:  runner,
+		Example: `  kimsufi-notifier check --plan-code 24ska01
+  kimsufi-notifier check --plan-code 24ska01 --datacenters gra,rbx`,
+		RunE: runner,
 	}
 
 	// Flags variables

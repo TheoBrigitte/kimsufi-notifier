@@ -23,7 +23,9 @@ var (
 		Use:   "order",
 		Short: "Place an order",
 		Long:  "Place an order for a servers from OVH Eco (including Kimsufi) catalog",
-		RunE:  runner,
+		Example: `  kimsufi-notifier order --plan-code 24ska01 --datacenter rbx --dry-run
+  kimsufi-notifier order --plan-code 25skle01 --datacenter bhs --item-option memory=ram-32g-noecc-1333-25skle01,storage=softraid-3x2000sa-25skle01`,
+		RunE: runner,
 	}
 
 	// Flags variables

@@ -3,96 +3,102 @@
 ## List available servers
 
 ```
-$ bin/list.sh -h
-Usage: list.sh
-
+$ kimsufi-notifier list --help
 List servers from OVH Eco (including Kimsufi) catalog
 
-Arguments
-  --category       Server category (default all)
-                     Allowed values: kimsufi, soyoustart, rise, uncategorized
-  -c, --country    Country code (required)
-                     Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN
-                     Allowed values with -e ovh-ca : ASIA, AU, CA, IN, QC, SG, WE, WS
-                     Allowed values with -e ovh-us : US
-  -e, --endpoint   OVH API endpoint (default: ovh-eu)
-                     Allowed values: ovh-eu, ovh-ca, ovh-us
-  -d, --debug      Enable debug mode (default: false)
-  -h, --help       Display this help message
+Usage:
+  kimsufi-notifier list [flags]
 
-  Arguments can also be set as environment variables see config.env.example
-  Command line arguments take precedence over environment variables
+Examples:
+  kimsufi-notifier list --category kimsufi
+  kimsufi-notifier list --country US --endpoint ovh-us
 
-Example:
-    list.sh --country FR
-    list.sh --country FR --category kimsufi
+Flags:
+      --category string       category to filter on (allowed values: kimsufi, soyoustart, rise)
+  -d, --datacenters strings   datacenter(s) to filter on, comma separated list (known values: bhs, fra, gra, hil, lon, par, rbx, sbg, sgp, syd, vin, waw, ynm, yyz)
+  -h, --help                  help for list
+  -p, --plan-code string      plan code to filter on (e.g. 24ska01)
+
+Global Flags:
+  -c, --country string     country code, known values per endpoints:
+                             ovh-eu: CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN
+                             ovh-ca: ASIA, AU, CA, IN, QC, SG, WE, WS
+                             ovh-us: US
+                            (default "FR")
+  -e, --endpoint string    OVH API Endpoint (allowed values: ovh-ca, ovh-eu, ovh-us) (default "ovh-eu")
+  -l, --log-level string   log level (allowed values: panic, fatal, error, warning, info, debug, trace) (default "error")
 ```
 
 ## Check availability
 
 ```
-$ bin/check.sh -h
-Usage: check.sh
-
+$ kimsufi-notifier check --help
 Check OVH Eco (including Kimsufi) server availability
 
-Arguments
-  -p, --plan-code  Plan code to check (e.g. 24ska01)
-  --datacenters    Comma-separated list of datacenters to check availability for (default all)
-                     Example values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw (non exhaustive list)
-  -e, --endpoint   OVH API endpoint (default: ovh-eu)
-                     Allowed values: ovh-eu, ovh-ca, ovh-us
-  -d, --debug      Enable debug mode (default: false)
-  -h, --help       Display this help message
+datacenters are the available datacenters for this plan
 
-  Arguments can also be set as environment variables see config.env.example
-  Command line arguments take precedence over environment variables
+Usage:
+  kimsufi-notifier check [flags]
 
-Environment variables
-    DISCORD_WEBHOOK       Webhook URL to use for Discord notification service
-    GOTIFY_URL            URL to use for Gotify notification service
-    GOTIFY_TOKEN          token to use for Gotify notification service
-    GOTIFY_PRIORITY       prority for Gotify notification service
-    OPSGENIE_API_KEY      API key for OpsGenie to receive notifications
-    TELEGRAM_BOT_TOKEN    Bot token for Telegram to receive notifications
-    TELEGRAM_CHAT_ID      Chat ID for Telegram to receive notifications
-    HEALTHCHECKS_IO_UUID  UUID for healthchecks.io to ping after successful run
+Examples:
+  kimsufi-notifier check --plan-code 24ska01
+  kimsufi-notifier check --plan-code 24ska01 --datacenters gra,rbx
 
-Example:
-  check.sh --plan-code 24ska01
-  check.sh --plan-code 24ska01 --datacenters fr,gra,rbx,sbg
+Flags:
+  -d, --datacenters strings     datacenter(s) to filter on, comma separated list (known values: bhs, fra, gra, hil, lon, par, rbx, sbg, sgp, syd, vin, waw, ynm, yyz)
+      --help                    help for check
+  -h, --human count             Human output, more h makes it better (e.g. -h, -hh)
+      --list-options            list available item options
+  -o, --option stringToString   options to filter on, comma separated list of key=value, see --list-options for available options (e.g. memory=ram-64g-noecc-2133) (default [])
+  -p, --plan-code string        plan code name (e.g. 24ska01)
+
+Global Flags:
+  -c, --country string     country code, known values per endpoints:
+                             ovh-eu: CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN
+                             ovh-ca: ASIA, AU, CA, IN, QC, SG, WE, WS
+                             ovh-us: US
+                            (default "FR")
+  -e, --endpoint string    OVH API Endpoint (allowed values: ovh-ca, ovh-eu, ovh-us) (default "ovh-eu")
+  -l, --log-level string   log level (allowed values: panic, fatal, error, warning, info, debug, trace) (default "error")
 ```
 
 ## Order a server
 
 ```
-$ bin/order.sh -h
-Usage: order.sh
-
+$ kimsufi-notifier order --help
 Place an order for a servers from OVH Eco (including Kimsufi) catalog
 
-Arguments
-  -c, --country     Country code (required)
-                      Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN
-                      Allowed values with -e ovh-ca : ASIA, AU, CA, IN, QC, SG, WE, WS
-                      Allowed values with -e ovh-us : US
-  --datacenter      Datacenter code (default: from config when only one is set)
-                      Example values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw (non exhaustive list)
-  -e, --endpoint    OVH API endpoint (default: ovh-eu)
-                      Allowed values: ovh-eu, ovh-ca, ovh-us
-  -i, --item-configuration
-                      Item configuration in the form 'label=value'
-  -d, --debug       Enable debug mode (default: false)
-  -h, --help        Display this help message
-  -q, --quantity    Quantity of items to order (default: 1)
-  --price-mode      Billing price type (default: default)
-  --price-duration  Billing duration (default: P1M)
+Usage:
+  kimsufi-notifier order [flags]
 
-  Arguments can also be set as environment variables see config.env.example
-  Command line arguments take precedence over environment variables
+Examples:
+  kimsufi-notifier order --plan-code 24ska01 --datacenter rbx --dry-run
+  kimsufi-notifier order --plan-code 25skle01 --datacenter bhs --item-option memory=ram-32g-noecc-1333-25skle01,storage=softraid-3x2000sa-25skle01
 
-Example:
-    order.sh
-    order.sh --item-configuration region=europe
-    order.sh --item-configuration region=europe --datacenter fra
+Flags:
+      --auto-pay                            automatically pay the order
+  -d, --datacenter string                   datacenter (known values: bhs, fra, gra, hil, lon, par, rbx, sbg, sgp, syd, vin, waw, ynm, yyz)
+  -n, --dry-run                             only create a cart and do not submit the order
+  -h, --help                                help for order
+  -i, --item-configuration stringToString   item configuration, see --list-configurations for available values (e.g. region=europe) (default [])
+  -o, --item-option stringToString          item option, see --list-options for available values (e.g. memory=ram-64g-noecc-2133-24ska01) (default [])
+      --list-configurations                 list available item configurations
+      --list-options                        list available item options
+      --list-prices                         list available prices
+      --ovh-app-key string                  environement variable name for OVH API application key (default "OVH_APP_KEY")
+      --ovh-app-secret string               environement variable name for OVH API application secret (default "OVH_APP_SECRET")
+      --ovh-consumer-key string             environement variable name for OVH API consumer key (default "OVH_CONSUMER_KEY")
+  -p, --plan-code string                    plan code name (e.g. 24ska01)
+      --price-duration string               price duration, see --list-prices for available values (default "P1M")
+      --price-mode string                   price mode, see --list-prices for available values (default "default")
+  -q, --quantity int                        item quantity (default 1)
+
+Global Flags:
+  -c, --country string     country code, known values per endpoints:
+                             ovh-eu: CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN
+                             ovh-ca: ASIA, AU, CA, IN, QC, SG, WE, WS
+                             ovh-us: US
+                            (default "FR")
+  -e, --endpoint string    OVH API Endpoint (allowed values: ovh-ca, ovh-eu, ovh-us) (default "ovh-eu")
+  -l, --log-level string   log level (allowed values: panic, fatal, error, warning, info, debug, trace) (default "error")
 ```
