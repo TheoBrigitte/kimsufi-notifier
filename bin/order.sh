@@ -21,7 +21,6 @@ echo_stderr() {
 
 jq_stderr() {
     echo "$@" | $JQ_BIN -cr . 1>&2
-    exit
 }
 
 # Helper function - prints an error message and exits
@@ -468,7 +467,7 @@ main() {
         ;;
       *)
         echo_stderr 'Internal error!'
-        exit 1
+        exit 3
         ;;
     esac
   done
@@ -477,7 +476,7 @@ main() {
     echo_stderr "Error: COUNTRY is not set"
     echo_stderr
     usage
-    exit 1
+    exit 3
   fi
   COUNTRY="${COUNTRY^^}"
 
@@ -498,7 +497,7 @@ main() {
   cart_id="$(echo "$cart" | $JQ_BIN -r .cartId)"
   if [ -z "$cart_id" ]; then
     echo_stderr "cart_id is empty"
-    exit 1
+    exit 3
   fi
   echo "> cart created id=$cart_id"
 
@@ -521,7 +520,7 @@ main() {
   item_id="$(echo "$cart_updated" | $JQ_BIN -r .itemId)"
   if [ -z "$item_id" ]; then
     echo_stderr "> item_id is empty"
-    exit 1
+    exit 3
   fi
   echo "> cart updated with item id=$item_id"
 

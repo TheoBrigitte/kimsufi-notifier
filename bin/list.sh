@@ -80,7 +80,7 @@ main() {
         ;;
       *)
         echo_stderr 'Internal error!'
-        exit 1
+        exit 3
         ;;
     esac
   done
@@ -89,7 +89,7 @@ main() {
     echo_stderr "Error: COUNTRY is not set"
     echo_stderr
     usage
-    exit 1
+    exit 3
   fi
   COUNTRY="${COUNTRY^^}"
 
@@ -112,7 +112,7 @@ main() {
   # Check for error: empty data, invalid json, or empty list
   if test -z "$DATA" || ! echo "$DATA" | $JQ_BIN -e . &>/dev/null || echo "$DATA" | $JQ_BIN -e '.plans | length == 0' &>/dev/null; then
     echo_stderr "> failed to fetch data from $OVH_URL"
-    exit 1
+    exit 2
   fi
   echo "> fetched  servers"
 
