@@ -43,7 +43,6 @@ func BindDatacentersFlag(cmd *cobra.Command, value *[]string) {
 // Warning: this redefine the help flag to only be a long --help flag.
 func BindHumanFlag(cmd *cobra.Command, value *int) {
 	cmd.PersistentFlags().CountVarP(value, HumanFlagName, HumanFlagShortName, "human output, more h makes it better (e.g. -h, -hh)")
-	cmd.Flags().Bool("help", false, "help for "+cmd.Name())
 }
 
 // BindPlanCodeFlag binds the plan code flag to the provided cmd and value.

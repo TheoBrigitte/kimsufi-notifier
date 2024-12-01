@@ -28,6 +28,9 @@ const (
 
 // Bind binds the global flags to the provided cmd.
 func Bind(cmd *cobra.Command) {
+	// Redefine help flag to only be a long --help flag
+	cmd.PersistentFlags().Bool("help", false, "help for "+cmd.Name())
+
 	// Log level
 	cmd.PersistentFlags().StringP(LogLevelFlagName, LogLevelFlagShortName, log.ErrorLevel.String(), fmt.Sprintf("log level (allowed values: %s)", strings.Join(logger.AllLevelsString(), ", ")))
 

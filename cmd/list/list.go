@@ -32,6 +32,7 @@ var (
 	// Flags variables
 	category    string
 	datacenters []string
+	humanLevel  int
 	planCode    string
 )
 
@@ -39,6 +40,7 @@ var (
 func init() {
 	flag.BindCategoryFlag(Cmd, &category)
 	flag.BindDatacentersFlag(Cmd, &datacenters)
+	flag.BindHumanFlag(Cmd, &humanLevel)
 
 	Cmd.PersistentFlags().StringVarP(&planCode, flag.PlanCodeFlagName, flag.PlanCodeFlagShortName, "", fmt.Sprintf("plan code to filter on (e.g. %s)", flag.PlanCodeExample))
 }
@@ -102,13 +104,21 @@ func runner(cmd *cobra.Command, args []string) error {
 
 			// Format availability status
 			datacenters := availabilities.GetPlanCodeAvailableDatacenters(plan.PlanCode)
+
+			var datacenterNames []string
+			if humanLevel > 0 {
+				datacenterNames = datacenters.ToFullNamesOrCodes()
+			} else {
+				datacenterNames = datacenters.Codes()
+			}
+
 			status := datacenters.Status()
 			if status == kimsufiavailability.StatusAvailable {
 				nothingAvailable = false
 			}
 
 			// Display plan
-			fmt.Fprintf(w, "%s\t%s\t%s\t%.2f %s\t%s\t%s\n", plan.PlanCode, planCategory.DisplayName, plan.InvoiceName, price, catalog.Locale.CurrencyCode, status, strings.Join(datacenters.Codes(), ", "))
+			fmt.Fprintf(w, "%s\t%s\t%s\t%.2f %s\t%s\t%s\n", plan.PlanCode, planCategory.DisplayName, plan.InvoiceName, price, catalog.Locale.CurrencyCode, status, strings.Join(datacenterNames, ", "))
 		}
 	}
 	w.Flush()

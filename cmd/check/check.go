@@ -38,10 +38,7 @@ var (
 func init() {
 	flag.BindPlanCodeFlag(Cmd, &planCode)
 	flag.BindDatacentersFlag(Cmd, &datacenters)
-
-	Cmd.PersistentFlags().CountVarP(&humanLevel, "human", "h", "Human output, more h makes it better (e.g. -h, -hh)")
-	// Redefine help flag to only be a long --help flag, to avoid conflict with human flag
-	Cmd.Flags().Bool("help", false, "help for "+Cmd.Name())
+	flag.BindHumanFlag(Cmd, &humanLevel)
 
 	Cmd.PersistentFlags().BoolVar(&listOptions, "list-options", false, "list available item options")
 	Cmd.PersistentFlags().StringToStringVarP(&options, "option", "o", nil, "options to filter on, comma separated list of key=value, see --list-options for available options (e.g. memory=ram-64g-noecc-2133)")
