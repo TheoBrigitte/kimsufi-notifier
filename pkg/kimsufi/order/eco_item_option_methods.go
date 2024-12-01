@@ -96,11 +96,23 @@ func NewOptionsFromMap(optionsMap map[string]string) []Option {
 // Merge merges the provided Options with the current Options.
 // It does not overwrite existing options.
 func (opts Options) Merge(other []Option) Options {
+	families := opts.families()
+
 	for _, o := range other {
-		if !slices.Contains(opts, o) {
+		if !slices.Contains(families, o.Family) {
 			opts = append(opts, o)
 		}
 	}
 
 	return opts
+}
+
+func (opts Options) families() []string {
+	var families []string
+
+	for _, o := range opts {
+		families = append(families, o.Family)
+	}
+
+	return families
 }
