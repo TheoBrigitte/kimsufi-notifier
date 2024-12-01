@@ -56,15 +56,15 @@ func init() {
 	Cmd.PersistentFlags().StringVarP(&datacenter, "datacenter", "d", "", fmt.Sprintf("datacenter (known values: %s)", strings.Join(kimsufiavailability.GetDatacentersKnownCodes(), ", ")))
 	Cmd.PersistentFlags().IntVarP(&quantity, "quantity", "q", kimsufiorder.QuantityDefault, "item quantity")
 
-	Cmd.PersistentFlags().StringToStringVarP(&itemUserConfigurations, "item-configuration", "i", nil, "item configuration (e.g. region=europe)")
-	Cmd.PersistentFlags().StringToStringVarP(&itemUserOptions, "item-option", "o", nil, "item option (e.g. memory=ram-64g-noecc-2133-24ska01)")
+	Cmd.PersistentFlags().StringToStringVarP(&itemUserConfigurations, "item-configuration", "i", nil, "item configuration, see --list-configurations for available values (e.g. region=europe)")
+	Cmd.PersistentFlags().StringToStringVarP(&itemUserOptions, "item-option", "o", nil, "item option, see --list-options for available values (e.g. memory=ram-64g-noecc-2133-24ska01)")
 
 	Cmd.PersistentFlags().BoolVar(&listConfigurations, "list-configurations", false, "list available item configurations")
 	Cmd.PersistentFlags().BoolVar(&listOptions, "list-options", false, "list available item options")
 	Cmd.PersistentFlags().BoolVar(&listPrices, "list-prices", false, "list available prices")
 
-	Cmd.PersistentFlags().StringVar(&priceMode, "price-mode", kimsufiorder.PricingMode, "price mode")
-	Cmd.PersistentFlags().StringVar(&priceDuration, "price-duration", kimsufiorder.PriceDuration, "price duration")
+	Cmd.PersistentFlags().StringVar(&priceMode, "price-mode", kimsufiorder.PricingMode, "price mode, see --list-prices for available values")
+	Cmd.PersistentFlags().StringVar(&priceDuration, "price-duration", kimsufiorder.PriceDuration, "price duration, see --list-prices for available values")
 
 	Cmd.PersistentFlags().StringVar(&ovhAppKeyEnvVarName, "ovh-app-key", "OVH_APP_KEY", "environement variable name for OVH API application key")
 	Cmd.PersistentFlags().StringVar(&ovhAppSecretEnvVarName, "ovh-app-secret", "OVH_APP_SECRET", "environement variable name for OVH API application secret")
@@ -122,8 +122,7 @@ func runner(cmd *cobra.Command, args []string) error {
 	}
 
 	if listPrices {
-		printPrices(ecoInfo, planCode)
-		return nil
+		return printPrices(ecoInfo, planCode)
 	}
 
 	// Ensure price config is valid, otherwise use default
@@ -250,11 +249,10 @@ func printItemOptions(options []kimsufiorder.EcoItemOption, priceConfig kimsufio
 	w.Flush()
 }
 
-func printPrices(ecoInfos kimsufiorder.EcoItemInfos, planCode string) {
+func printPrices(ecoInfos kimsufiorder.EcoItemInfos, planCode string) error {
 	planInfo := ecoInfos.GetByPlanCode(planCode)
 	if planInfo == nil {
-		fmt.Printf("> plan %s not found\n", planCode)
-		return
+		return fmt.Errorf("plan %s not found\n", planCode)
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0)
@@ -269,6 +267,8 @@ func printPrices(ecoInfos kimsufiorder.EcoItemInfos, planCode string) {
 		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", p.Duration, p.PricingMode, p.Price.Text, p.Description)
 	}
 	w.Flush()
+
+	return nil
 }
 
 func printConfigurations(configurations []kimsufiorder.ItemConfiguration) {
