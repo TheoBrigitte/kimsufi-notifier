@@ -3,7 +3,8 @@ NAME := kimsufi-notifier
 
 PKG := ${GROUP}/${NAME}
 
-BIN := ${NAME}
+BUILD_DIR := build
+BIN := ${BUILD_DIR}/${NAME}
 
 PKG_LIST := $(shell go list ${PKG}/... | grep -v /vendor/)
 
@@ -49,6 +50,6 @@ nancy:
 	go list -json -m all | nancy sleuth
 
 clean:
-	-@rm ${BIN}
+	rm -rf ${BUILD_DIR}
 
 .PHONY: build install test vet lint clean
