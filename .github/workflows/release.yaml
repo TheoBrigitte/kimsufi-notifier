@@ -13,7 +13,12 @@ jobs:
     - uses: actions/setup-go@v5
       with:
         go-version: '^1.23.0'
-    - run: make
+    - name: dependencies
+      run: |
+        apt install -y \
+          gcc-aarch64-linux-gnu \
+          g++-aarch64-linux-gnu
+    - run: make linux-arm
 #   - uses: goreleaser/goreleaser-action@v6
 #     with:
 #       args: release --clean
