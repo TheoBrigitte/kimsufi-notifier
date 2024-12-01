@@ -12,6 +12,6 @@ jobs:
         go-version: stable
     - uses: golangci/golangci-lint-action@v6
     - name: go list
-      run: go list -json -m all > go.list
+      run: go list -json -deps ./... > go.list
     - uses: sonatype-nexus-community/nancy-github-action@main
     - run: go test -race ./...
