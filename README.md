@@ -25,7 +25,7 @@ This is my playground to learn how the OVH API works, it is then ported into a T
 
 Download the latest release from the [Github releases page](https://github.com/TheoBrigitte/kimsufi-notifier/releases).
 
-### Using `Go`
+### Using Go
 
 ```
 go install github.com/TheoBrigitte/kimsufi-notifier
