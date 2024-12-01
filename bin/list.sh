@@ -16,28 +16,28 @@ echo_stderr() {
 
 usage() {
   bin_name=$(basename "$0")
-  echo_stderr "Usage: $bin_name"
-  echo_stderr
-  echo_stderr "List servers from OVH Eco (including Kimsufi) catalog"
-  echo_stderr
-  echo_stderr "Arguments"
-  echo_stderr "      --category   Server category (default all)"
-  echo_stderr "                     Allowed values: kimsufi, soyoustart, rise, uncategorized"
-  echo_stderr "  -c, --country    Country code (required)"
-  echo_stderr "                     Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
-  echo_stderr "                     Allowed values with -e ovh-ca : ASIA, AU, CA, IN, QC, SG, WE, WS"
-  echo_stderr "                     Allowed values with -e ovh-us : US"
-  echo_stderr "  -e, --endpoint   OVH API endpoint (default: ovh-eu)"
-  echo_stderr "                     Allowed values: ovh-eu, ovh-ca, ovh-us"
-  echo_stderr "      --debug      Enable debug mode (default: false)"
-  echo_stderr "  -h, --help       Display this help message"
-  echo_stderr
-  echo_stderr "  Arguments can also be set as environment variables see config.env.example"
-  echo_stderr "  Command line arguments take precedence over environment variables"
-  echo_stderr
-  echo_stderr "Example:"
-  echo_stderr "    $bin_name --country FR"
-  echo_stderr "    $bin_name --country FR --category kimsufi"
+  echo "Usage: $bin_name"
+  echo
+  echo "List servers from OVH Eco (including Kimsufi) catalog"
+  echo
+  echo "Arguments"
+  echo "      --category   Server category (default all)"
+  echo "                     Allowed values: kimsufi, soyoustart, rise, uncategorized"
+  echo "  -c, --country    Country code (required)"
+  echo "                     Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
+  echo "                     Allowed values with -e ovh-ca : ASIA, AU, CA, IN, QC, SG, WE, WS"
+  echo "                     Allowed values with -e ovh-us : US"
+  echo "  -e, --endpoint   OVH API endpoint (default: ovh-eu)"
+  echo "                     Allowed values: ovh-eu, ovh-ca, ovh-us"
+  echo "      --debug      Enable debug mode (default: false)"
+  echo "  -h, --help       Display this help message"
+  echo
+  echo "  Arguments can also be set as environment variables see config.env.example"
+  echo "  Command line arguments take precedence over environment variables"
+  echo
+  echo "Example:"
+  echo "    $bin_name --country FR"
+  echo "    $bin_name --country FR --category kimsufi"
 }
 
 main() {
@@ -96,7 +96,7 @@ main() {
   OVH_URL="${OVH_API_ENDPOINTS["$ENDPOINT"]}/order/catalog/public/eco?ovhSubsidiary=${COUNTRY}"
 
   # Fetch servers from OVH API
-  echo_stderr "> fetching servers in $COUNTRY"
+  echo "> fetching servers in $COUNTRY"
   if $DEBUG; then
     echo_stderr "> fetching data from $OVH_URL"
   fi
@@ -111,10 +111,10 @@ main() {
 
   # Check for error: empty data, invalid json, or empty list
   if test -z "$DATA" || ! echo "$DATA" | $JQ_BIN -e . &>/dev/null || echo "$DATA" | $JQ_BIN -e '.plans | length == 0' &>/dev/null; then
-    echo "> failed to fetch data from $OVH_URL"
+    echo_stderr "> failed to fetch data from $OVH_URL"
     exit 1
   fi
-  echo_stderr "> fetched  servers"
+  echo "> fetched  servers"
 
   # Get currency code
   CURRENCY="$(echo "$DATA" | $JQ_BIN -r '.locale.currencyCode')"

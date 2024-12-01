@@ -76,7 +76,7 @@ notify_discord() {
   fi
 
   if echo "$RESULT" | $JQ_BIN -e .message &>/dev/null; then
-    echo "$RESULT"
+    echo_stderr "$RESULT"
     echo_stderr "> failed Discord notification"
   else
     echo "> sent Discord notification"
@@ -108,7 +108,7 @@ notify_gotify() {
   fi
 
   if echo "$RESULT" | $JQ_BIN -e .error &>/dev/null; then
-    echo "$RESULT"
+    echo_stderr "$RESULT"
     echo_stderr "> failed Gotify notification"
   else
     echo "> sent Gotify notification"
@@ -134,7 +134,7 @@ notify_opsgenie() {
   if echo "$RESULT" | $JQ_BIN -e '.result | length > 0' &>/dev/null; then
     echo "> sent    OpsGenie notification"
   else
-    echo "$RESULT"
+    echo_stderr "$RESULT"
     echo_stderr "> failed  OpsGenie notification"
   fi
 }
@@ -161,7 +161,7 @@ notify_telegram() {
   if echo "$RESULT" | $JQ_BIN -e .ok &>/dev/null; then
     echo "> sent    Telegram notification"
   else
-    echo "$RESULT"
+    echo_stderr "$RESULT"
     echo_stderr "> failed  Telegram notification"
   fi
 }
@@ -399,13 +399,13 @@ main() {
 
   if $DEBUG; then
     TMP_FILE="$(mktemp kimsufi-notifier.XXXXXX)"
-    echo "$DATA" | tee "$TMP_FILE"
+    echo "$DATA" | tee "$TMP_FILE" 1>&2
     echo_stderr "> saved    data to   $TMP_FILE"
   fi
 
   # Check for error: empty data, invalid json, or empty list
   if test -z "$DATA" || ! echo "$DATA" | $JQ_BIN -e . &>/dev/null || echo "$DATA" | $JQ_BIN -e '. | length == 0' &>/dev/null; then
-    echo "> failed to fetch data from $endpoint"
+    echo_stderr "> failed to fetch data from $endpoint"
     exit 2
   fi
 
