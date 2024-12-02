@@ -13,6 +13,7 @@ import (
 	"github.com/TheoBrigitte/kimsufi-notifier/pkg/kimsufi"
 	kimsufiavailability "github.com/TheoBrigitte/kimsufi-notifier/pkg/kimsufi/availability"
 	kimsuficatalog "github.com/TheoBrigitte/kimsufi-notifier/pkg/kimsufi/catalog"
+	kimsufiorder "github.com/TheoBrigitte/kimsufi-notifier/pkg/kimsufi/order"
 )
 
 var (
@@ -31,7 +32,8 @@ var (
 	planCode    string
 	humanLevel  int
 
-	listOptions bool
+	listDatacenters bool
+	listOptions     bool
 )
 
 // init registers all flags
@@ -40,6 +42,7 @@ func init() {
 	flag.BindDatacentersFlag(Cmd, &datacenters)
 	flag.BindHumanFlag(Cmd, &humanLevel)
 
+	Cmd.PersistentFlags().BoolVar(&listDatacenters, "list-datacenters", false, "list available datacenters")
 	Cmd.PersistentFlags().BoolVar(&listOptions, "list-options", false, "list available item options")
 	Cmd.PersistentFlags().StringToStringVarP(&options, "option", "o", nil, "options to filter on, comma separated list of key=value, see --list-options for available options (e.g. memory=ram-64g-noecc-2133)")
 }
@@ -59,12 +62,16 @@ func runner(cmd *cobra.Command, args []string) error {
 	}
 
 	var catalog *kimsuficatalog.Catalog
-	if humanLevel > 0 || listOptions {
+	if humanLevel > 0 || listDatacenters || listOptions {
 		// Get the catalog to display human readable information.
 		catalog, err = k.ListServers(cmd.Flag(flag.CountryFlagName).Value.String())
 		if err != nil {
 			return fmt.Errorf("failed to list servers: %w", err)
 		}
+	}
+
+	if listDatacenters {
+		return printDatacenters(catalog, planCode)
 	}
 
 	if listOptions {
@@ -151,6 +158,35 @@ func datacenterAvailableMessageFormatter(datacenters []string) string {
 	}
 
 	return message
+}
+
+func printDatacenters(catalog *kimsuficatalog.Catalog, planCode string) error {
+	plan := catalog.GetPlan(planCode)
+	if plan == nil {
+		return fmt.Errorf("plan %s not found", planCode)
+	}
+
+	var datacenters []string
+	datacenterConfiguration := plan.GetConfiguration(kimsufiorder.ConfigurationLabelDatacenter)
+	if datacenterConfiguration != nil {
+		datacenters = datacenterConfiguration.Values
+	}
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0)
+	fmt.Fprintln(w, "datacenter\tname")
+	fmt.Fprintln(w, "----------\t----")
+
+	for _, datacenter := range datacenters {
+		name := ""
+		dc := kimsufiavailability.GetDatacenterInfoByCode(datacenter)
+		if dc != nil {
+			name = dc.Name
+		}
+		fmt.Fprintf(w, "%s\t%s\n", datacenter, name)
+	}
+	w.Flush()
+
+	return nil
 }
 
 func printItemOptions(catalog *kimsuficatalog.Catalog, planCode string) error {
