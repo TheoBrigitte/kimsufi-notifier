@@ -154,7 +154,7 @@ func runner(cmd *cobra.Command, args []string) error {
 	// Prepare item configurations
 	itemConfigurations := kimsufiorder.NewItemConfigurationsFromMap(itemUserConfigurations)
 	itemConfigurations.Add(kimsufiorder.ConfigurationLabelDatacenter, datacenter)
-	r := kimsufiregion.AllowedRegions.GetRegionFromEndpoint(endpoint)
+	r := kimsufiregion.GetRegionFromEndpoint(endpoint)
 	if r != nil {
 		itemConfigurations.Add(kimsufiorder.ConfigurationLabelRegion, r.Region)
 	}
