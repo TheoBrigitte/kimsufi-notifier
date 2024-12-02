@@ -71,55 +71,69 @@ func runner(cmd *cobra.Command, args []string) error {
 	fmt.Fprintln(w, "planCode\tcategory\tname\tprice\tstatus\tdatacenters")
 	fmt.Fprintln(w, "--------\t--------\t----\t-----\t------\t-----------")
 
-	// Sort plans by price
+	// Sort plans by category and price
 	sort.Slice(catalog.Plans, func(i, j int) bool {
+		if catalog.Plans[i].Blobs.Commercial.Range != catalog.Plans[j].Blobs.Commercial.Range {
+			// Group plans by category first
+			a := pkgcategory.GetDisplayName(catalog.Plans[i].Blobs.Commercial.Range)
+			if a == "" {
+				a = catalog.Plans[i].Blobs.Commercial.Range
+			}
+
+			b := pkgcategory.GetDisplayName(catalog.Plans[j].Blobs.Commercial.Range)
+			if b == "" {
+				b = catalog.Plans[j].Blobs.Commercial.Range
+			}
+
+			return a < b
+		}
+
+		// Then sort by price
 		return catalog.Plans[i].GetFirstPrice().Price < catalog.Plans[j].GetFirstPrice().Price
 	})
 
 	// Display servers plans
 	nothingAvailable := true
-	for _, planCategory := range pkgcategory.Categories {
-		for _, plan := range catalog.Plans {
-			// Filter plans by plan code code
-			if planCode != "" && plan.PlanCode != planCode {
-				continue
-			}
-
-			// Filter plans by category
-			if category != "" && category != planCategory.Name {
-				continue
-			}
-
-			// Group plans by category
-			if plan.Blobs.Commercial.Range != planCategory.Name {
-				continue
-			}
-
-			// Format price
-			var price float64
-			planPrice := plan.GetFirstPrice()
-			if !reflect.DeepEqual(planPrice, kimsuficatalog.PlanPricing{}) {
-				price = planPrice.GetPrice()
-			}
-
-			// Format availability status
-			datacenters := availabilities.GetPlanCodeAvailableDatacenters(plan.PlanCode)
-
-			var datacenterNames []string
-			if humanLevel > 0 {
-				datacenterNames = datacenters.ToFullNamesOrCodes()
-			} else {
-				datacenterNames = datacenters.Codes()
-			}
-
-			status := datacenters.Status()
-			if status == kimsufiavailability.StatusAvailable {
-				nothingAvailable = false
-			}
-
-			// Display plan
-			fmt.Fprintf(w, "%s\t%s\t%s\t%.2f %s\t%s\t%s\n", plan.PlanCode, planCategory.DisplayName, plan.InvoiceName, price, catalog.Locale.CurrencyCode, status, strings.Join(datacenterNames, ", "))
+	for _, plan := range catalog.Plans {
+		// Filter plans by plan code code
+		if planCode != "" && plan.PlanCode != planCode {
+			continue
 		}
+
+		// Filter plans by category
+		if category != "" && category != plan.Blobs.Commercial.Range {
+			continue
+		}
+
+		// Format price
+		var price float64
+		planPrice := plan.GetFirstPrice()
+		if !reflect.DeepEqual(planPrice, kimsuficatalog.PlanPricing{}) {
+			price = planPrice.GetPrice()
+		}
+
+		// Format availability status
+		datacenters := availabilities.GetPlanCodeAvailableDatacenters(plan.PlanCode)
+
+		var datacenterNames []string
+		if humanLevel > 0 {
+			datacenterNames = datacenters.ToFullNamesOrCodes()
+		} else {
+			datacenterNames = datacenters.Codes()
+		}
+
+		status := datacenters.Status()
+		if status == kimsufiavailability.StatusAvailable {
+			nothingAvailable = false
+		}
+
+		categoryDisplay := pkgcategory.GetDisplayName(plan.Blobs.Commercial.Range)
+		if categoryDisplay == "" {
+			categoryDisplay = plan.Blobs.Commercial.Range
+		}
+
+		// Display plan
+		fmt.Fprintf(w, "%s\t%s\t%s\t%.2f %s\t%s\t%s\n", plan.PlanCode, categoryDisplay, plan.InvoiceName, price, catalog.Locale.CurrencyCode, status, strings.Join(datacenterNames, ", "))
 	}
 	w.Flush()
 

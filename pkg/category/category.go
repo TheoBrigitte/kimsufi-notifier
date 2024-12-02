@@ -15,6 +15,16 @@ type category struct {
 	DisplayName string
 }
 
+func GetDisplayName(name string) string {
+	for _, category := range Categories {
+		if category.Name == name {
+			return category.DisplayName
+		}
+	}
+
+	return ""
+}
+
 // Contains checks if a category name is in the list of known categories.
 func Contains(name string) bool {
 	for _, category := range Categories {
