@@ -19,6 +19,10 @@ echo_stderr() {
     >&2 echo "$@"
 }
 
+jq_stderr() {
+    echo "$@" | $JQ_BIN -cr . 1>&2
+}
+
 # Helper function - prints an error message and exits
 exit_error() {
     echo_stderr "Error: $1"
@@ -27,44 +31,44 @@ exit_error() {
 
 usage() {
   bin_name=$(basename "$0")
-  echo_stderr "Usage: $bin_name"
-  echo_stderr
-  echo_stderr "Place an order for a servers from OVH Eco (including Kimsufi) catalog"
-  echo_stderr
-  echo_stderr "Arguments"
-  echo_stderr "  -c, --country              Country code (required)"
-  echo_stderr "                               Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
-  echo_stderr "                               Allowed values with -e ovh-ca : ASIA, AU, CA, IN, QC, SG, WE, WS"
-  echo_stderr "                               Allowed values with -e ovh-us : US"
-  echo_stderr "  --datacenter               Datacenter code (default: from config when only one is set)"
-  echo_stderr "                               Example values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw (non exhaustive list)"
-  echo_stderr "  -e, --endpoint             OVH API endpoint (default: $ENDPOINT)"
-  echo_stderr "                               Allowed values: ovh-eu, ovh-ca, ovh-us"
-  echo_stderr "  -i, --item-configuration   Item configuration in the form label=value (e.g. region=europe)"
-  echo_stderr "                               use --show-configurations to list available configurations"
-  echo_stderr "                               default to auto-configure when only one allowed value, otherwise ask user via prompt"
-  echo_stderr "      --show-configurations  Show available configurations for the selected server"
-  echo_stderr "      --item-option          Item option in the form label=value (e.g. memory=ram-64g-noecc-2133-24ska01)"
-  echo_stderr "                               use --show-options to list available options"
-  echo_stderr "                               default to cheapest option when multiple are available"
-  echo_stderr "      --show-options         Show available options for the selected server"
-  echo_stderr "  -d, --debug                Enable debug mode (default: $DEBUG)"
-  echo_stderr "      --dry-run              Do not create the order, only configure the cart (default: $DRY_RUN)"
-  echo_stderr "  -h, --help                 Display this help message"
-  echo_stderr "  -q, --quantity             Quantity of items to order (default: $QUANTITY)"
-  echo_stderr "      --price-mode           Billing price type (default: $PRICE_MODE)"
-  echo_stderr "                               use --show-prices to list available price modes"
-  echo_stderr "      --price-duration       Billing duration (default: $PRICE_DURATION)"
-  echo_stderr "                               use --show-prices to list available price durations"
-  echo_stderr "      --show-prices          Show available prices for the selected server"
-  echo_stderr
-  echo_stderr "  Arguments can also be set as environment variables see config.env.example"
-  echo_stderr "  Command line arguments take precedence over environment variables"
-  echo_stderr
-  echo_stderr "Example:"
-  echo_stderr "    $bin_name"
-  echo_stderr "    $bin_name --item-configuration region=europe"
-  echo_stderr "    $bin_name --item-configuration region=europe --datacenter fra"
+  echo "Usage: $bin_name"
+  echo
+  echo "Place an order for a servers from OVH Eco (including Kimsufi) catalog"
+  echo
+  echo "Arguments"
+  echo "  -c, --country              Country code (required)"
+  echo "                               Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
+  echo "                               Allowed values with -e ovh-ca : ASIA, AU, CA, IN, QC, SG, WE, WS"
+  echo "                               Allowed values with -e ovh-us : US"
+  echo "  --datacenter               Datacenter code (default: from config when only one is set)"
+  echo "                               Example values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw (non exhaustive list)"
+  echo "  -e, --endpoint             OVH API endpoint (default: $ENDPOINT)"
+  echo "                               Allowed values: ovh-eu, ovh-ca, ovh-us"
+  echo "  -i, --item-configuration   Item configuration in the form label=value (e.g. region=europe)"
+  echo "                               use --show-configurations to list available configurations"
+  echo "                               default to auto-configure when only one allowed value, otherwise ask user via prompt"
+  echo "      --show-configurations  Show available configurations for the selected server"
+  echo "      --item-option          Item option in the form label=value (e.g. memory=ram-64g-noecc-2133-24ska01)"
+  echo "                               use --show-options to list available options"
+  echo "                               default to cheapest option when multiple are available"
+  echo "      --show-options         Show available options for the selected server"
+  echo "  -d, --debug                Enable debug mode (default: $DEBUG)"
+  echo "      --dry-run              Do not create the order, only configure the cart (default: $DRY_RUN)"
+  echo "  -h, --help                 Display this help message"
+  echo "  -q, --quantity             Quantity of items to order (default: $QUANTITY)"
+  echo "      --price-mode           Billing price type (default: $PRICE_MODE)"
+  echo "                               use --show-prices to list available price modes"
+  echo "      --price-duration       Billing duration (default: $PRICE_DURATION)"
+  echo "                               use --show-prices to list available price durations"
+  echo "      --show-prices          Show available prices for the selected server"
+  echo
+  echo "  Arguments can also be set as environment variables see config.env.example"
+  echo "  Command line arguments take precedence over environment variables"
+  echo
+  echo "Example:"
+  echo "    $bin_name"
+  echo "    $bin_name --item-configuration region=europe"
+  echo "    $bin_name --item-configuration region=europe --datacenter fra"
 }
 
 # request makes an HTTP request to the OVH API
@@ -179,21 +183,21 @@ item_manual_configuration() {
     if [[ ${labels_configured[@]} =~ $label ]]; then
       continue
     fi
-    echo_stderr "> item configuration, select a value for $label"
+    echo "> item configuration, select a value for $label"
 
     i=0
     for value in $(echo "$configuration" | $JQ_BIN -r '.allowedValues[]'); do
-      echo_stderr "> $i. $value"
+      echo "> $i. $value"
       i=$((i+1))
     done
 
-    echo_stderr -n "> Choice: "
+    echo -n "> Choice: "
     read index
     value="$(echo "$configuration" | $JQ_BIN -r .allowedValues[$index])"
-    echo_stderr "> item manual-configuration $label=$value"
+    echo "> item manual-configuration $label=$value"
     result="$(request POST "/order/cart/${cart_id}/item/${item_id}/configuration" '{"label":"'"$label"'","value":"'"$value"'"}')"
     if $DEBUG; then
-      echo "$result" | $JQ_BIN -cr .
+      jq_stderr "$result"
     fi
   done
 
@@ -241,7 +245,7 @@ item_auto_option() {
     echo_stderr "> item auto option $family=$option"
     result="$(request POST "/order/cart/${cart_id}/eco/options" '{"quantity": 1, "duration": "'"$price_duration"'", "pricingMode":"'"$price_mode"'", "planCode":"'"$option"'", "itemId": '$item_id'}')"
     if $DEBUG; then
-      echo "$result" | $JQ_BIN -cr .
+      jq_stderr "$result"
     fi
   done
 }
@@ -262,7 +266,7 @@ item_user_option() {
     echo_stderr "> item user option $family=$planCode"
     result="$(request POST "/order/cart/${cart_id}/eco/options" '{"quantity": 1, "duration": "'"$price_duration"'", "pricingMode":"'"$price_mode"'", "planCode":"'"$planCode"'", "itemId": '$item_id'}')"
     if $DEBUG; then
-      echo "$result" | $JQ_BIN -cr .
+      jq_stderr "$result"
     fi
     keys+=("$family")
   done
@@ -463,7 +467,7 @@ main() {
         ;;
       *)
         echo_stderr 'Internal error!'
-        exit 1
+        exit 3
         ;;
     esac
   done
@@ -472,7 +476,7 @@ main() {
     echo_stderr "Error: COUNTRY is not set"
     echo_stderr
     usage
-    exit 1
+    exit 3
   fi
   COUNTRY="${COUNTRY^^}"
 
@@ -487,13 +491,13 @@ main() {
   expire="$(date --iso-8601=seconds --date tomorrow)"
   cart="$(request POST "/order/cart" '{"description":"kimsufi-notifier","expire":"'"$expire"'","ovhSubsidiary":"'"$COUNTRY"'"}')"
   if $DEBUG; then
-    echo "$cart" | $JQ_BIN -cr .
+    jq_stderr "$cart"
   fi
 
   cart_id="$(echo "$cart" | $JQ_BIN -r .cartId)"
   if [ -z "$cart_id" ]; then
-    echo "cart_id is empty"
-    exit 1
+    echo_stderr "cart_id is empty"
+    exit 3
   fi
   echo "> cart created id=$cart_id"
 
@@ -510,13 +514,13 @@ main() {
   # Add item to cart
   cart_updated="$(request POST "/order/cart/${cart_id}/eco" '{"planCode":"'"${PLAN_CODE}"'","quantity": '${QUANTITY}', "pricingMode":"'"${PRICE_MODE}"'","duration":"'${PRICE_DURATION}'"}')"
   if $DEBUG; then
-    echo "$cart_updated" | $JQ_BIN -cr .
+    jq_stderr "$cart_updated"
   fi
 
   item_id="$(echo "$cart_updated" | $JQ_BIN -r .itemId)"
   if [ -z "$item_id" ]; then
-    echo "item_id is empty"
-    exit 1
+    echo_stderr "> item_id is empty"
+    exit 3
   fi
   echo "> cart updated with item id=$item_id"
 
@@ -547,7 +551,7 @@ main() {
   # Submit order
   order="$(request_auth POST "/order/cart/${cart_id}/checkout" '{"autoPayWithPreferredPaymentMethod":false,"waiveRetractationPeriod":false}' | $JQ_BIN -cr 'del(.contracts)')"
   if $DEBUG; then
-    echo "$order" | $JQ_BIN -cr .
+    jq_stderr "$order"
   fi
 
   order_url="$(echo "$order" | $JQ_BIN -r .url)"
