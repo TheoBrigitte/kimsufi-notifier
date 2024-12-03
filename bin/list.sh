@@ -110,7 +110,7 @@ main() {
   fi
 
   # Check for error: empty data, invalid json, or empty list
-  if test -z "$DATA" || ! echo "$DATA" | $JQ_BIN -e . &>/dev/null || echo "$DATA" | $JQ_BIN -e '.plans | length == 0' &>/dev/null; then
+  if test -z "$DATA" || ! echo "$DATA" | $JQ_BIN -e . 1>/dev/null || echo "$DATA" | $JQ_BIN -e '.plans | length == 0' 1>/dev/null; then
     echo_stderr "> failed to fetch data from $OVH_URL"
     exit 2
   fi
