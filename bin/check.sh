@@ -75,7 +75,7 @@ notify_discord() {
     echo_stderr "$RESULT"
   fi
 
-  if echo "$RESULT" | $JQ_BIN -e .message &>/dev/null; then
+  if echo "$RESULT" | $JQ_BIN -e .message 1>/dev/null; then
     echo "$RESULT"
     echo_stderr "> failed Discord notification"
   else
@@ -107,7 +107,7 @@ notify_gotify() {
     echo_stderr "$RESULT"
   fi
 
-  if echo "$RESULT" | $JQ_BIN -e .error &>/dev/null; then
+  if echo "$RESULT" | $JQ_BIN -e .error 1>/dev/null; then
     echo "$RESULT"
     echo_stderr "> failed Gotify notification"
   else
@@ -131,7 +131,7 @@ notify_opsgenie() {
     echo_stderr "$RESULT"
   fi
 
-  if echo "$RESULT" | $JQ_BIN -e '.result | length > 0' &>/dev/null; then
+  if echo "$RESULT" | $JQ_BIN -e '.result | length > 0' 1>/dev/null; then
     echo_stderr "> sent    OpsGenie notification"
   else
     echo "$RESULT"
@@ -158,7 +158,7 @@ notify_telegram() {
     echo_stderr "$RESULT"
   fi
 
-  if echo "$RESULT" | $JQ_BIN -e .ok &>/dev/null; then
+  if echo "$RESULT" | $JQ_BIN -e .ok 1>/dev/null; then
     echo_stderr "> sent    Telegram notification"
   else
     echo "$RESULT"
@@ -185,7 +185,7 @@ get_catalog() {
   ovh_url="${OVH_API_ENDPOINTS["$ENDPOINT"]}/order/catalog/public/eco?ovhSubsidiary=${country}"
   data=$(curl -qSs "${ovh_url}")
 
-  if test -z "$data" || ! echo "$data" | $JQ_BIN -e . &>/dev/null || echo "$data" | $JQ_BIN -e '.plans | length == 0' &>/dev/null; then
+  if test -z "$data" || ! echo "$data" | $JQ_BIN -e . 1>/dev/null || echo "$data" | $JQ_BIN -e '.plans | length == 0' 1>/dev/null; then
     echo_stderr "> failed to fetch data from $ovh_url"
     exit 1
   fi
@@ -365,7 +365,7 @@ main() {
   fi
 
   # Check for error: empty data, invalid json, or empty list
-  if test -z "$DATA" || ! echo "$DATA" | $JQ_BIN -e . &>/dev/null || echo "$DATA" | $JQ_BIN -e '. | length == 0' &>/dev/null; then
+  if test -z "$DATA" || ! echo "$DATA" | $JQ_BIN -e . 1>/dev/null || echo "$DATA" | $JQ_BIN -e '. | length == 0' 1>/dev/null; then
     echo "> failed to fetch data from $OVH_URL"
     exit 1
   fi
@@ -376,7 +376,7 @@ main() {
   fi
 
   # Check for datacenters availability
-  if ! echo "$DATA" | $JQ_BIN -e '.[].datacenters[] | select(.availability != "unavailable")' &>/dev/null; then
+  if ! echo "$DATA" | $JQ_BIN -e '.[].datacenters[] | select(.availability != "unavailable")' 1>/dev/null; then
     echo_stderr "> checked  $PLAN_CODE unavailable  in $DATACENTERS_MESSAGE"
     exit 1
   fi
