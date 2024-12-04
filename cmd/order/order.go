@@ -18,6 +18,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	anyOption = "any"
+)
+
 var (
 	Cmd = &cobra.Command{
 		Use:   "order",
@@ -55,11 +59,11 @@ func init() {
 	flag.BindPlanCodeFlag(Cmd, &planCode)
 
 	Cmd.PersistentFlags().BoolVar(&autoPay, "auto-pay", false, "automatically pay the order")
-	Cmd.PersistentFlags().StringSliceVarP(&datacenters, "datacenters", "d", nil, fmt.Sprintf(`datacenters, "any" to try all datacenters (known values: %s)`, strings.Join(kimsufiavailability.GetDatacentersKnownCodes(), ", ")))
+	Cmd.PersistentFlags().StringSliceVarP(&datacenters, "datacenters", "d", nil, fmt.Sprintf(`datacenters, %q to try all datacenters (known values: %s)`, anyOption, strings.Join(kimsufiavailability.GetDatacentersKnownCodes(), ", ")))
 	Cmd.PersistentFlags().IntVarP(&quantity, "quantity", "q", kimsufiorder.QuantityDefault, "item quantity")
 
 	Cmd.PersistentFlags().StringToStringVarP(&itemUserConfigurations, "item-configuration", "i", nil, "item configuration, see --list-configurations for available values (e.g. region=europe)")
-	Cmd.PersistentFlags().StringSliceVarP(&itemUserOptions, "item-option", "o", nil, "item option, see --list-options for available values (e.g. memory=ram-64g-noecc-2133-24ska01)")
+	Cmd.PersistentFlags().StringSliceVarP(&itemUserOptions, "item-option", "o", nil, fmt.Sprintf("item option, see --list-options for available values (e.g. memory=ram-64g-noecc-2133-24ska01, memory=%[1]s, %[1]s)", anyOption))
 
 	Cmd.PersistentFlags().BoolVar(&listConfigurations, "list-configurations", false, "list available item configurations")
 	Cmd.PersistentFlags().BoolVar(&listOptions, "list-options", false, "list available item options")
@@ -149,7 +153,7 @@ func runner(cmd *cobra.Command, args []string) error {
 
 	if len(datacenters) == 0 {
 		return fmt.Errorf("--datacenter is required")
-	} else if slices.Contains(datacenters, "any") {
+	} else if slices.Contains(datacenters, anyOption) {
 		catalog, err := k.ListServers(cmd.Flag(flag.CountryFlagName).Value.String())
 		if err != nil {
 			return fmt.Errorf("failed to list servers: %w", err)
@@ -193,14 +197,57 @@ func runner(cmd *cobra.Command, args []string) error {
 	}
 
 	// Prepare item options
-	userOptions, err := kimsufiorder.NewOptionsFromSlice(itemUserOptions)
-	if err != nil {
-		return fmt.Errorf("error: %w", err)
-	}
-	mandatoryOptions := ecoOptions.GetCheapestMandatoryOptions()
-	mergedOptions := userOptions.Merge(mandatoryOptions.ToOptions())
+	var optionsCombinations []kimsufiorder.Options
+	var mergedOptions kimsufiorder.Options
+	allOptions := slices.Contains(itemUserOptions, anyOption)
+	if allOptions {
+		// Get all mandatory options
+		mergedOptions = ecoOptions.GetMandatoryOptions(nil).ToOptions()
+		optionsCombinations = kimsufiorder.NewOptionsCombinationsFromSlice(mergedOptions)
+	} else {
+		userOptions, err := kimsufiorder.NewOptionsFromSlice(itemUserOptions)
+		if err != nil {
+			return fmt.Errorf("error: %w", err)
+		}
+		anyOptions, userOptions := userOptions.SplitByPlanCode(anyOption)
+		anyFamilies := anyOptions.Families()
 
-	optionsCombinations := kimsufiorder.NewOptionsCombinationsFromSlice(mergedOptions)
+		optionFilter := func(opts kimsufiorder.EcoItemOptions, o kimsufiorder.EcoItemOption) bool {
+			defautPriceConfig := kimsufiorder.EcoItemPriceConfig{
+				Duration:    kimsufiorder.PriceDuration,
+				PricingMode: kimsufiorder.PricingMode,
+			}
+
+			// Inclue option if it is marked as any
+			if slices.Contains(anyFamilies, o.Family) {
+				return true
+			}
+
+			// Include option if its family is not already included
+			current := opts.Get(o.Family)
+			if current == nil {
+				return true
+			}
+
+			newPrice := o.GetPriceByConfig(defautPriceConfig)
+			if newPrice == nil {
+				return false
+			}
+
+			currentPrice := current.GetPriceByConfig(defautPriceConfig)
+			if currentPrice == nil {
+				return false
+			}
+
+			// Include option if its price is lower than the current one
+			return newPrice.PriceInUcents < currentPrice.PriceInUcents
+		}
+
+		mandatoryOptions := ecoOptions.GetMandatoryOptions(optionFilter)
+		mergedOptions = userOptions.Merge(mandatoryOptions.ToOptions())
+		optionsCombinations = kimsufiorder.NewOptionsCombinationsFromSlice(mergedOptions)
+	}
+
 	fmt.Printf("> item options: %d %v\n", len(mergedOptions), mergedOptions.PlanCodes())
 	fmt.Printf("> datacenter(s): %d\n", len(datacenters))
 	fmt.Printf("> combinations: %d\n", len(optionsCombinations)*len(datacenters))

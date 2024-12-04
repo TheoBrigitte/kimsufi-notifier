@@ -18,6 +18,24 @@ func (i EcoItemOptions) Get(family string) *EcoItemOption {
 	return nil
 }
 
+func (i EcoItemOptions) GetMandatoryOptions(filter func(EcoItemOptions, EcoItemOption) bool) EcoItemOptions {
+	var options = EcoItemOptions{}
+
+	for _, option := range i {
+		if !option.Mandatory {
+			continue
+		}
+
+		if filter != nil && !filter(options, option) {
+			continue
+		}
+
+		options = append(options, option)
+	}
+
+	return options
+}
+
 // GetCheapestMandatoryOptions returns the cheapest mandatory options.
 // It compares prices matching PriceDuration and PricingMode.
 func (i EcoItemOptions) GetCheapestMandatoryOptions() EcoItemOptions {
@@ -110,10 +128,26 @@ func NewOptionsFromSlice(optionsSlice []string) (Options, error) {
 			Family:   oSplit[0],
 			PlanCode: oSplit[1],
 		}
+
 		options = append(options, opt)
 	}
 
 	return options, nil
+}
+
+func (opts Options) SplitByPlanCode(planCode string) (Options, Options) {
+	var matching Options
+	var other Options
+
+	for _, o := range opts {
+		if o.PlanCode == planCode {
+			matching = append(matching, o)
+		} else {
+			other = append(other, o)
+		}
+	}
+
+	return matching, other
 }
 
 func NewOptionsCombinationsFromSlice(optionsSlice []Option) []Options {
@@ -168,7 +202,7 @@ func (opts Options) Set(opt Option) []Option {
 // Merge merges the provided Options with the current Options.
 // It does not overwrite existing options.
 func (opts Options) Merge(other []Option) Options {
-	families := opts.families()
+	families := opts.Families()
 
 	for _, o := range other {
 		if !slices.Contains(families, o.Family) {
@@ -179,7 +213,7 @@ func (opts Options) Merge(other []Option) Options {
 	return opts
 }
 
-func (opts Options) families() []string {
+func (opts Options) Families() []string {
 	var families []string
 
 	for _, o := range opts {
