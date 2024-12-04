@@ -113,7 +113,7 @@ func runner(cmd *cobra.Command, args []string) error {
 		}
 
 		// Format availability status
-		datacenters := availabilities.GetPlanCodeAvailableDatacenters(plan.PlanCode)
+		datacenters := availabilities.GetByPlanCode(plan.PlanCode).GetAvailableDatacenters()
 
 		var datacenterNames []string
 		if humanLevel > 0 {
