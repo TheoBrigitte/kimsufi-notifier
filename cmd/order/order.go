@@ -59,11 +59,11 @@ func init() {
 	flag.BindPlanCodeFlag(Cmd, &planCode)
 
 	Cmd.PersistentFlags().BoolVar(&autoPay, "auto-pay", false, "automatically pay the order")
-	Cmd.PersistentFlags().StringSliceVarP(&datacenters, "datacenters", "d", nil, fmt.Sprintf(`datacenters, %q to try all datacenters (known values: %s)`, anyOption, strings.Join(kimsufiavailability.GetDatacentersKnownCodes(), ", ")))
+	Cmd.PersistentFlags().StringSliceVarP(&datacenters, "datacenters", "d", nil, fmt.Sprintf(`datacenters, comma separated list, %q to try all datacenters (known values: %s)`, anyOption, strings.Join(kimsufiavailability.GetDatacentersKnownCodes(), ", ")))
 	Cmd.PersistentFlags().IntVarP(&quantity, "quantity", "q", kimsufiorder.QuantityDefault, "item quantity")
 
-	Cmd.PersistentFlags().StringToStringVarP(&itemUserConfigurations, "item-configuration", "i", nil, "item configuration, see --list-configurations for available values (e.g. region=europe)")
-	Cmd.PersistentFlags().StringSliceVarP(&itemUserOptions, "item-option", "o", nil, fmt.Sprintf("item option, see --list-options for available values (e.g. memory=ram-64g-noecc-2133-24ska01, memory=%[1]s, %[1]s)", anyOption))
+	Cmd.PersistentFlags().StringToStringVarP(&itemUserConfigurations, "item-configuration", "i", nil, "item configuration, comma separated list, see --list-configurations for available values (e.g. region=europe)")
+	Cmd.PersistentFlags().StringSliceVarP(&itemUserOptions, "item-option", "o", nil, fmt.Sprintf("item option, comma separated list, use any to include all options, see --list-options for available values (e.g. memory=ram-64g-noecc-2133-24ska01, memory=%[1]s, %[1]s)", anyOption))
 
 	Cmd.PersistentFlags().BoolVar(&listConfigurations, "list-configurations", false, "list available item configurations")
 	Cmd.PersistentFlags().BoolVar(&listOptions, "list-options", false, "list available item options")
