@@ -81,7 +81,7 @@ func runner(cmd *cobra.Command, args []string) error {
 	// Check availability
 	availabilities, err := k.GetAvailabilities(datacenters, planCode, options)
 	if err != nil {
-		if kimsufi.IsNotAvailableError(err) {
+		if kimsufi.IsAvailabilityNotFoundError(err) {
 			message := datacenterAvailableMessageFormatter(datacenters)
 			log.Printf("%s is not available in %s\n", planCode, message)
 			return nil

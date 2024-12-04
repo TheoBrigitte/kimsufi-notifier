@@ -8,15 +8,26 @@ import (
 	"github.com/ovh/go-ovh/ovh"
 )
 
-// IsNotAvailableError checks if the error is an ovh.APIError
-// which contains an availability error message.
-func IsNotAvailableError(err error) bool {
+// IsAvailabilityNotFoundError checks if the error is an ovh.APIError
+// which contains an availability not found error message.
+func IsAvailabilityNotFoundError(err error) bool {
 	var ovhAPIError *ovh.APIError
 	if !errors.As(err, &ovhAPIError) {
 		return false
 	}
 
 	return ovhAPIError.Code == http.StatusNotFound && strings.HasPrefix(ovhAPIError.Message, "No availabilities found")
+}
+
+// IsNotAvailableError checks if the error is an ovh.APIError
+// which contains an not available error message.
+func IsNotAvailableError(err error) bool {
+	var ovhAPIError *ovh.APIError
+	if !errors.As(err, &ovhAPIError) {
+		return false
+	}
+
+	return ovhAPIError.Code == http.StatusBadRequest && strings.Contains(ovhAPIError.Message, "is not available in")
 }
 
 // IsForbiddenError checks if the error is an ovh.APIError
