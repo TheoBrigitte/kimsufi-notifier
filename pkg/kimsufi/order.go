@@ -134,7 +134,7 @@ func (s *Service) AddItemConfiguration(cartID string, itemID int, configuration 
 	return &resp, nil
 }
 
-// ConfigureItem configures an item in the cart with the given configurations.
+// RemoveItemConfiguration removes a configuration from an item in the cart.
 func (s *Service) RemoveItemConfiguration(cartID string, itemID, configurationID int) error {
 	u := fmt.Sprintf("/order/cart/%s/item/%d/configuration/%d", cartID, itemID, configurationID)
 
