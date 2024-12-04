@@ -29,10 +29,10 @@ var (
 	}
 
 	// Flags variables
-	autoPay    bool
-	datacenter string
-	planCode   string
-	quantity   int
+	autoPay     bool
+	datacenters []string
+	planCode    string
+	quantity    int
 
 	itemUserConfigurations map[string]string
 	itemUserOptions        map[string]string
@@ -55,7 +55,7 @@ func init() {
 	flag.BindPlanCodeFlag(Cmd, &planCode)
 
 	Cmd.PersistentFlags().BoolVar(&autoPay, "auto-pay", false, "automatically pay the order")
-	Cmd.PersistentFlags().StringVarP(&datacenter, "datacenter", "d", "", fmt.Sprintf("datacenter (known values: %s)", strings.Join(kimsufiavailability.GetDatacentersKnownCodes(), ", ")))
+	Cmd.PersistentFlags().StringSliceVarP(&datacenters, "datacenters", "d", nil, fmt.Sprintf(`datacenters, "any" to try all datacenters (known values: %s)`, strings.Join(kimsufiavailability.GetDatacentersKnownCodes(), ", ")))
 	Cmd.PersistentFlags().IntVarP(&quantity, "quantity", "q", kimsufiorder.QuantityDefault, "item quantity")
 
 	Cmd.PersistentFlags().StringToStringVarP(&itemUserConfigurations, "item-configuration", "i", nil, "item configuration, see --list-configurations for available values (e.g. region=europe)")
@@ -147,13 +147,29 @@ func runner(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	if datacenter == "" {
+	if len(datacenters) == 0 {
 		return fmt.Errorf("--datacenter is required")
+	} else if slices.Contains(datacenters, "any") {
+		catalog, err := k.ListServers(cmd.Flag(flag.CountryFlagName).Value.String())
+		if err != nil {
+			return fmt.Errorf("failed to list servers: %w", err)
+		}
+
+		plan := catalog.GetPlan(planCode)
+		if plan == nil {
+			return fmt.Errorf("plan %s not found", planCode)
+		}
+
+		datacenterConfiguration := plan.GetConfiguration(kimsufiorder.ConfigurationLabelDatacenter)
+		if datacenterConfiguration == nil {
+			return fmt.Errorf("datacenter configuration not found")
+		}
+
+		datacenters = datacenterConfiguration.Values
 	}
 
 	// Prepare item configurations
 	itemConfigurations := kimsufiorder.NewItemConfigurationsFromMap(itemUserConfigurations)
-	itemConfigurations.Add(kimsufiorder.ConfigurationLabelDatacenter, datacenter)
 	r := kimsufiregion.GetRegionFromEndpoint(endpoint)
 	if r != nil {
 		itemConfigurations.Add(kimsufiorder.ConfigurationLabelRegion, r.Region)
@@ -168,12 +184,12 @@ func runner(cmd *cobra.Command, args []string) error {
 	configurations := userConfigs.Merge(manualConfigs)
 
 	// Configure item
-	resp, err := k.ConfigureItem(cart.CartID, item.ItemID, configurations)
-	if err != nil {
-		return fmt.Errorf("error: %w", err)
-	}
-	for _, r := range resp {
-		fmt.Printf("> cart item configured: %s=%s\n", r.Label, r.Value)
+	for _, configuration := range configurations {
+		resp, err := k.AddItemConfiguration(cart.CartID, item.ItemID, configuration)
+		if err != nil {
+			return fmt.Errorf("error: %w", err)
+		}
+		fmt.Printf("> cart item configured: %s=%s\n", resp.Label, resp.Value)
 	}
 
 	// Prepare item options
@@ -221,12 +237,36 @@ func runner(cmd *cobra.Command, args []string) error {
 	}
 	fmt.Println("> cart assigned")
 
-	// Checkout and complete the order
-	checkoutResp, err := k.CheckoutCart(cart.CartID, autoPay)
-	if err != nil {
-		return fmt.Errorf("error: %w", err)
+	for _, datacenter := range datacenters {
+		dcConfig := kimsufiorder.ItemConfigurationRequest{
+			Label: kimsufiorder.ConfigurationLabelDatacenter,
+			Value: datacenter,
+		}
+
+		resp, err := k.AddItemConfiguration(cart.CartID, item.ItemID, dcConfig)
+		if err != nil {
+			return fmt.Errorf("error: %w", err)
+		}
+		fmt.Printf("> datacenter %s configured\n", resp.Value)
+
+		// Checkout and complete the order
+		checkoutResp, err := k.CheckoutCart(cart.CartID, autoPay)
+		if err == nil {
+			fmt.Printf("> order completed: %s\n", checkoutResp.URL)
+			return nil
+		}
+
+		if kimsufi.IsNotAvailableError(err) {
+			fmt.Printf("> datacenter %s not available\n", datacenter)
+		} else {
+			fmt.Printf("> error: %v\n", err)
+		}
+
+		err = k.RemoveItemConfiguration(cart.CartID, item.ItemID, resp.ID)
+		if err != nil {
+			return fmt.Errorf("error: %w", err)
+		}
 	}
-	fmt.Printf("> order completed: %s\n", checkoutResp.URL)
 
 	return nil
 }
