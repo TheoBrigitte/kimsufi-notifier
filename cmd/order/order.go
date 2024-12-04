@@ -35,7 +35,7 @@ var (
 	quantity    int
 
 	itemUserConfigurations map[string]string
-	itemUserOptions        map[string]string
+	itemUserOptions        []string
 
 	listConfigurations bool
 	listOptions        bool
@@ -59,7 +59,7 @@ func init() {
 	Cmd.PersistentFlags().IntVarP(&quantity, "quantity", "q", kimsufiorder.QuantityDefault, "item quantity")
 
 	Cmd.PersistentFlags().StringToStringVarP(&itemUserConfigurations, "item-configuration", "i", nil, "item configuration, see --list-configurations for available values (e.g. region=europe)")
-	Cmd.PersistentFlags().StringToStringVarP(&itemUserOptions, "item-option", "o", nil, "item option, see --list-options for available values (e.g. memory=ram-64g-noecc-2133-24ska01)")
+	Cmd.PersistentFlags().StringSliceVarP(&itemUserOptions, "item-option", "o", nil, "item option, see --list-options for available values (e.g. memory=ram-64g-noecc-2133-24ska01)")
 
 	Cmd.PersistentFlags().BoolVar(&listConfigurations, "list-configurations", false, "list available item configurations")
 	Cmd.PersistentFlags().BoolVar(&listOptions, "list-options", false, "list available item options")
@@ -193,18 +193,17 @@ func runner(cmd *cobra.Command, args []string) error {
 	}
 
 	// Prepare item options
-	userOptions := kimsufiorder.NewOptionsFromMap(itemUserOptions)
+	userOptions, err := kimsufiorder.NewOptionsFromSlice(itemUserOptions)
+	if err != nil {
+		return fmt.Errorf("error: %w", err)
+	}
 	mandatoryOptions := ecoOptions.GetCheapestMandatoryOptions()
 	mergedOptions := userOptions.Merge(mandatoryOptions.ToOptions())
 
-	// Configure item options
-	for _, option := range mergedOptions {
-		err = k.ConfigureEcoItemOption(cart.CartID, item.ItemID, option, priceConfig)
-		if err != nil {
-			return fmt.Errorf("error: %w", err)
-		}
-		fmt.Printf("> cart option set: %s=%s\n", option.Family, option.PlanCode)
-	}
+	optionsCombinations := kimsufiorder.NewOptionsCombinationsFromSlice(mergedOptions)
+	fmt.Printf("> item options: %d %v\n", len(mergedOptions), mergedOptions.PlanCodes())
+	fmt.Printf("> datacenter(s): %d\n", len(datacenters))
+	fmt.Printf("> combinations: %d\n", len(optionsCombinations)*len(datacenters))
 
 	// Stop on dry-run
 	if dryRun {
@@ -239,35 +238,47 @@ func runner(cmd *cobra.Command, args []string) error {
 	}
 	fmt.Println("> cart assigned")
 
-	fmt.Printf("> trying %d datacenter(s)\n", len(datacenters))
-	for _, datacenter := range datacenters {
-		dcConfig := kimsufiorder.ItemConfigurationRequest{
-			Label: kimsufiorder.ConfigurationLabelDatacenter,
-			Value: datacenter,
+	// Try all options combinations
+	for _, options := range optionsCombinations {
+		// Configure item options
+		for _, option := range options {
+			err = k.ConfigureEcoItemOption(cart.CartID, item.ItemID, option, priceConfig)
+			if err != nil {
+				return fmt.Errorf("error: %w", err)
+			}
+			fmt.Printf("> cart option set: %s=%s\n", option.Family, option.PlanCode)
 		}
 
-		resp, err := k.AddItemConfiguration(cart.CartID, item.ItemID, dcConfig)
-		if err != nil {
-			return fmt.Errorf("error: %w", err)
-		}
-		fmt.Printf("> datacenter %s configured\n", resp.Value)
+		// Try all datacenters
+		for _, datacenter := range datacenters {
+			datacenterConfiguration := kimsufiorder.ItemConfigurationRequest{
+				Label: kimsufiorder.ConfigurationLabelDatacenter,
+				Value: datacenter,
+			}
 
-		// Checkout and complete the order
-		checkoutResp, err := k.CheckoutCart(cart.CartID, autoPay)
-		if err == nil {
-			fmt.Printf("> order completed: %s\n", checkoutResp.URL)
-			return nil
-		}
+			resp, err := k.AddItemConfiguration(cart.CartID, item.ItemID, datacenterConfiguration)
+			if err != nil {
+				return fmt.Errorf("error: %w", err)
+			}
+			fmt.Printf("> datacenter %s configured\n", resp.Value)
 
-		if kimsufi.IsNotAvailableError(err) {
-			fmt.Printf("> datacenter %s not available\n", datacenter)
-		} else {
-			fmt.Printf("> error: %v\n", err)
-		}
+			// Checkout and complete the order
+			checkoutResp, err := k.CheckoutCart(cart.CartID, autoPay)
+			if err == nil {
+				fmt.Printf("> order completed: %s\n", checkoutResp.URL)
+				return nil
+			}
 
-		err = k.RemoveItemConfiguration(cart.CartID, item.ItemID, resp.ID)
-		if err != nil {
-			return fmt.Errorf("error: %w", err)
+			if kimsufi.IsNotAvailableError(err) {
+				fmt.Printf("> datacenter %s not available\n", datacenter)
+			} else {
+				fmt.Printf("> error: %v\n", err)
+			}
+
+			err = k.RemoveItemConfiguration(cart.CartID, item.ItemID, resp.ID)
+			if err != nil {
+				return fmt.Errorf("error: %w", err)
+			}
 		}
 	}
 

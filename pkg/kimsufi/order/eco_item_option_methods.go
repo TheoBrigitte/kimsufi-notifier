@@ -1,7 +1,9 @@
 package order
 
 import (
+	"fmt"
 	"slices"
+	"strings"
 )
 
 // Get returns the option that matches the provided family.
@@ -93,6 +95,76 @@ func NewOptionsFromMap(optionsMap map[string]string) Options {
 	return options
 }
 
+// NewOptionsFromSlice creates a new Options from a map.
+// Using the map keys as family and the values as planCode.
+func NewOptionsFromSlice(optionsSlice []string) (Options, error) {
+	var options Options
+
+	for _, o := range optionsSlice {
+		oSplit := strings.Split(o, "=")
+		if len(oSplit) != 2 {
+			return nil, fmt.Errorf("invalid option: %s", o)
+		}
+
+		opt := Option{
+			Family:   oSplit[0],
+			PlanCode: oSplit[1],
+		}
+		options = append(options, opt)
+	}
+
+	return options, nil
+}
+
+func NewOptionsCombinationsFromSlice(optionsSlice []Option) []Options {
+	var options = make([]Options, 0)
+
+	for _, o := range optionsSlice {
+		if len(options) == 0 {
+			options = append(options, []Option{o})
+			continue
+		}
+
+		options = updateOptionsCombinations(options, o)
+	}
+
+	return options
+}
+
+func updateOptionsCombinations(optionsSlice []Options, opt Option) []Options {
+	for i, options := range optionsSlice {
+		if shouldDuplicateCombination(options, opt) {
+			newOptions := slices.Clone(options).Set(opt)
+			optionsSlice = append(optionsSlice, newOptions)
+			continue
+		}
+		optionsSlice[i] = append(options, opt)
+	}
+
+	return optionsSlice
+}
+
+func shouldDuplicateCombination(options []Option, opt Option) bool {
+	for _, o := range options {
+		if o.Family == opt.Family && o.PlanCode != opt.PlanCode {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (opts Options) Set(opt Option) []Option {
+	for i, o := range opts {
+		if o.Family == opt.Family {
+			opts[i] = opt
+			return opts
+		}
+	}
+
+	return append(opts, opt)
+}
+
 // Merge merges the provided Options with the current Options.
 // It does not overwrite existing options.
 func (opts Options) Merge(other []Option) Options {
@@ -115,4 +187,14 @@ func (opts Options) families() []string {
 	}
 
 	return families
+}
+
+func (opts Options) PlanCodes() []string {
+	var planCodes []string
+
+	for _, o := range opts {
+		planCodes = append(planCodes, o.PlanCode)
+	}
+
+	return planCodes
 }
