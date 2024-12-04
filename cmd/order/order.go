@@ -194,14 +194,16 @@ func runner(cmd *cobra.Command, args []string) error {
 
 	// Prepare item options
 	userOptions := kimsufiorder.NewOptionsFromMap(itemUserOptions)
+	mandatoryOptions := ecoOptions.GetCheapestMandatoryOptions()
+	mergedOptions := userOptions.Merge(mandatoryOptions.ToOptions())
 
 	// Configure item options
-	options, err := k.ConfigureEcoItemOptions(cart.CartID, item.ItemID, ecoOptions, userOptions, priceConfig)
-	if err != nil {
-		return fmt.Errorf("error: %w", err)
-	}
-	for _, o := range options {
-		fmt.Printf("> cart option set: %s=%s\n", o.Family, o.PlanCode)
+	for _, option := range mergedOptions {
+		err = k.ConfigureEcoItemOption(cart.CartID, item.ItemID, option, priceConfig)
+		if err != nil {
+			return fmt.Errorf("error: %w", err)
+		}
+		fmt.Printf("> cart option set: %s=%s\n", option.Family, option.PlanCode)
 	}
 
 	// Stop on dry-run
