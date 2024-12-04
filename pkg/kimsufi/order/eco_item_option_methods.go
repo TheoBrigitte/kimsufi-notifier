@@ -79,8 +79,8 @@ func (i EcoItemOptions) ToOptions() Options {
 
 // NewOptionsFromMap creates a new Options from a map.
 // Using the map keys as family and the values as planCode.
-func NewOptionsFromMap(optionsMap map[string]string) []Option {
-	var options []Option
+func NewOptionsFromMap(optionsMap map[string]string) Options {
+	var options Options
 
 	for family, planCode := range optionsMap {
 		o := Option{

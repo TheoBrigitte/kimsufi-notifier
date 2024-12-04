@@ -70,7 +70,7 @@ func (s *Service) GetEcoInfo(cartID, planCode string) (kimsufiorder.EcoItemInfos
 }
 
 // GetEcoOptions returns the options for an eco item in the cart.
-func (s *Service) GetEcoOptions(cartID string, planCode string) ([]kimsufiorder.EcoItemOption, error) {
+func (s *Service) GetEcoOptions(cartID string, planCode string) (kimsufiorder.EcoItemOptions, error) {
 	u, err := url.Parse(fmt.Sprintf("/order/cart/%s/eco/options", cartID))
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (s *Service) GetEcoOptions(cartID string, planCode string) ([]kimsufiorder.
 	q.Set("planCode", planCode)
 	u.RawQuery = q.Encode()
 
-	var options []kimsufiorder.EcoItemOption
+	var options kimsufiorder.EcoItemOptions
 	err = s.client.GetUnAuth(u.String(), &options)
 	if err != nil {
 		return nil, err
@@ -89,33 +89,22 @@ func (s *Service) GetEcoOptions(cartID string, planCode string) ([]kimsufiorder.
 	return options, nil
 }
 
-// ConfigureEcoItemOptions configures the item options in the cart.
+// ConfigureEcoItemOption configures the item options in the cart.
 // It finds the cheapest mandatory options and merges them into the user options.
-func (s *Service) ConfigureEcoItemOptions(cartID string, itemID int, options kimsufiorder.EcoItemOptions, userOptions kimsufiorder.Options, priceConfig kimsufiorder.EcoItemPriceConfig) (kimsufiorder.Options, error) {
+func (s *Service) ConfigureEcoItemOption(cartID string, itemID int, option kimsufiorder.Option, priceConfig kimsufiorder.EcoItemPriceConfig) error {
 	u := fmt.Sprintf("/order/cart/%s/eco/options", cartID)
 
-	mandatoryOptions := options.GetCheapestMandatoryOptions()
-
-	mergedOptions := userOptions.Merge(mandatoryOptions.ToOptions())
-
-	for _, option := range mergedOptions {
-		req := kimsufiorder.EcoItemOptionRequest{
-			EcoItemRequest: kimsufiorder.EcoItemRequest{
-				EcoItemPriceConfig: priceConfig,
-				PlanCode:           option.PlanCode,
-				Quantity:           kimsufiorder.QuantityDefault,
-			},
-			ItemID: itemID,
-		}
-
-		s.logger.Debugf("ConfigureItemOptions request: %+#v", req)
-		err := s.client.PostUnAuth(u, req, nil)
-		if err != nil {
-			return nil, err
-		}
+	req := kimsufiorder.EcoItemOptionRequest{
+		EcoItemRequest: kimsufiorder.EcoItemRequest{
+			EcoItemPriceConfig: priceConfig,
+			PlanCode:           option.PlanCode,
+			Quantity:           kimsufiorder.QuantityDefault,
+		},
+		ItemID: itemID,
 	}
 
-	return mergedOptions, nil
+	s.logger.Debugf("ConfigureItemOptions request: %+#v", req)
+	return s.client.PostUnAuth(u, req, nil)
 }
 
 // GetItemRequiredConfiguration returns the required configuration options for an item in the cart.
