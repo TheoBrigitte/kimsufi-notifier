@@ -18,6 +18,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	anyOption = "any"
+)
+
 var (
 	Cmd = &cobra.Command{
 		Use:   "order",
@@ -29,13 +33,13 @@ var (
 	}
 
 	// Flags variables
-	autoPay    bool
-	datacenter string
-	planCode   string
-	quantity   int
+	autoPay     bool
+	datacenters []string
+	planCode    string
+	quantity    int
 
 	itemUserConfigurations map[string]string
-	itemUserOptions        map[string]string
+	itemUserOptions        []string
 
 	listConfigurations bool
 	listOptions        bool
@@ -55,11 +59,11 @@ func init() {
 	flag.BindPlanCodeFlag(Cmd, &planCode)
 
 	Cmd.PersistentFlags().BoolVar(&autoPay, "auto-pay", false, "automatically pay the order")
-	Cmd.PersistentFlags().StringVarP(&datacenter, "datacenter", "d", "", fmt.Sprintf("datacenter (known values: %s)", strings.Join(kimsufiavailability.GetDatacentersKnownCodes(), ", ")))
+	Cmd.PersistentFlags().StringSliceVarP(&datacenters, "datacenters", "d", nil, fmt.Sprintf(`datacenters, comma separated list, %q to try all datacenters (known values: %s)`, anyOption, strings.Join(kimsufiavailability.GetDatacentersKnownCodes(), ", ")))
 	Cmd.PersistentFlags().IntVarP(&quantity, "quantity", "q", kimsufiorder.QuantityDefault, "item quantity")
 
-	Cmd.PersistentFlags().StringToStringVarP(&itemUserConfigurations, "item-configuration", "i", nil, "item configuration, see --list-configurations for available values (e.g. region=europe)")
-	Cmd.PersistentFlags().StringToStringVarP(&itemUserOptions, "item-option", "o", nil, "item option, see --list-options for available values (e.g. memory=ram-64g-noecc-2133-24ska01)")
+	Cmd.PersistentFlags().StringToStringVarP(&itemUserConfigurations, "item-configuration", "i", nil, "item configuration, comma separated list, see --list-configurations for available values (e.g. region=europe)")
+	Cmd.PersistentFlags().StringSliceVarP(&itemUserOptions, "item-option", "o", nil, fmt.Sprintf("item option, comma separated list, use any to include all options, see --list-options for available values (e.g. memory=ram-64g-noecc-2133-24ska01, memory=%[1]s, %[1]s)", anyOption))
 
 	Cmd.PersistentFlags().BoolVar(&listConfigurations, "list-configurations", false, "list available item configurations")
 	Cmd.PersistentFlags().BoolVar(&listOptions, "list-options", false, "list available item options")
@@ -147,13 +151,29 @@ func runner(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	if datacenter == "" {
+	if len(datacenters) == 0 {
 		return fmt.Errorf("--datacenter is required")
+	} else if slices.Contains(datacenters, anyOption) {
+		catalog, err := k.ListServers(cmd.Flag(flag.CountryFlagName).Value.String())
+		if err != nil {
+			return fmt.Errorf("failed to list servers: %w", err)
+		}
+
+		plan := catalog.GetPlan(planCode)
+		if plan == nil {
+			return fmt.Errorf("plan %s not found", planCode)
+		}
+
+		datacenterConfiguration := plan.GetConfiguration(kimsufiorder.ConfigurationLabelDatacenter)
+		if datacenterConfiguration == nil {
+			return fmt.Errorf("datacenter configuration not found")
+		}
+
+		datacenters = datacenterConfiguration.Values
 	}
 
 	// Prepare item configurations
 	itemConfigurations := kimsufiorder.NewItemConfigurationsFromMap(itemUserConfigurations)
-	itemConfigurations.Add(kimsufiorder.ConfigurationLabelDatacenter, datacenter)
 	r := kimsufiregion.GetRegionFromEndpoint(endpoint)
 	if r != nil {
 		itemConfigurations.Add(kimsufiorder.ConfigurationLabelRegion, r.Region)
@@ -168,25 +188,69 @@ func runner(cmd *cobra.Command, args []string) error {
 	configurations := userConfigs.Merge(manualConfigs)
 
 	// Configure item
-	resp, err := k.ConfigureItem(cart.CartID, item.ItemID, configurations)
-	if err != nil {
-		return fmt.Errorf("error: %w", err)
-	}
-	for _, r := range resp {
-		fmt.Printf("> cart item configured: %s=%s\n", r.Label, r.Value)
+	for _, configuration := range configurations {
+		resp, err := k.AddItemConfiguration(cart.CartID, item.ItemID, configuration)
+		if err != nil {
+			return fmt.Errorf("error: %w", err)
+		}
+		fmt.Printf("> cart item configured: %s=%s\n", resp.Label, resp.Value)
 	}
 
 	// Prepare item options
-	userOptions := kimsufiorder.NewOptionsFromMap(itemUserOptions)
+	var optionsCombinations []kimsufiorder.Options
+	var mergedOptions kimsufiorder.Options
+	allOptions := slices.Contains(itemUserOptions, anyOption)
+	if allOptions {
+		// Get all mandatory options
+		mergedOptions = ecoOptions.GetMandatoryOptions(nil).ToOptions()
+		optionsCombinations = kimsufiorder.NewOptionsCombinationsFromSlice(mergedOptions)
+	} else {
+		userOptions, err := kimsufiorder.NewOptionsFromSlice(itemUserOptions)
+		if err != nil {
+			return fmt.Errorf("error: %w", err)
+		}
+		anyOptions, userOptions := userOptions.SplitByPlanCode(anyOption)
+		anyFamilies := anyOptions.Families()
 
-	// Configure item options
-	options, err := k.ConfigureEcoItemOptions(cart.CartID, item.ItemID, ecoOptions, userOptions, priceConfig)
-	if err != nil {
-		return fmt.Errorf("error: %w", err)
+		optionFilter := func(opts kimsufiorder.EcoItemOptions, o kimsufiorder.EcoItemOption) bool {
+			defautPriceConfig := kimsufiorder.EcoItemPriceConfig{
+				Duration:    kimsufiorder.PriceDuration,
+				PricingMode: kimsufiorder.PricingMode,
+			}
+
+			// Inclue option if it is marked as any
+			if slices.Contains(anyFamilies, o.Family) {
+				return true
+			}
+
+			// Include option if its family is not already included
+			current := opts.Get(o.Family)
+			if current == nil {
+				return true
+			}
+
+			newPrice := o.GetPriceByConfig(defautPriceConfig)
+			if newPrice == nil {
+				return false
+			}
+
+			currentPrice := current.GetPriceByConfig(defautPriceConfig)
+			if currentPrice == nil {
+				return false
+			}
+
+			// Include option if its price is lower than the current one
+			return newPrice.PriceInUcents < currentPrice.PriceInUcents
+		}
+
+		mandatoryOptions := ecoOptions.GetMandatoryOptions(optionFilter)
+		mergedOptions = userOptions.Merge(mandatoryOptions.ToOptions())
+		optionsCombinations = kimsufiorder.NewOptionsCombinationsFromSlice(mergedOptions)
 	}
-	for _, o := range options {
-		fmt.Printf("> cart option set: %s=%s\n", o.Family, o.PlanCode)
-	}
+
+	fmt.Printf("> item options: %d %v\n", len(mergedOptions), mergedOptions.PlanCodes())
+	fmt.Printf("> datacenter(s): %d\n", len(datacenters))
+	fmt.Printf("> combinations: %d\n", len(optionsCombinations)*len(datacenters))
 
 	// Stop on dry-run
 	if dryRun {
@@ -221,12 +285,49 @@ func runner(cmd *cobra.Command, args []string) error {
 	}
 	fmt.Println("> cart assigned")
 
-	// Checkout and complete the order
-	checkoutResp, err := k.CheckoutCart(cart.CartID, autoPay)
-	if err != nil {
-		return fmt.Errorf("error: %w", err)
+	// Try all options combinations
+	for _, options := range optionsCombinations {
+		// Configure item options
+		for _, option := range options {
+			err = k.ConfigureEcoItemOption(cart.CartID, item.ItemID, option, priceConfig)
+			if err != nil {
+				return fmt.Errorf("error: %w", err)
+			}
+			fmt.Printf("> cart option set: %s=%s\n", option.Family, option.PlanCode)
+		}
+
+		// Try all datacenters
+		for _, datacenter := range datacenters {
+			datacenterConfiguration := kimsufiorder.ItemConfigurationRequest{
+				Label: kimsufiorder.ConfigurationLabelDatacenter,
+				Value: datacenter,
+			}
+
+			resp, err := k.AddItemConfiguration(cart.CartID, item.ItemID, datacenterConfiguration)
+			if err != nil {
+				return fmt.Errorf("error: %w", err)
+			}
+			fmt.Printf("> datacenter %s configured\n", resp.Value)
+
+			// Checkout and complete the order
+			checkoutResp, err := k.CheckoutCart(cart.CartID, autoPay)
+			if err == nil {
+				fmt.Printf("> order completed: %s\n", checkoutResp.URL)
+				return nil
+			}
+
+			if kimsufi.IsNotAvailableError(err) {
+				fmt.Printf("> datacenter %s not available\n", datacenter)
+			} else {
+				fmt.Printf("> error: %v\n", err)
+			}
+
+			err = k.RemoveItemConfiguration(cart.CartID, item.ItemID, resp.ID)
+			if err != nil {
+				return fmt.Errorf("error: %w", err)
+			}
+		}
 	}
-	fmt.Printf("> order completed: %s\n", checkoutResp.URL)
 
 	return nil
 }

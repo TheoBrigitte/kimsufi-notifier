@@ -70,7 +70,7 @@ func (s *Service) GetEcoInfo(cartID, planCode string) (kimsufiorder.EcoItemInfos
 }
 
 // GetEcoOptions returns the options for an eco item in the cart.
-func (s *Service) GetEcoOptions(cartID string, planCode string) ([]kimsufiorder.EcoItemOption, error) {
+func (s *Service) GetEcoOptions(cartID string, planCode string) (kimsufiorder.EcoItemOptions, error) {
 	u, err := url.Parse(fmt.Sprintf("/order/cart/%s/eco/options", cartID))
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (s *Service) GetEcoOptions(cartID string, planCode string) ([]kimsufiorder.
 	q.Set("planCode", planCode)
 	u.RawQuery = q.Encode()
 
-	var options []kimsufiorder.EcoItemOption
+	var options kimsufiorder.EcoItemOptions
 	err = s.client.GetUnAuth(u.String(), &options)
 	if err != nil {
 		return nil, err
@@ -89,33 +89,22 @@ func (s *Service) GetEcoOptions(cartID string, planCode string) ([]kimsufiorder.
 	return options, nil
 }
 
-// ConfigureEcoItemOptions configures the item options in the cart.
+// ConfigureEcoItemOption configures the item options in the cart.
 // It finds the cheapest mandatory options and merges them into the user options.
-func (s *Service) ConfigureEcoItemOptions(cartID string, itemID int, options kimsufiorder.EcoItemOptions, userOptions kimsufiorder.Options, priceConfig kimsufiorder.EcoItemPriceConfig) (kimsufiorder.Options, error) {
+func (s *Service) ConfigureEcoItemOption(cartID string, itemID int, option kimsufiorder.Option, priceConfig kimsufiorder.EcoItemPriceConfig) error {
 	u := fmt.Sprintf("/order/cart/%s/eco/options", cartID)
 
-	mandatoryOptions := options.GetCheapestMandatoryOptions()
-
-	mergedOptions := userOptions.Merge(mandatoryOptions.ToOptions())
-
-	for _, option := range mergedOptions {
-		req := kimsufiorder.EcoItemOptionRequest{
-			EcoItemRequest: kimsufiorder.EcoItemRequest{
-				EcoItemPriceConfig: priceConfig,
-				PlanCode:           option.PlanCode,
-				Quantity:           kimsufiorder.QuantityDefault,
-			},
-			ItemID: itemID,
-		}
-
-		s.logger.Debugf("ConfigureItemOptions request: %+#v", req)
-		err := s.client.PostUnAuth(u, req, nil)
-		if err != nil {
-			return nil, err
-		}
+	req := kimsufiorder.EcoItemOptionRequest{
+		EcoItemRequest: kimsufiorder.EcoItemRequest{
+			EcoItemPriceConfig: priceConfig,
+			PlanCode:           option.PlanCode,
+			Quantity:           kimsufiorder.QuantityDefault,
+		},
+		ItemID: itemID,
 	}
 
-	return mergedOptions, nil
+	s.logger.Debugf("ConfigureItemOptions request: %+#v", req)
+	return s.client.PostUnAuth(u, req, nil)
 }
 
 // GetItemRequiredConfiguration returns the required configuration options for an item in the cart.
@@ -132,21 +121,24 @@ func (s *Service) GetItemRequiredConfiguration(cartID string, itemID int) ([]kim
 }
 
 // ConfigureItem configures an item in the cart with the given configurations.
-func (s *Service) ConfigureItem(cartID string, itemID int, configurations []kimsufiorder.ItemConfigurationRequest) ([]kimsufiorder.ItemConfigurationResponse, error) {
+func (s *Service) AddItemConfiguration(cartID string, itemID int, configuration kimsufiorder.ItemConfigurationRequest) (*kimsufiorder.ItemConfigurationResponse, error) {
 	u := fmt.Sprintf("/order/cart/%s/item/%d/configuration", cartID, itemID)
 
-	var resps []kimsufiorder.ItemConfigurationResponse
-	for _, c := range configurations {
-		var resp kimsufiorder.ItemConfigurationResponse
-		s.logger.Debugf("ConfigureItem request: %+#v", c)
-		err := s.client.PostUnAuth(u, c, &resp)
-		if err != nil {
-			return nil, err
-		}
-		resps = append(resps, resp)
+	var resp kimsufiorder.ItemConfigurationResponse
+	s.logger.Debugf("ConfigureItem request: %+#v", configuration)
+	err := s.client.PostUnAuth(u, configuration, &resp)
+	if err != nil {
+		return nil, err
 	}
 
-	return resps, nil
+	return &resp, nil
+}
+
+// RemoveItemConfiguration removes a configuration from an item in the cart.
+func (s *Service) RemoveItemConfiguration(cartID string, itemID, configurationID int) error {
+	u := fmt.Sprintf("/order/cart/%s/item/%d/configuration/%d", cartID, itemID, configurationID)
+
+	return s.client.DeleteUnAuth(u, nil)
 }
 
 // AssignCart assigns the cart to the user's account.
