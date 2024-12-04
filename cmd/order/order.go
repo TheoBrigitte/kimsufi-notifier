@@ -239,6 +239,7 @@ func runner(cmd *cobra.Command, args []string) error {
 	}
 	fmt.Println("> cart assigned")
 
+	fmt.Printf("> trying %d datacenter(s)\n", len(datacenters))
 	for _, datacenter := range datacenters {
 		dcConfig := kimsufiorder.ItemConfigurationRequest{
 			Label: kimsufiorder.ConfigurationLabelDatacenter,
