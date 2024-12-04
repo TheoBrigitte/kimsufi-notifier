@@ -132,21 +132,24 @@ func (s *Service) GetItemRequiredConfiguration(cartID string, itemID int) ([]kim
 }
 
 // ConfigureItem configures an item in the cart with the given configurations.
-func (s *Service) ConfigureItem(cartID string, itemID int, configurations []kimsufiorder.ItemConfigurationRequest) ([]kimsufiorder.ItemConfigurationResponse, error) {
+func (s *Service) AddItemConfiguration(cartID string, itemID int, configuration kimsufiorder.ItemConfigurationRequest) (*kimsufiorder.ItemConfigurationResponse, error) {
 	u := fmt.Sprintf("/order/cart/%s/item/%d/configuration", cartID, itemID)
 
-	var resps []kimsufiorder.ItemConfigurationResponse
-	for _, c := range configurations {
-		var resp kimsufiorder.ItemConfigurationResponse
-		s.logger.Debugf("ConfigureItem request: %+#v", c)
-		err := s.client.PostUnAuth(u, c, &resp)
-		if err != nil {
-			return nil, err
-		}
-		resps = append(resps, resp)
+	var resp kimsufiorder.ItemConfigurationResponse
+	s.logger.Debugf("ConfigureItem request: %+#v", configuration)
+	err := s.client.PostUnAuth(u, configuration, &resp)
+	if err != nil {
+		return nil, err
 	}
 
-	return resps, nil
+	return &resp, nil
+}
+
+// ConfigureItem configures an item in the cart with the given configurations.
+func (s *Service) RemoveItemConfiguration(cartID string, itemID, configurationID int) error {
+	u := fmt.Sprintf("/order/cart/%s/item/%d/configuration/%d", cartID, itemID, configurationID)
+
+	return s.client.DeleteUnAuth(u, nil)
 }
 
 // AssignCart assigns the cart to the user's account.
