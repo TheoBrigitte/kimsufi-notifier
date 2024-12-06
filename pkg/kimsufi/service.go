@@ -14,6 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 
+	kimsufiauthentication "github.com/TheoBrigitte/kimsufi-notifier/pkg/kimsufi/authentication"
 	kimsufiavailability "github.com/TheoBrigitte/kimsufi-notifier/pkg/kimsufi/availability"
 	kimsuficatalog "github.com/TheoBrigitte/kimsufi-notifier/pkg/kimsufi/catalog"
 )
@@ -140,8 +141,8 @@ func (s *Service) ListServers(ovhSubsidiary string) (*kimsuficatalog.Catalog, er
 	return catalog, nil
 }
 
-// TestAuth performs a test API request to check if the client is authenticated.
-func (s *Service) TestAuth() error {
+// GetAuthDetails performs a test API request to check if the client is authenticated.
+func (s *Service) GetAuthDetails() error {
 	path := "/auth/details"
 
 	err := s.client.Get(path, nil)
@@ -150,6 +151,18 @@ func (s *Service) TestAuth() error {
 	}
 
 	return nil
+}
+
+func (s *Service) GetCurrentCredential() (*kimsufiauthentication.CurrentCredentialResponse, error) {
+	path := "/auth/currentCredential"
+
+	var resp kimsufiauthentication.CurrentCredentialResponse
+	err := s.client.Get(path, &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
 }
 
 // WithAuth returns a new authenticated Service with the given credentials.
