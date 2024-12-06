@@ -40,3 +40,12 @@ func IsForbiddenError(err error) bool {
 
 	return ovhAPIError.Code == http.StatusForbidden
 }
+
+func IsPreferredPaymentMethodNotSetError(err error) bool {
+	var ovhAPIError *ovh.APIError
+	if !errors.As(err, &ovhAPIError) {
+		return false
+	}
+
+	return ovhAPIError.Code == http.StatusBadRequest && strings.Contains(ovhAPIError.Message, "You do not have preferred payment method")
+}
