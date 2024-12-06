@@ -211,6 +211,7 @@ func runner(cmd *cobra.Command, args []string) error {
 		}
 		anyOptions, userOptions := userOptions.SplitByPlanCode(anyOption)
 		anyFamilies := anyOptions.Families()
+		userFamilies := userOptions.Families()
 
 		optionFilter := func(opts kimsufiorder.EcoItemOptions, o kimsufiorder.EcoItemOption) bool {
 			defautPriceConfig := kimsufiorder.EcoItemPriceConfig{
@@ -220,6 +221,10 @@ func runner(cmd *cobra.Command, args []string) error {
 
 			// Inclue option if it is marked as any
 			if slices.Contains(anyFamilies, o.Family) {
+				return true
+			}
+
+			if !slices.Contains(userFamilies, o.Family) {
 				return true
 			}
 
