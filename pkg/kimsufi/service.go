@@ -172,8 +172,11 @@ func (s *Service) WithAuth(appKey, appSecret, consumerKey string) (*Service, err
 		return nil, err
 	}
 
-	newService := s
-	newService.client = authClient
+	newService := &Service{
+		cache:  s.cache,
+		logger: s.logger,
+		client: authClient,
+	}
 
 	return newService, nil
 }
