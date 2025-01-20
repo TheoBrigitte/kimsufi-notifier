@@ -1,0 +1,43 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - flags:
+    - -v
+    ldflags:
+    - -s -w
+    - -extldflags=-static
+    - -X github.com/prometheus/common/version.Version={{.Version}}
+    - -X github.com/prometheus/common/version.Revision={{.FullCommit}}
+    - -X github.com/prometheus/common/version.Branch={{.Branch}}
+    - -X github.com/prometheus/common/version.BuildUser=goreleaser
+    - -X github.com/prometheus/common/version.BuildDate={{.Date}}
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    overrides:
+      - goos: linux
+        goarch: arm64
+        env:
+          - CGO_ENABLED=1
+          - CC=aarch64-linux-gnu-gcc
+          - CXX=aarch64-linux-gnu-g++
+    binary: bin/kimsufi-notifier
+
+archives:
+  - format: binary
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
