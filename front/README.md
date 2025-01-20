@@ -4,7 +4,9 @@ The website is hosted at: https://kimsufi-notifier.theobrigitte.com
 
 ## Getting Started
 
-1. Run the development server with:
+1. Copy `.env.example` to `.env` and fill in the required values.
+
+2. Run the development server with:
 
 ```bash
 npm run dev
@@ -16,9 +18,9 @@ pnpm dev
 bun dev
 ```
 
-2. Open [http://localhost:3000](http://localhost:3000) with your browser.
+3. Open [http://localhost:3000](http://localhost:3000) with your browser.
 
-3. Edit the file at `src/app/page.tsx`. The page auto-updates as you edit the file.
+4. Edit the file at `src/app/page.tsx`. The page auto-updates as you edit the file.
 
 ## Other commands
 
