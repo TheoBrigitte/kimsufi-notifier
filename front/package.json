@@ -15,9 +15,9 @@
     "@fortawesome/free-solid-svg-icons": "^6.6.0",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@next/third-parties": "^15.0.3",
-    "next": "15.0.2",
-    "react": "19.0.0-rc-02c0e824-20241028",
-    "react-dom": "19.0.0-rc-02c0e824-20241028",
+    "next": "^15.1.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-use-websocket": "^4.10.1",
     "swr": "^2.2.5"
   },
