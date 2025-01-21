@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/TheoBrigitte/kimsufi-notifier/releases"><img src="https://img.shields.io/github/release/TheoBrigitte/kimsufi-notifier.svg" alt="Github release"></a>
-  <a href="https://github.com/TheoBrigitte/kimsufi-notificer/actions/workflows/test.yaml"><img src="https://github.com/TheoBrigitte/kimsufi-notifier/actions/workflows/test.yaml/badge.svg" alt="Github action"></a>
+  <a href="https://github.com/TheoBrigitte/kimsufi-notificer/actions/workflows/go.yaml"><img src="https://github.com/TheoBrigitte/kimsufi-notifier/actions/workflows/go.yaml/badge.svg" alt="Github action"></a>
 </p>
 
 ## About <img src="./assets/info.svg" width="24">
