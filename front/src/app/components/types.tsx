@@ -1,4 +1,4 @@
-import { IconDefinition } from '@fortawesome/free-regular-svg-icons';
+import { IconDefinition } from "@fortawesome/free-regular-svg-icons";
 
 type Server = {
   bandwidth: string;
@@ -19,4 +19,6 @@ type Status = {
   icon: IconDefinition;
 };
 
-export type { Server, Status };
+type ErrorNull = Error | null;
+
+export type { Server, Status, ErrorNull };

@@ -1,87 +1,26 @@
 "use client";
 
-import React, { useState } from "react";
-import ServersTable from "./components/server";
+import { useState } from "react";
 import useWebSocket from "react-use-websocket";
-import { Server } from "./components/types";
+import ServersTable from "./components/server";
+import Status from "./components/statusComponent/StatusComponent";
+import { Server, ErrorNull } from "./components/types";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTelegram } from "@fortawesome/free-brands-svg-icons";
 
-type ErrorNull = Error | null;
-
-type StatusProps = {
-  error: ErrorNull;
-  data: Server[];
-  connectionRestored: boolean;
-  setConnectionRestored: (value: boolean) => void;
-  lastMessage: number;
-};
-
-// Status components displays the status of the websocket connection
-function Status({
-  error,
-  data,
-  connectionRestored,
-  setConnectionRestored,
-  lastMessage,
-}: StatusProps) {
-  let message;
-  let fadeOut;
-
-  if (error) {
-    // Display error message
-    message = (
-      <>
-        <div>Failed to load server list</div>
-        <div className="text-orange-700">{error.toString()}</div>
-      </>
-    );
-  } else if (!data || data == undefined) {
-    // No data yet, still loading
-    message = <div>Loading ...</div>;
-  } else if (connectionRestored) {
-    // Connection restored message
-    message = <div className="text-green-700">Websocket connected</div>;
-    fadeOut = "transition-opacity duration-[2000ms] opacity-0";
-    // Reset connectionRestored after 5 seconds
-    setTimeout(function () {
-      setConnectionRestored(false);
-    }, 5000);
-  } else if (lastMessage > 0) {
-    // Last message received timestamp
-    const date = new Date(lastMessage).toTimeString().split(" ")[0];
-    message = <div>Last update received at {date}</div>;
-  }
-
-  // Hide the message if there is no message to display
-  const hidden = !message ? "hidden" : "";
-
-  return (
-    <div
-      className={`basis-1/4 flex flex-col justify-center font-mono ${hidden} ${fadeOut}`}
-    >
-      {message}
-    </div>
-  );
-}
-
 export default function Home() {
   // Get the websocket URL from the environment variable
   const websocketURL =
-    process.env.NEXT_PUBLIC_WEBSOCKET_URL || "ws://localhost";
-
-  // Initialize the state variables
-  //
+    process.env.NEXT_PUBLIC_WEBSOCKET_URL || "wss://localhost";
   // data is the list of servers received from the websocket server
-  const emptyData = Array<Server>();
-  const [data, setData] = useState(emptyData);
+  const [data, setData] = useState<Server[]>([]);
   // connectionRestored is used to display a message when the websocket connection is restored
   const [connectionRestored, setConnectionRestored] = useState(false);
   // lastMessage is the timestamp of the last message received from the websocket server
   const [lastMessage, setLastMessage] = useState(0);
   // error is the error message from the websocket connection
-  const [error, setError] = useState(null as ErrorNull);
+  const [error, setError] = useState<ErrorNull>(null);
 
   // Connect to the websocket server
   useWebSocket(websocketURL, {
