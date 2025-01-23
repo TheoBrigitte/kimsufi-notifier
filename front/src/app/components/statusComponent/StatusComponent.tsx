@@ -21,15 +21,10 @@ export default function Status({
 
   const loaderDisplay: ReactNode = <div>Loading ...</div>;
 
-  const restoredDisplay: ReactNode = (
-    <div className="text-green-700">Websocket connected</div>
-  );
+  const restoredDisplay: ReactNode = <div className="text-green-700">Websocket connected</div>;
 
   const lastMessageDisplay: ReactNode = (
-    <div>
-      Last update received at{" "}
-      {new Date(lastMessage).toTimeString().split(" ")[0]}
-    </div>
+    <div>Last update received at {new Date(lastMessage).toTimeString().split(" ")[0]}</div>
   );
 
   // Display error message
@@ -46,7 +41,7 @@ export default function Status({
   return (
     <div
       className={`
-        basis-1/4 flex flex-col justify-center font-mono
+        flex flex-col justify-center font-mono
         ${!statusDisplay ? "hidden" : ""}
         ${connectionRestored ? fadeOut : ""}
       `}

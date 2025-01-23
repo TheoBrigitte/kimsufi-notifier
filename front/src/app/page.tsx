@@ -2,12 +2,9 @@
 
 import { useState } from "react";
 import useWebSocket from "react-use-websocket";
-import ServersTable from "./components/server";
-import Status from "./components/statusComponent/StatusComponent";
+import ServersTable from "./components/serversTableComponent/ServersTableComponent";
+import HeaderComponent from "./components/headerComponent/HeaderComponent";
 import { Server, ErrorNull } from "./components/types";
-
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTelegram } from "@fortawesome/free-brands-svg-icons";
 
 export default function Home() {
   // Get the websocket URL from the environment variable
@@ -42,34 +39,15 @@ export default function Home() {
   });
 
   return (
-    <div className="flex flex-row justify-center">
-      <div className="pt-10 pb-20 px-10">
-        <div className="flex flex-row min-w-fit justify-center flex-nowrap text-nowrap">
-          <div className="basis-1/4 flex flex-col justify-center items-center">
-            <div>Receive notifications on Telegram</div>
-            <a
-              className="flex text-blue-400 space-x-1"
-              href="https://t.me/KimsufiNotifierBot"
-            >
-              <div>
-                <FontAwesomeIcon icon={faTelegram} />
-              </div>
-              <div>t.me/KimsufiNotifierBot</div>
-            </a>
-          </div>
-          <div className="basis-2/4 px-40 py-5 flex-none text-center text-xl font-bold">
-            OVH Eco server availability
-          </div>
-          <Status
-            error={error}
-            data={data}
-            connectionRestored={connectionRestored}
-            setConnectionRestored={setConnectionRestored}
-            lastMessage={lastMessage}
-          />
-        </div>
-        <ServersTable data={data} />
-      </div>
+    <div className="Home flex flex-col items-center pt-10 pb-20 px-10">
+      <HeaderComponent
+        error={error}
+        data={data}
+        connectionRestored={connectionRestored}
+        setConnectionRestored={setConnectionRestored}
+        lastMessage={lastMessage}
+      />
+      <ServersTable data={data} />
     </div>
   );
 }
