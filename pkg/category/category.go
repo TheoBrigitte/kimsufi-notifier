@@ -3,16 +3,17 @@ package category
 var (
 	// Categories is a list of known plan categories, including an empty string for uncategorized plans
 	Categories = []category{
-		{"kimsufi", "Kimsufi"},
-		{"soyoustart", "So you Start"},
-		{"rise", "Rise"},
-		{"", "uncategorized"},
+		{"kimsufi", "Kimsufi", "sk"},
+		{"soyoustart", "So you Start", "sys"},
+		{"rise", "Rise", "rise"},
+		{"", "uncategorized", ""},
 	}
 )
 
 type category struct {
 	Name        string
 	DisplayName string
+	ShortCode   string
 }
 
 func GetDisplayName(name string) string {

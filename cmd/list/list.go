@@ -73,16 +73,18 @@ func runner(cmd *cobra.Command, args []string) error {
 
 	// Sort plans by category and price
 	sort.Slice(catalog.Plans, func(i, j int) bool {
-		if catalog.Plans[i].Blobs.Commercial.Range != catalog.Plans[j].Blobs.Commercial.Range {
+		planCategoryI := catalog.Plans[i].GetCategory()
+		planCategoryJ := catalog.Plans[j].GetCategory()
+		if planCategoryI != planCategoryJ {
 			// Group plans by category first
-			a := pkgcategory.GetDisplayName(catalog.Plans[i].Blobs.Commercial.Range)
+			a := pkgcategory.GetDisplayName(planCategoryI)
 			if a == "" {
-				a = catalog.Plans[i].Blobs.Commercial.Range
+				a = planCategoryI
 			}
 
-			b := pkgcategory.GetDisplayName(catalog.Plans[j].Blobs.Commercial.Range)
+			b := pkgcategory.GetDisplayName(planCategoryJ)
 			if b == "" {
-				b = catalog.Plans[j].Blobs.Commercial.Range
+				b = planCategoryJ
 			}
 
 			return a < b
@@ -100,8 +102,10 @@ func runner(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
+		planCategory := plan.GetCategory()
+
 		// Filter plans by category
-		if category != "" && category != plan.Blobs.Commercial.Range {
+		if category != "" && category != planCategory {
 			continue
 		}
 
@@ -127,9 +131,9 @@ func runner(cmd *cobra.Command, args []string) error {
 			nothingAvailable = false
 		}
 
-		categoryDisplay := pkgcategory.GetDisplayName(plan.Blobs.Commercial.Range)
+		categoryDisplay := pkgcategory.GetDisplayName(planCategory)
 		if categoryDisplay == "" {
-			categoryDisplay = plan.Blobs.Commercial.Range
+			categoryDisplay = planCategory
 		}
 
 		// Display plan

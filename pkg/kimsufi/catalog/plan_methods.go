@@ -3,6 +3,9 @@ package catalog
 import (
 	"math"
 	"slices"
+	"strings"
+
+	pkgcategory "github.com/TheoBrigitte/kimsufi-notifier/pkg/category"
 )
 
 const (
@@ -40,6 +43,22 @@ func (p *Plan) GetAddon(name string) *PlanAddonFamily {
 	}
 
 	return nil
+}
+
+func (p *Plan) GetCategory() string {
+	if p.Blobs.Commercial.Range != "" {
+		return p.Blobs.Commercial.Range
+	}
+
+	if len(p.PlanCode) > 2 {
+		for _, category := range pkgcategory.Categories {
+			if category.ShortCode != "" && strings.HasPrefix(p.PlanCode[2:], category.ShortCode) {
+				return category.Name
+			}
+		}
+	}
+
+	return ""
 }
 
 // GetConfiguration returns the first configuration that matches the provided name.
