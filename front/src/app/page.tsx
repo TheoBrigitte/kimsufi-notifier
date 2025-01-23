@@ -11,8 +11,7 @@ import { faTelegram } from "@fortawesome/free-brands-svg-icons";
 
 export default function Home() {
   // Get the websocket URL from the environment variable
-  const websocketURL =
-    process.env.NEXT_PUBLIC_WEBSOCKET_URL || "wss://localhost";
+  const websocketURL = process.env.NEXT_PUBLIC_WEBSOCKET_URL || "wss://localhost";
   // data is the list of servers received from the websocket server
   const [data, setData] = useState<Server[]>([]);
   // connectionRestored is used to display a message when the websocket connection is restored
@@ -37,8 +36,7 @@ export default function Home() {
     onClose: () => setError(Error("socket closed")),
     onError: () => setError(Error("socket error")),
     // Reconnect with exponential backoff
-    reconnectInterval: (attemptNumber) =>
-      Math.min(Math.pow(2, attemptNumber) * 1000, 10000),
+    reconnectInterval: (attemptNumber) => Math.min(Math.pow(2, attemptNumber) * 1000, 10000),
     // Reconnect indefinitely
     shouldReconnect: () => true,
   });
