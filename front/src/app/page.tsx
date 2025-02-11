@@ -41,7 +41,7 @@ export default function Home() {
   });
 
   return (
-    <div className="Home flex flex-col items-center pt-10 pb-20 px-10 max-w-7xl mx-auto">
+    <div className="Home flex flex-col items-center pt-10 pb-20 px-10">
       <HeaderComponent
         error={error}
         data={data}
