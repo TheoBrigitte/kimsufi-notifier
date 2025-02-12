@@ -57,23 +57,21 @@ function ServerLines({ category, servers }: { category: string; servers: Server[
     <tr
       ref={React.createRef()}
       key={category + server.planCode}
-      className={`font-mono text-sm font-medium ${changedRows.has(server.planCode) ? "bg-yellow-200" : "transition duration-1000 delay-150 even:bg-blue-300 odd:bg-blue-100"}`}
+      className={`font-mono text-sm font-medium ${changedRows.has(server.planCode) ? "bg-yellow-200" : "transition duration-1000 delay-150 shadow-md rounded-xl bg-slate-100"}`}
     >
-      <td className="py-2">{server.name}</td>
-      <td className="py-2">{server.cpu}</td>
-      <td className="py-2">{server.memory}</td>
-      <td className="py-2">{server.storage}</td>
-      <td className="py-2">{server.bandwidth}</td>
-      <td className="py-2">
-        {server.price} {server.currencyCode}
-      </td>
-      <td className="flex flex-row justify-end py-2">
-        {server.status}
+      <td className="rounded-l-xl">{server.name}</td>
+      <td>{server.cpu}</td>
+      <td>{server.memory}</td>
+      <td>{server.storage}</td>
+      <td>{server.bandwidth}</td>
+      <td>{`${server.price} ${server.currencyCode}`}</td>
+      <td className="flex justify-end py-6">
+        <div>{server.status}</div>
         <div className={statusColor.get(server.status)?.color + " pl-2"}>
           <FontAwesomeIcon icon={statusColor.get(server.status)?.icon || faCircle} />
         </div>
       </td>
-      <td>{server.datacenters?.join(", ") || "-"}</td>
+      <td className="rounded-r-xl">{server.datacenters?.join(", ") || "-"}</td>
     </tr>
   ));
 }
@@ -83,7 +81,7 @@ function ServerCategories({ ordered }: { ordered: { [key: string]: Server[] } })
   return Object.entries(ordered).map(([category, servers]) => (
     <React.Fragment key={category}>
       <tr>
-        <td className="p-4 font-mono bg-gray-300 border-b-2 border-gray-500" colSpan={8}>
+        <td className="p-4 font-mono font-semibold border-b-2 border-gray-300" colSpan={8}>
           {category}
         </td>
       </tr>
@@ -107,7 +105,7 @@ const ServersTable = ({ data }: Props) => {
   const ordered = Object.assign(categoryOrder, serversByCategory);
 
   return (
-    <table className="text-nowrap">
+    <table className="text-nowrap border-separate border-spacing-x-0 border-spacing-y-4">
       <thead>
         <tr>
           <th className="p-4">Name</th>
