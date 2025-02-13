@@ -3,10 +3,13 @@
 import { useState } from "react";
 import useWebSocket from "react-use-websocket";
 
-import ServersTable from "./components/server";
+import ServersTable from "./components/serversTableComponent/ServersTableComponent";
 import HeaderComponent from "./components/headerComponent/HeaderComponent";
 
 import { Server, ErrorNull } from "./components/types";
+
+// import mock data
+import { test } from "./datamock";
 
 export default function Home() {
   // Get the websocket URL from the environment variable
@@ -27,6 +30,7 @@ export default function Home() {
       setError(null);
       setData(JSON.parse(event.data));
       setLastMessage(Date.now());
+      console.log("changeData");
     },
     onOpen: () => {
       setError(null);
