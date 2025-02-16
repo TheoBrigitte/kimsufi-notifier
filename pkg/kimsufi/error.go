@@ -50,6 +50,15 @@ func IsPreferredPaymentMethodNotSetError(err error) bool {
 	return ovhAPIError.Code == http.StatusBadRequest && strings.Contains(ovhAPIError.Message, "You do not have preferred payment method")
 }
 
+func IsPreferredPaymentMethodInvalidError(err error) bool {
+	var ovhAPIError *ovh.APIError
+	if !errors.As(err, &ovhAPIError) {
+		return false
+	}
+
+	return ovhAPIError.Code == http.StatusBadRequest && strings.Contains(ovhAPIError.Message, "Your preferred payment method is not valid")
+}
+
 func IsPlanNotFoundError(err error) bool {
 	var ovhAPIError *ovh.APIError
 	if !errors.As(err, &ovhAPIError) {
