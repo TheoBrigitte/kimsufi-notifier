@@ -1,17 +1,14 @@
-import React from "react";
-
 import { ServerLineData } from "../serverLineData/ServerLineData";
 
 import { Server } from "../types";
 
-// ServerCategories displays the servers table lines with a category line before
-export default function ServersLineCategory({
-  category,
-  servers,
-}: {
+interface Props {
   category: string;
   servers: Server[];
-}) {
+}
+
+// ServerCategories displays the servers table lines with a category line before
+export default function ServersLineCategory({ category, servers }: Props) {
   return (
     <>
       <tr>

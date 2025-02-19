@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -5,28 +7,34 @@ import { faCircle, faCheckCircle, faTimesCircle } from "@fortawesome/free-solid-
 
 import { Server, Status } from "../types";
 
-export function ServerLineData({ server }: { server: Server }) {
+interface Props {
+  server: Server;
+}
+
+// Define the color and icon the status column
+const statusColor = new Map<string, Status>([
+  ["available", { color: "text-lime-600", icon: faCheckCircle }],
+  ["unavailable", { color: "text-rose-600", icon: faTimesCircle }],
+]);
+
+export function ServerLineData({ server }: Props) {
   const [prevProps, setPrevProps] = useState<Server>(server);
-  const [differences, setDifferences] = useState<boolean | null>(null);
+  const [differences, setDifferences] = useState<boolean>(false);
 
   const dataEquality = JSON.stringify(prevProps) === JSON.stringify(server);
 
   useEffect(() => {
-    console.log("start useEffect");
     if (!dataEquality) {
+      console.log("change detected");
       setDifferences(true);
       setPrevProps(server);
-      // Réinitialisation après 0.5s
-      // const timer = setTimeout(() => setDifferences(null), 500);
-      // return () => clearTimeout(timer);
     }
   }, [dataEquality, server]);
 
-  // Define the color and icon the status column
-  const statusColor = new Map<string, Status>([
-    ["available", { color: "text-lime-600", icon: faCheckCircle }],
-    ["unavailable", { color: "text-rose-600", icon: faTimesCircle }],
-  ]);
+  useEffect(() => {
+    const timerHighlight = setTimeout(() => setDifferences(false), 1000);
+    return () => clearTimeout(timerHighlight);
+  }, [differences]);
 
   return (
     <tr

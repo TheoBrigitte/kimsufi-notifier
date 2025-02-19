@@ -1,7 +1,3 @@
-"use client";
-
-import React from "react";
-
 import ServersLineCategory from "../serversLineCategory/ServersLineCategory";
 
 import { Server } from "../types";
@@ -10,8 +6,18 @@ interface Props {
   data: Server[];
 }
 
-// ServerLines displays the servers table lines
+const columnsHead = [
+  "Name",
+  "CPU",
+  "RAM",
+  "Storage",
+  "Bandwidth",
+  "Price",
+  "Status",
+  "Datacenters",
+];
 
+// ServerLines displays the servers table lines
 const ServersTable = ({ data }: Props) => {
   if (!data || data.length === 0) return <>Loading...</>;
 
@@ -36,14 +42,11 @@ const ServersTable = ({ data }: Props) => {
     <table className="text-nowrap border-separate border-spacing-x-0 border-spacing-y-4">
       <thead>
         <tr>
-          <th className="p-4">Name</th>
-          <th className="p-4">CPU</th>
-          <th className="p-4">RAM</th>
-          <th className="p-4">Storage</th>
-          <th className="p-4">Bandwidth</th>
-          <th className="p-4">Price</th>
-          <th className="p-4">Status</th>
-          <th className="p-4">Datacenters</th>
+          {columnsHead.map((columnHead) => (
+            <th key={columnHead} className="p-4">
+              {columnHead}
+            </th>
+          ))}
         </tr>
       </thead>
       <tbody>
