@@ -11,7 +11,7 @@
 
 [OVH Eco dedicated servers](https://eco.ovhcloud.com) are known for their low prices and high demand. As a result, they are often out of stock. This program is used to check for server availability, and to place order for servers. Note: the previous Bash script collection was moved to [`bash`](https://github.com/TheoBrigitte/kimsufi-notifier/tree/bash) branch.
 
-This is my playground to learn how the OVH API works, it is then ported into a Telegram Bot at [https://t.me/KimsufiNotifierBot](https://t.me/KimsufiNotifierBot) which is more user-friendly and provides more features.
+This program is also available as a Telegram bot which is more user-friendly and provides features like real-time notifications and automated orders. Check it out <a href="https://t.me/KimsufiNotifierBot">t.me/KimsufiNotifierBot <img src="./assets/telegram.svg" width="24"></a>
 
 ## Features <img src="./assets/star.svg" width="24">
 
@@ -23,13 +23,12 @@ This is my playground to learn how the OVH API works, it is then ported into a T
 
 ### Using pre-built binaries
 
-Download the latest release from the [Github releases page](https://github.com/TheoBrigitte/kimsufi-notifier/releases).
+Download the latest release from the [Github releases page](https://github.com/TheoBrigitte/kimsufi-notifier/releases/latest).
 
 ### Using Go
 
 ```
 go install github.com/TheoBrigitte/kimsufi-notifier
-kimsufi-notifier
 ```
 
 ### Examples <img src="./assets/bash.svg" width="24">
