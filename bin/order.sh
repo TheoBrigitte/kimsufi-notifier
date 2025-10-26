@@ -472,6 +472,13 @@ main() {
   fi
   COUNTRY="${COUNTRY^^}"
 
+  if [ -z "${APPLICATION_KEY-}" ] || [ -z "${APPLICATION_SECRET-}" ] || [ -z "${CONSUMER_KEY-}" ]; then
+    echo_stderr "Error: APPLICATION_KEY, APPLICATION_SECRET and CONSUMER_KEY are not set"
+    echo_stderr
+    usage
+    exit 3
+  fi
+
   if [ -n "${DATACENTER-}" ]; then
     item_configurations+=("dedicated_datacenter=$DATACENTER")
   fi
