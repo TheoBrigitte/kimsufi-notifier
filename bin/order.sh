@@ -1,4 +1,46 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
+# Author: Théo Brigitte
+# Date: 2025-10-26
+
+# Usage: order.sh [options]
+#
+# Place an order for a servers from OVH Eco (including Kimsufi) catalog
+#
+# Arguments
+#   -c, --country              Country code (required)
+#                                Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN
+#                                Allowed values with -e ovh-ca : ASIA, AU, CA, IN, QC, SG, WE, WS
+#                                Allowed values with -e ovh-us : US
+#   --datacenter               Datacenter code (default: from config when only one is set)
+#                                Example values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw (non exhaustive list)
+#   -e, --endpoint             OVH API endpoint (default: $ENDPOINT)
+#                                Allowed values: ovh-eu, ovh-ca, ovh-us
+#   -i, --item-configuration   Item configuration in the form label=value (e.g. region=europe)
+#                                use --show-configurations to list available configurations
+#                                default to auto-configure when only one allowed value, otherwise ask user via prompt
+#       --show-configurations  Show available configurations for the selected server
+#       --item-option          Item option in the form label=value (e.g. memory=ram-64g-noecc-2133-24ska01)
+#                                use --show-options to list available options
+#                                default to cheapest option when multiple are available
+#       --show-options         Show available options for the selected server
+#   -d, --debug                Enable debug mode (default: $DEBUG)
+#       --dry-run              Do not create the order, only configure the cart (default: $DRY_RUN)
+#   -h, --help                 Display this help message
+#   -q, --quantity             Quantity of items to order (default: $QUANTITY)
+#       --price-mode           Billing price type (default: $PRICE_MODE)
+#                                use --show-prices to list available price modes
+#       --price-duration       Billing duration (default: $PRICE_DURATION)
+#                                use --show-prices to list available price durations
+#       --show-prices          Show available prices for the selected server
+#
+#   Arguments can also be set as environment variables see config.env.example
+#   Command line arguments take precedence over environment variables
+#
+# Example:
+#     check.sh
+#     check.sh --item-configuration region=europe
+#     check.sh --item-configuration region=europe --datacenter fra
 
 set -eu
 
@@ -30,45 +72,7 @@ exit_error() {
 }
 
 usage() {
-  bin_name=$(basename "$0")
-  echo "Usage: $bin_name"
-  echo
-  echo "Place an order for a servers from OVH Eco (including Kimsufi) catalog"
-  echo
-  echo "Arguments"
-  echo "  -c, --country              Country code (required)"
-  echo "                               Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
-  echo "                               Allowed values with -e ovh-ca : ASIA, AU, CA, IN, QC, SG, WE, WS"
-  echo "                               Allowed values with -e ovh-us : US"
-  echo "  --datacenter               Datacenter code (default: from config when only one is set)"
-  echo "                               Example values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw (non exhaustive list)"
-  echo "  -e, --endpoint             OVH API endpoint (default: $ENDPOINT)"
-  echo "                               Allowed values: ovh-eu, ovh-ca, ovh-us"
-  echo "  -i, --item-configuration   Item configuration in the form label=value (e.g. region=europe)"
-  echo "                               use --show-configurations to list available configurations"
-  echo "                               default to auto-configure when only one allowed value, otherwise ask user via prompt"
-  echo "      --show-configurations  Show available configurations for the selected server"
-  echo "      --item-option          Item option in the form label=value (e.g. memory=ram-64g-noecc-2133-24ska01)"
-  echo "                               use --show-options to list available options"
-  echo "                               default to cheapest option when multiple are available"
-  echo "      --show-options         Show available options for the selected server"
-  echo "  -d, --debug                Enable debug mode (default: $DEBUG)"
-  echo "      --dry-run              Do not create the order, only configure the cart (default: $DRY_RUN)"
-  echo "  -h, --help                 Display this help message"
-  echo "  -q, --quantity             Quantity of items to order (default: $QUANTITY)"
-  echo "      --price-mode           Billing price type (default: $PRICE_MODE)"
-  echo "                               use --show-prices to list available price modes"
-  echo "      --price-duration       Billing duration (default: $PRICE_DURATION)"
-  echo "                               use --show-prices to list available price durations"
-  echo "      --show-prices          Show available prices for the selected server"
-  echo
-  echo "  Arguments can also be set as environment variables see config.env.example"
-  echo "  Command line arguments take precedence over environment variables"
-  echo
-  echo "Example:"
-  echo "    $bin_name"
-  echo "    $bin_name --item-configuration region=europe"
-  echo "    $bin_name --item-configuration region=europe --datacenter fra"
+  sed -Ene '/#\s?Usage:/,/^([^#]|$)/{p; /^([^#]|$)/q}' "$0" | sed -e '$d; s/#\s\?//'
 }
 
 # request makes an HTTP request to the OVH API

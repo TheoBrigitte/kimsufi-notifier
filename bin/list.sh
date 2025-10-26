@@ -1,13 +1,36 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
-# Display available servers from OVH Eco (including Kimsufi) catalog
+# Author: Théo Brigitte
+# Date: 2025-10-26
+
+# Usage: list.sh [options]
+#
+# List servers from OVH Eco (including Kimsufi) catalog
+#
+# Arguments
+#       --category   Server category (default all)
+#                      Allowed values: kimsufi, soyoustart, rise, uncategorized
+#   -c, --country    Country code (required)
+#                      Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN
+#                      Allowed values with -e ovh-ca : ASIA, AU, CA, IN, QC, SG, WE, WS
+#                      Allowed values with -e ovh-us : US
+#   -e, --endpoint   OVH API endpoint (default: ovh-eu)
+#                      Allowed values: ovh-eu, ovh-ca, ovh-us
+#       --debug      Enable debug mode (default: false)
+#   -h, --help       Display this help message
+#
+#   Arguments can also be set as environment variables see config.env.example
+#   Command line arguments take precedence over environment variables
+#
+# Example:
+#     list.sh --country FR
+#     list.sh --country FR --category kimsufi
 
 set -eu
 
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
 
 DEBUG=false
-
 ENDPOINT="ovh-eu"
 
 echo_stderr() {
@@ -15,29 +38,7 @@ echo_stderr() {
 }
 
 usage() {
-  bin_name=$(basename "$0")
-  echo "Usage: $bin_name"
-  echo
-  echo "List servers from OVH Eco (including Kimsufi) catalog"
-  echo
-  echo "Arguments"
-  echo "      --category   Server category (default all)"
-  echo "                     Allowed values: kimsufi, soyoustart, rise, uncategorized"
-  echo "  -c, --country    Country code (required)"
-  echo "                     Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
-  echo "                     Allowed values with -e ovh-ca : ASIA, AU, CA, IN, QC, SG, WE, WS"
-  echo "                     Allowed values with -e ovh-us : US"
-  echo "  -e, --endpoint   OVH API endpoint (default: ovh-eu)"
-  echo "                     Allowed values: ovh-eu, ovh-ca, ovh-us"
-  echo "      --debug      Enable debug mode (default: false)"
-  echo "  -h, --help       Display this help message"
-  echo
-  echo "  Arguments can also be set as environment variables see config.env.example"
-  echo "  Command line arguments take precedence over environment variables"
-  echo
-  echo "Example:"
-  echo "    $bin_name --country FR"
-  echo "    $bin_name --country FR --category kimsufi"
+  sed -Ene '/#\s?Usage:/,/^([^#]|$)/{p; /^([^#]|$)/q}' "$0" | sed -e '$d; s/#\s\?//'
 }
 
 main() {

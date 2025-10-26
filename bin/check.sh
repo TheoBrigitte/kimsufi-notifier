@@ -1,6 +1,47 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
+# Author: Théo Brigitte
+# Date: 2025-10-26
+
+#
+# Usage: check.sh [options]
 #
 # Check OVH Eco (including Kimsufi) server availability
+#
+# Arguments
+#   -p, --plan-code     Plan code to check (e.g. 24ska01)
+#   -d, --datacenters   Comma-separated list of datacenters to check availability for (default all)
+#                         Example values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw (non exhaustive list)
+#   -o, --option        Additional options to check for specific server options
+#                         format key=value
+#                         use --show-options to see available options
+#       --show-options  Show available options for the plan code, requires --plan-code and --country
+#       --country       Country code
+#                         Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN
+#                         Allowed values with -e ovh-ca : ASIA, AU, CA, IN, QC, SG, WE, WS
+#                         Allowed values with -e ovh-us : US
+#   -e, --endpoint      OVH API endpoint (default: ovh-eu)
+#                         Allowed values: ovh-eu, ovh-ca, ovh-us
+#       --verbose       Enable verbose mode to display detailed results, requires --country
+#       --debug         Enable debug mode (default: false)
+#   -h, --help          Display this help message
+#
+#   Arguments can also be set as environment variables see config.env.example
+#   Command line arguments take precedence over environment variables
+#
+# Environment variables
+#     DISCORD_WEBHOOK       Webhook URL to use for Discord notification service
+#     GOTIFY_URL            URL to use for Gotify notification service
+#     GOTIFY_TOKEN          token to use for Gotify notification service
+#     GOTIFY_PRIORITY       prority for Gotify notification service
+#     OPSGENIE_API_KEY      API key for OpsGenie to receive notifications
+#     TELEGRAM_BOT_TOKEN    Bot token for Telegram to receive notifications
+#     TELEGRAM_CHAT_ID      Chat ID for Telegram to receive notifications
+#     HEALTHCHECKS_IO_UUID  UUID for healthchecks.io to ping after successful run
+#
+# Example:
+#   check.sh --plan-code 24ska01
+#   check.sh --plan-code 24ska01 --datacenters fr,gra,rbx,sbg
 
 set -eu
 
@@ -19,45 +60,7 @@ echo_stderr() {
 }
 
 usage() {
-  bin_name=$(basename "$0")
-  echo "Usage: $bin_name"
-  echo
-  echo "Check OVH Eco (including Kimsufi) server availability"
-  echo
-  echo "Arguments"
-  echo "  -p, --plan-code     Plan code to check (e.g. 24ska01)"
-  echo "  -d, --datacenters   Comma-separated list of datacenters to check availability for (default all)"
-  echo "                        Example values: bhs, ca, de, fr, fra, gb, gra, lon, pl, rbx, sbg, waw (non exhaustive list)"
-  echo "  -o, --option        Additional options to check for specific server options"
-  echo "                        format key=value"
-  echo "                        use --show-options to see available options"
-  echo "      --show-options  Show available options for the plan code, requires --plan-code and --country"
-  echo "      --country       Country code"
-  echo "                        Allowed values with -e ovh-eu : CZ, DE, ES, FI, FR, GB, IE, IT, LT, MA, NL, PL, PT, SN, TN"
-  echo "                        Allowed values with -e ovh-ca : ASIA, AU, CA, IN, QC, SG, WE, WS"
-  echo "                        Allowed values with -e ovh-us : US"
-  echo "  -e, --endpoint      OVH API endpoint (default: ovh-eu)"
-  echo "                        Allowed values: ovh-eu, ovh-ca, ovh-us"
-  echo "      --verbose       Enable verbose mode to display detailed results, requires --country"
-  echo "      --debug         Enable debug mode (default: false)"
-  echo "  -h, --help          Display this help message"
-  echo
-  echo "  Arguments can also be set as environment variables see config.env.example"
-  echo "  Command line arguments take precedence over environment variables"
-  echo
-  echo "Environment variables"
-  echo "    DISCORD_WEBHOOK       Webhook URL to use for Discord notification service"
-  echo "    GOTIFY_URL            URL to use for Gotify notification service"
-  echo "    GOTIFY_TOKEN          token to use for Gotify notification service"
-  echo "    GOTIFY_PRIORITY       prority for Gotify notification service"
-  echo "    OPSGENIE_API_KEY      API key for OpsGenie to receive notifications"
-  echo "    TELEGRAM_BOT_TOKEN    Bot token for Telegram to receive notifications"
-  echo "    TELEGRAM_CHAT_ID      Chat ID for Telegram to receive notifications"
-  echo "    HEALTHCHECKS_IO_UUID  UUID for healthchecks.io to ping after successful run"
-  echo
-  echo "Example:"
-  echo "  $bin_name --plan-code 24ska01"
-  echo "  $bin_name --plan-code 24ska01 --datacenters fr,gra,rbx,sbg"
+  sed -Ene '/#\s?Usage:/,/^([^#]|$)/{p; /^([^#]|$)/q}' "$0" | sed -e '$d; s/#\s\?//'
 }
 
 notify_discord() {
