@@ -46,14 +46,6 @@
 set -eu
 
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
-DEBUG=false
-SHOW_OPTIONS=false
-VERBOSE=false
-
-ENDPOINT="ovh-eu"
-OPSGENIE_API_URL="https://api.opsgenie.com/v2/alerts"
-TELEGRAM_API_URL="https://api.telegram.org"
-HEALTHCHECKS_IO_API_URL="https://hc-ping.com"
 
 echo_stderr() {
     >&2 echo "$@"
@@ -292,7 +284,6 @@ print_verbose_availability() {
 }
 
 main() {
-  source "${SCRIPT_DIR}/../config.env"
   source "${SCRIPT_DIR}/common.sh"
 
   # Temporary file used to store HTTP reponse code

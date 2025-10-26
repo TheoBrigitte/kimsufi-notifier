@@ -46,17 +46,6 @@ set -eu
 
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
 
-# Default values
-DEBUG=false
-DRY_RUN=false
-ENDPOINT="ovh-eu"
-PRICE_DURATION="P1M"
-PRICE_MODE="default"
-QUANTITY=1
-SHOW_CONFIGURATIONS=false
-SHOW_OPTIONS=false
-SHOW_PRICES=false
-
 echo_stderr() {
     >&2 echo "$@"
 }
@@ -365,7 +354,6 @@ print_server_prices() {
 
 main() {
   # Load configuration and common tools
-  source "${SCRIPT_DIR}/../config.env"
   source "${SCRIPT_DIR}/common.sh"
 
   # Temporary file used to store HTTP reponse code

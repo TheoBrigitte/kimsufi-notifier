@@ -30,9 +30,6 @@ set -eu
 
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
 
-DEBUG=false
-ENDPOINT="ovh-eu"
-
 echo_stderr() {
     >&2 echo "$@"
 }
@@ -42,7 +39,6 @@ usage() {
 }
 
 main() {
-  source "${SCRIPT_DIR}/../config.env"
   source "${SCRIPT_DIR}/common.sh"
 
   install_tools

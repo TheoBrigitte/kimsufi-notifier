@@ -9,6 +9,26 @@ OVH_API_ENDPOINTS["ovh-eu"]="https://eu.api.ovh.com/v1"
 OVH_API_ENDPOINTS["ovh-ca"]="https://ca.api.ovh.com/v1"
 OVH_API_ENDPOINTS["ovh-us"]="https://api.us.ovhcloud.com/1.0"
 
+OPSGENIE_API_URL="https://api.opsgenie.com/v2/alerts"
+TELEGRAM_API_URL="https://api.telegram.org"
+HEALTHCHECKS_IO_API_URL="https://hc-ping.com"
+
+# Default values
+DEBUG=false
+DRY_RUN=false
+COUNTRY="FR"
+ENDPOINT="ovh-eu"
+PRICE_DURATION="P1M"
+PRICE_MODE="default"
+QUANTITY=1
+SHOW_CONFIGURATIONS=false
+SHOW_OPTIONS=false
+SHOW_PRICES=false
+VERBOSE=false
+
+# Load configuration from config.env
+source "${SCRIPT_DIR}/../config.env" 2>/dev/null || true
+
 JQ_VERSION="1.7.1"
 JQ_BIN="${SCRIPT_DIR}/jq"
 
