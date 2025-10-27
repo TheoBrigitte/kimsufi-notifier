@@ -2,13 +2,13 @@
     <img src="assets/kimsufi-logo.webp" alt="Kimsufi logo" height="100px">
 </p>
 
-<p align="center">
+<div align="center">
 
   [![GitHub Release](https://img.shields.io/github/v/release/TheoBrigitte/kimsufi-notifier)](https://github.com/TheoBrigitte/kimsufi-notifier/releases/latest)
   [![go](https://github.com/TheoBrigitte/kimsufi-notifier/actions/workflows/go.yaml/badge.svg)](https://github.com/TheoBrigitte/kimsufi-notifier/actions/workflows/go.yaml)
   ![kimsufi-notifier](https://healthchecks.io/b/2/b7d7ec1b-b19c-4387-980a-3f498435c0fe.svg)
 
-</p>
+</div>
 
 ## About <img src="./assets/info.svg" width="24">
 
