@@ -14,4 +14,6 @@ jobs:
     - name: go list
       run: go list -json -deps ./... > go.list
     - uses: sonatype-nexus-community/nancy-github-action@main
+      with:
+        nancyCommand: sleuth --username ${{ vars.OSSI_USERNAME }} --token ${{ secrets.OSSI_TOKEN }}
     - run: go test -race ./...
