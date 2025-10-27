@@ -3,8 +3,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/TheoBrigitte/kimsufi-notifier/releases"><img src="https://img.shields.io/github/release/TheoBrigitte/kimsufi-notifier.svg" alt="Github release"></a>
-  <a href="https://github.com/TheoBrigitte/kimsufi-notificer/actions/workflows/go.yaml"><img src="https://github.com/TheoBrigitte/kimsufi-notifier/actions/workflows/go.yaml/badge.svg" alt="Github action"></a>
+  [![GitHub Release](https://img.shields.io/github/v/release/TheoBrigitte/kimsufi-notifier)](https://github.com/TheoBrigitte/kimsufi-notifier/releases/latest)
+  [![go](https://github.com/TheoBrigitte/kimsufi-notifier/actions/workflows/go.yaml/badge.svg)](https://github.com/TheoBrigitte/kimsufi-notifier/actions/workflows/go.yaml)
+  ![kimsufi-notifier](https://healthchecks.io/b/2/b7d7ec1b-b19c-4387-980a-3f498435c0fe.svg)
 </p>
 
 ## About <img src="./assets/info.svg" width="24">
