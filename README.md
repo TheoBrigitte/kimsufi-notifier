@@ -2,10 +2,15 @@
     <img src="assets/kimsufi-logo.webp" alt="Kimsufi logo" height="100px">
 </p>
 
-<p align="center">
-  <a href="https://github.com/TheoBrigitte/kimsufi-notifier/releases"><img src="https://img.shields.io/github/release/TheoBrigitte/kimsufi-notifier.svg" alt="Github release"></a>
-  <a href="https://github.com/TheoBrigitte/kimsufi-notificer/actions/workflows/go.yaml"><img src="https://github.com/TheoBrigitte/kimsufi-notifier/actions/workflows/go.yaml/badge.svg" alt="Github action"></a>
-</p>
+<div align="center">
+
+  [![GitHub Release](https://img.shields.io/github/v/release/TheoBrigitte/kimsufi-notifier)](https://github.com/TheoBrigitte/kimsufi-notifier/releases/latest)
+  [![Go Reference](https://pkg.go.dev/badge/github.com/TheoBrigitte/kimsufi-notifier.svg)](https://pkg.go.dev/github.com/TheoBrigitte/kimsufi-notifier)
+  [![go](https://github.com/TheoBrigitte/kimsufi-notifier/actions/workflows/go.yaml/badge.svg)](https://github.com/TheoBrigitte/kimsufi-notifier/actions/workflows/go.yaml)
+  ![kimsufi-notifier](https://healthchecks.io/b/2/b7d7ec1b-b19c-4387-980a-3f498435c0fe.svg)
+  ![GitHub Downloads](https://img.shields.io/github/downloads/TheoBrigitte/kimsufi-notifier/total)
+
+</div>
 
 ## About <img src="./assets/info.svg" width="24">
 
