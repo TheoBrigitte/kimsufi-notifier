@@ -8,6 +8,7 @@
   [![Go Reference](https://pkg.go.dev/badge/github.com/TheoBrigitte/kimsufi-notifier.svg)](https://pkg.go.dev/github.com/TheoBrigitte/kimsufi-notifier)
   [![go](https://github.com/TheoBrigitte/kimsufi-notifier/actions/workflows/go.yaml/badge.svg)](https://github.com/TheoBrigitte/kimsufi-notifier/actions/workflows/go.yaml)
   ![kimsufi-notifier](https://healthchecks.io/b/2/b7d7ec1b-b19c-4387-980a-3f498435c0fe.svg)
+  ![GitHub Downloads](https://img.shields.io/github/downloads/TheoBrigitte/kimsufi-notifier/total)
 
 </div>
 
