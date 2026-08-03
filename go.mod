@@ -4,7 +4,7 @@ go 1.23
 
 require (
 	github.com/google/go-cmp v0.6.0
-	github.com/ovh/go-ovh v1.6.0
+	github.com/ovh/go-ovh v1.9.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/prometheus/common v0.61.0
 	github.com/sirupsen/logrus v1.9.3
