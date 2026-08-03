@@ -9,6 +9,7 @@
   [![go](https://github.com/TheoBrigitte/kimsufi-notifier/actions/workflows/go.yaml/badge.svg)](https://github.com/TheoBrigitte/kimsufi-notifier/actions/workflows/go.yaml)
   ![kimsufi-notifier](https://healthchecks.io/b/2/b7d7ec1b-b19c-4387-980a-3f498435c0fe.svg)
   ![GitHub Downloads](https://img.shields.io/github/downloads/TheoBrigitte/kimsufi-notifier/total)
+  [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/TheoBrigitte/kimsufi-notifier/badge)](https://scorecard.dev/viewer/?uri=github.com/TheoBrigitte/kimsufi-notifier)
 
 </div>
 
