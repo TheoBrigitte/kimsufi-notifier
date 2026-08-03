@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"sort"
 	"strings"
-
 	"text/tabwriter"
 
 	log "github.com/sirupsen/logrus"

@@ -11,7 +11,6 @@ import (
 
 	"github.com/ovh/go-ovh/ovh"
 	"github.com/patrickmn/go-cache"
-	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 
 	kimsufiauthentication "github.com/TheoBrigitte/kimsufi-notifier/pkg/kimsufi/authentication"
@@ -32,7 +31,7 @@ type Service struct {
 
 // NewMultiService creates a new MultiService
 // with a Service for each OVH endpoint.
-func NewMultiService(l *logrus.Logger, c *cache.Cache) (MultiService, error) {
+func NewMultiService(l *log.Logger, c *cache.Cache) (MultiService, error) {
 	m := make(MultiService, 0)
 
 	for _, endpoint := range GetOVHEndpoints() {
@@ -61,7 +60,7 @@ func (m MultiService) Endpoint(endpoint string) *Service {
 // NewService creates a new Service for the given endpoint.
 // logger is optional, if nil a no-op logger will be used.
 // c is optional, if nil no caching will be used.
-func NewService(endpoint string, logger *logrus.Logger, c *cache.Cache) (*Service, error) {
+func NewService(endpoint string, logger *log.Logger, c *cache.Cache) (*Service, error) {
 	e, found := ovh.Endpoints[endpoint]
 	if !found {
 		return nil, fmt.Errorf("invalid endpoint %s", endpoint)
@@ -205,7 +204,7 @@ func (s *Service) request(method, path string, queryArgs map[string]string, body
 
 	cacheKey := fmt.Sprintf("%s%s", s.client.Endpoint(), u.String())
 
-	var found bool = false
+	found := false
 	var cacheEntry interface{}
 	if s.cache != nil {
 		cacheEntry, found = s.cache.Get(cacheKey)
