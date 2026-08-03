@@ -30,7 +30,7 @@ jobs:
     - name: Run nancy security check
       uses: sonatype-nexus-community/nancy-github-action@726e338312e68ecdd4b4195765f174d3b3ce1533 # v1.0.3
       with:
-        nancyCommand: sleuth --username ${{ vars.OSSI_USERNAME }} --token ${{ secrets.OSSI_TOKEN }}
+        nancyCommand: sleuth --guide-token ${{ secrets.OSSI_TOKEN }}
 
     - name: Run Tests
       run: go test -race ./...
