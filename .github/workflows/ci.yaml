@@ -41,6 +41,11 @@ jobs:
     - name: Run Tests
       run: go test -race ./...
 
+    - name: Clean git working tree
+      run: |
+        git reset --hard
+        git clean -fdx
+
     - name: Install cross-compilers for aarch64 # Only run on rlease
       if: github.ref_type == 'tag'
       run: |
