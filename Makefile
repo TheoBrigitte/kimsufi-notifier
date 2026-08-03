@@ -44,4 +44,7 @@ nancy:
 clean:
 	rm -rf ${BIN}
 
+setup:
+	pre-commit install
+
 .PHONY: build linux-arm install test vet lint nancy clean
