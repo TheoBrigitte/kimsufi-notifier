@@ -15,7 +15,7 @@
 
 ## About <img src="./assets/info.svg" width="24">
 
-[OVH Eco dedicated servers](https://eco.ovhcloud.com) are known for their low prices and high demand. As a result, they are often out of stock. This program is used to check for server availability, and to place order for servers. Note: the previous Bash script collection was moved to [`bash`](https://github.com/TheoBrigitte/kimsufi-notifier/tree/bash) branch.
+[OVH Eco dedicated servers](https://eco.ovhcloud.com) are known for their low prices and high demand. As a result, they are often out of stock. This program is used to check for server availability, and to place orders for servers. Note: the previous Bash script collection was moved to [`bash`](https://github.com/TheoBrigitte/kimsufi-notifier/tree/bash) branch.
 
 This program is also available as a Telegram bot which is more user-friendly and provides features like real-time notifications and automated orders. Check it out <a href="https://t.me/KimsufiNotifierBot">t.me/KimsufiNotifierBot <img src="./assets/telegram.svg" width="24"></a>
 
@@ -29,7 +29,7 @@ This program is also available as a Telegram bot which is more user-friendly and
 
 ### Using pre-built binaries
 
-Download the latest release from the [Github releases page](https://github.com/TheoBrigitte/kimsufi-notifier/releases/latest).
+Download the latest release from the [GitHub releases page](https://github.com/TheoBrigitte/kimsufi-notifier/releases/latest).
 
 ### Using Go
 
@@ -82,7 +82,7 @@ planCode    memory                storage              status         datacenter
 
 #### Order a server
 
-Place an order a specific server, the order is only placed and not payed for. The order can then be completed by following the URL provided in the output.
+Place an order for a specific server, the order is only placed and not paid for. The order can then be completed by following the URL provided in the output.
 
 ```
 $ kimsufi-notifier order --plan-code 25skle01 --datacenter bhs --item-option memory=ram-32g-noecc-1333-25skle01,storage=softraid-3x2000sa-25skle01
