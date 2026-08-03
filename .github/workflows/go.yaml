@@ -1,21 +1,54 @@
 name: go
 
-on: push
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - v*
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-    - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+    - name: Checkout Repository
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - name: Set up Go
+      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
       with:
         go-version: '1.26'
-    - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+
+    - name: Run golangci-lint linter
+      uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
       with:
         version: v2.12.2
-    - name: go list
+
+    - name: Prepare go.list for nancy
       run: go list -json -deps ./... > go.list
-    - uses: sonatype-nexus-community/nancy-github-action@726e338312e68ecdd4b4195765f174d3b3ce1533 # v1.0.3
+
+    - name: Run nancy security check
+      uses: sonatype-nexus-community/nancy-github-action@726e338312e68ecdd4b4195765f174d3b3ce1533 # v1.0.3
       with:
         nancyCommand: sleuth --username ${{ vars.OSSI_USERNAME }} --token ${{ secrets.OSSI_TOKEN }}
-    - run: go test -race ./...
+
+    - name: Run Tests
+      run: go test -race ./...
+
+    - name: Install cross-compilers for aarch64 # Only run on rlease
+      if: github.ref_type == 'tag'
+      run: |
+        sudo apt-get install -y \
+          gcc-aarch64-linux-gnu=4:13.2.0-7ubuntu1 \
+          g++-aarch64-linux-gnu=4:13.2.0-7ubuntu1
+
+    - name: Build and Release with GoReleaser # Only run on rlease
+      if: github.ref_type == 'tag'
+      uses: goreleaser/goreleaser-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+      with:
+        args: release --clean
+        version: v2.12.2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        BUILD_BRANCH: ${{ vars.BUILD_BRANCH }}
+        BUILD_USER: ${{ vars.BUILD_USER }}
