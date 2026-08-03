@@ -33,11 +33,15 @@ builds:
     binary: bin/kimsufi-notifier
 
 archives:
-  - format: binary
+  - formats: ["binary"]
 
 changelog:
+  abbrev: 7
   sort: asc
   filters:
     exclude:
       - "^docs:"
       - "^test:"
+
+release:
+  draft: true
