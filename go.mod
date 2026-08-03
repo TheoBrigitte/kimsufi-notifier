@@ -3,7 +3,7 @@ module github.com/TheoBrigitte/kimsufi-notifier
 go 1.23
 
 require (
-	github.com/google/go-cmp v0.6.0
+	github.com/google/go-cmp v0.7.0
 	github.com/ovh/go-ovh v1.6.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/prometheus/common v0.61.0
