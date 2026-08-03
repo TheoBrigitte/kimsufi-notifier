@@ -6,7 +6,7 @@
 
   [![GitHub Release](https://img.shields.io/github/v/release/TheoBrigitte/kimsufi-notifier)](https://github.com/TheoBrigitte/kimsufi-notifier/releases/latest)
   [![Go Reference](https://pkg.go.dev/badge/github.com/TheoBrigitte/kimsufi-notifier.svg)](https://pkg.go.dev/github.com/TheoBrigitte/kimsufi-notifier)
-  [![go](https://github.com/TheoBrigitte/kimsufi-notifier/actions/workflows/go.yaml/badge.svg)](https://github.com/TheoBrigitte/kimsufi-notifier/actions/workflows/go.yaml)
+  [![ci](https://github.com/TheoBrigitte/kimsufi-notifier/actions/workflows/ci.yaml/badge.svg)](https://github.com/TheoBrigitte/kimsufi-notifier/actions/workflows/ci.yaml)
   ![kimsufi-notifier](https://healthchecks.io/b/2/b7d7ec1b-b19c-4387-980a-3f498435c0fe.svg)
   ![GitHub Downloads](https://img.shields.io/github/downloads/TheoBrigitte/kimsufi-notifier/total)
   [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/TheoBrigitte/kimsufi-notifier/badge)](https://scorecard.dev/viewer/?uri=github.com/TheoBrigitte/kimsufi-notifier)
