@@ -68,8 +68,8 @@ func runner(cmd *cobra.Command, args []string) error {
 
 	// Display servers availabilities
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0)
-	fmt.Fprintln(w, "planCode\tcategory\tname\tprice\tstatus\tdatacenters")
-	fmt.Fprintln(w, "--------\t--------\t----\t-----\t------\t-----------")
+	fmt.Fprintln(w, "planCode\tcategory\tname\tprice\tstatus\tdatacenters") // nolint:errcheck
+	fmt.Fprintln(w, "--------\t--------\t----\t-----\t------\t-----------") // nolint:errcheck
 
 	// Sort plans by category and price
 	sort.Slice(catalog.Plans, func(i, j int) bool {
@@ -137,9 +137,9 @@ func runner(cmd *cobra.Command, args []string) error {
 		}
 
 		// Display plan
-		fmt.Fprintf(w, "%s\t%s\t%s\t%.2f %s\t%s\t%s\n", plan.PlanCode, categoryDisplay, plan.InvoiceName, price, catalog.Locale.CurrencyCode, status, strings.Join(datacenterNames, ", "))
+		fmt.Fprintf(w, "%s\t%s\t%s\t%.2f %s\t%s\t%s\n", plan.PlanCode, categoryDisplay, plan.InvoiceName, price, catalog.Locale.CurrencyCode, status, strings.Join(datacenterNames, ", ")) // nolint:errcheck
 	}
-	w.Flush()
+	w.Flush() // nolint:errcheck
 
 	if nothingAvailable {
 		os.Exit(1)

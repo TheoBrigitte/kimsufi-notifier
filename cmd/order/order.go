@@ -339,8 +339,8 @@ func runner(cmd *cobra.Command, args []string) error {
 
 func printItemOptions(options []kimsufiorder.EcoItemOption, priceConfig kimsufiorder.EcoItemPriceConfig) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0)
-	fmt.Fprintln(w, "item-option\tname\tprice")
-	fmt.Fprintln(w, "-----------\t----\t-----")
+	fmt.Fprintln(w, "item-option\tname\tprice") // nolint:errcheck
+	fmt.Fprintln(w, "-----------\t----\t-----") // nolint:errcheck
 	for _, o := range options {
 		if !o.Mandatory {
 			continue
@@ -352,9 +352,9 @@ func printItemOptions(options []kimsufiorder.EcoItemOption, priceConfig kimsufio
 			price = p.Price.Text
 		}
 
-		fmt.Fprintf(w, "%s=%s\t%s\t%s\n", o.Family, o.PlanCode, o.ProductName, price)
+		fmt.Fprintf(w, "%s=%s\t%s\t%s\n", o.Family, o.PlanCode, o.ProductName, price) // nolint:errcheck
 	}
-	w.Flush()
+	w.Flush() // nolint:errcheck
 }
 
 func printPrices(ecoInfos kimsufiorder.EcoItemInfos, planCode string) error {
@@ -364,17 +364,17 @@ func printPrices(ecoInfos kimsufiorder.EcoItemInfos, planCode string) error {
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0)
-	fmt.Fprintln(w, "price-duration\tprice-mode\tprice\tdescription")
-	fmt.Fprintln(w, "--------------\t----------\t-----\t-----------")
+	fmt.Fprintln(w, "price-duration\tprice-mode\tprice\tdescription") // nolint:errcheck
+	fmt.Fprintln(w, "--------------\t----------\t-----\t-----------") // nolint:errcheck
 
 	slices.SortFunc(planInfo.Prices, func(i, j kimsufiorder.EcoItemInfoPrice) int {
 		return strings.Compare(i.Duration+i.PricingMode, j.Duration+j.PricingMode)
 	})
 
 	for _, p := range planInfo.Prices {
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", p.Duration, p.PricingMode, p.Price.Text, p.Description)
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", p.Duration, p.PricingMode, p.Price.Text, p.Description) // nolint:errcheck
 	}
-	w.Flush()
+	w.Flush() // nolint:errcheck
 
 	return nil
 }

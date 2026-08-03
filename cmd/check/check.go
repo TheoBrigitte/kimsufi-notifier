@@ -92,8 +92,8 @@ func runner(cmd *cobra.Command, args []string) error {
 
 	// Display the server availabilities for each options.
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0)
-	fmt.Fprintln(w, "planCode\tmemory\tstorage\tstatus\tdatacenters")
-	fmt.Fprintln(w, "--------\t------\t-------\t------\t-----------")
+	fmt.Fprintln(w, "planCode\tmemory\tstorage\tstatus\tdatacenters") // nolint:errcheck
+	fmt.Fprintln(w, "--------\t------\t-------\t------\t-----------") // nolint:errcheck
 
 	nothingAvailable := true
 	for _, v := range *availabilities {
@@ -134,9 +134,9 @@ func runner(cmd *cobra.Command, args []string) error {
 			nothingAvailable = false
 		}
 
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", name, memory, storage, status, strings.Join(datacenterNames, ", "))
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", name, memory, storage, status, strings.Join(datacenterNames, ", ")) // nolint:errcheck
 	}
-	w.Flush()
+	w.Flush() // nolint:errcheck
 
 	if nothingAvailable {
 		os.Exit(1)
@@ -173,8 +173,8 @@ func printDatacenters(catalog *kimsuficatalog.Catalog, planCode string) error {
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0)
-	fmt.Fprintln(w, "datacenter\tname")
-	fmt.Fprintln(w, "----------\t----")
+	fmt.Fprintln(w, "datacenter\tname") // nolint:errcheck
+	fmt.Fprintln(w, "----------\t----") // nolint:errcheck
 
 	for _, datacenter := range datacenters {
 		name := ""
@@ -182,9 +182,9 @@ func printDatacenters(catalog *kimsuficatalog.Catalog, planCode string) error {
 		if dc != nil {
 			name = dc.Name
 		}
-		fmt.Fprintf(w, "%s\t%s\n", datacenter, name)
+		fmt.Fprintf(w, "%s\t%s\n", datacenter, name) // nolint:errcheck
 	}
-	w.Flush()
+	w.Flush() // nolint:errcheck
 
 	return nil
 }
@@ -196,8 +196,8 @@ func printItemOptions(catalog *kimsuficatalog.Catalog, planCode string) error {
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0)
-	fmt.Fprintln(w, "option\tdescription\tdefault")
-	fmt.Fprintln(w, "-----------\t-----------\t-------")
+	fmt.Fprintln(w, "option\tdescription\tdefault")      // nolint:errcheck
+	fmt.Fprintln(w, "-----------\t-----------\t-------") // nolint:errcheck
 
 	for _, addon := range plan.AddonFamilies {
 		if !addon.Mandatory {
@@ -213,10 +213,10 @@ func printItemOptions(catalog *kimsuficatalog.Catalog, planCode string) error {
 				description = product.Description
 			}
 
-			fmt.Fprintf(w, "%s=%s\t%s\t%t\n", addon.Name, genericValue, description, isDefault)
+			fmt.Fprintf(w, "%s=%s\t%s\t%t\n", addon.Name, genericValue, description, isDefault) // nolint:errcheck
 		}
 	}
-	w.Flush()
+	w.Flush() // nolint:errcheck
 
 	return nil
 }
