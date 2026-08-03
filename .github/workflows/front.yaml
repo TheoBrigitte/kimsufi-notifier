@@ -2,6 +2,8 @@ name: front
 
 on: push
 
+permissions: {}
+
 jobs:
   test:
     runs-on: ubuntu-24.04
