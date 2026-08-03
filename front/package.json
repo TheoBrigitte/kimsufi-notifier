@@ -15,7 +15,7 @@
     "@fortawesome/free-solid-svg-icons": "^6.6.0",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@next/third-parties": "^15.0.3",
-    "next": "^15.1.5",
+    "next": "^15.5.22",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-use-websocket": "^4.10.1",
