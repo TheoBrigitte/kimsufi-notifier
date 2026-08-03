@@ -28,7 +28,7 @@ func generateItemManualConfiguration(mergedConfigs kimsufiorder.ItemConfiguratio
 		}
 		var choice int
 		var err error
-		for i := 0; i < maxInputRetries; i++ {
+		for range maxInputRetries {
 			fmt.Printf("> Choice: ")
 			_, err = fmt.Scan(&choice)
 			if err != nil {

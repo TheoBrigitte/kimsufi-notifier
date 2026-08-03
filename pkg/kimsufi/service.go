@@ -108,9 +108,7 @@ func (s *Service) GetAvailabilities(datacenters []string, planCode string, optio
 	if planCode != "" {
 		queryArgs["planCode"] = planCode
 	}
-	for key, value := range options {
-		queryArgs[key] = value
-	}
+	maps.Copy(queryArgs, options)
 
 	var availabilities *kimsufiavailability.Availabilities
 	err := s.request(http.MethodGet, path, queryArgs, nil, &availabilities, false)
@@ -205,7 +203,7 @@ func (s *Service) request(method, path string, queryArgs map[string]string, body
 	cacheKey := fmt.Sprintf("%s%s", s.client.Endpoint(), u.String())
 
 	found := false
-	var cacheEntry interface{}
+	var cacheEntry any
 	if s.cache != nil {
 		cacheEntry, found = s.cache.Get(cacheKey)
 	}
