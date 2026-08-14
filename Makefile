@@ -4,13 +4,13 @@ PROJECT_NAME := kimsufi-notifier
 BUILD_DIR := build
 
 # Build informations
-BUILD_USER ?= $(shell whoami)@$(shell hostname)
+BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 BUILD_DATE ?= $(shell date --utc +%FT%T)
+BUILD_USER ?= $(shell whoami)@$(shell hostname)
 CC ?= $(shell go env CC)
 CXX ?= $(shell go env CXX)
 GOARCH ?= $(shell go env GOARCH)
 GOOS ?= $(shell go env GOOS)
-BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 REVISION := $(shell git rev-parse HEAD)
 VERSION := $(shell git describe --always --tags)
 
