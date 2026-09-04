@@ -46,14 +46,14 @@ jobs:
         git reset --hard
         git clean -fdx
 
-    - name: Install cross-compilers for aarch64 # Only run on rlease
+    - name: Install cross-compilers for aarch64 # Only run on release
       if: github.ref_type == 'tag'
       run: |
         sudo apt-get install -y \
           gcc-aarch64-linux-gnu=4:13.2.0-7ubuntu1 \
           g++-aarch64-linux-gnu=4:13.2.0-7ubuntu1
 
-    - name: Build and Release with GoReleaser # Only run on rlease
+    - name: Build and Release with GoReleaser # Only run on release
       if: github.ref_type == 'tag'
       uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
       with:
