@@ -17,7 +17,7 @@ var rootCmd = &cobra.Command{
 	Use:               "kimsufi-notifier",
 	Short:             "kimsufi availability notifier",
 	Long:              "List, check availability and order OVH Eco (including kimsufi) servers.",
-	PersistentPreRunE: logLevel,
+	PersistentPreRunE: commandPreRunE,
 	SilenceUsage:      true,
 }
 

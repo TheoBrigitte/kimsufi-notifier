@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Add `--log-format` flag
+
 ## [1.3.0] - 2025-10-26
 
 ### Added

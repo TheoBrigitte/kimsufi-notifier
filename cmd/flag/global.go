@@ -15,6 +15,7 @@ import (
 
 const (
 	LogLevelFlagName      = "log-level"
+	LogFormatFlagName     = "log-format"
 	LogLevelFlagShortName = "l"
 
 	OVHAPIEndpointFlagName      = "endpoint"
@@ -33,13 +34,15 @@ func Bind(cmd *cobra.Command) {
 
 	// Log level
 	cmd.PersistentFlags().StringP(LogLevelFlagName, LogLevelFlagShortName, log.ErrorLevel.String(), fmt.Sprintf("log level (allowed values: %s)", strings.Join(logger.AllLevelsString(), ", ")))
+	// Log format
+	cmd.PersistentFlags().String(LogFormatFlagName, logger.LogFormatText.String(), fmt.Sprintf("log format (allowed values: %s)", strings.Join(logger.AllFormatsString(), ", ")))
 
 	// OVH API Endpoint
 	cmd.PersistentFlags().StringP(OVHAPIEndpointFlagName, OVHAPIEndpointFlagShortName, OVHAPIEndpointDefault, fmt.Sprintf("OVH API Endpoint (allowed values: %s)", strings.Join(kimsufi.GetOVHEndpoints(), ", ")))
 
 	// Country
 	// Display all countries per endpoint
-	var output = &bytes.Buffer{}
+	output := &bytes.Buffer{}
 	for _, region := range kimsufiregion.AllowedRegions {
 		fmt.Fprintf(output, "  %s: ", region.Endpoint)
 
