@@ -5,6 +5,12 @@ import (
 	"strings"
 )
 
+const (
+	year  = "year"
+	month = "month"
+	day   = "day"
+)
+
 // AddonGenericName returns the generic name of an addon.
 // It strips out the last part of the name after the last dash.
 // e.g. ram-64g-ecc-2400-24sk50 -> ram-64g-ecc-2400
@@ -30,15 +36,15 @@ func AddonGenericName(name string) string {
 // - 31 days   -> P31D
 func IntervalToDuration(interval int, unit string) string {
 	switch unit {
-	case "year":
+	case year:
 		return fmt.Sprintf("P%dY", interval)
-	case "month":
+	case month:
 		if interval%12 == 0 {
 			return fmt.Sprintf("P%dY", interval/12)
 		}
 
 		return fmt.Sprintf("P%dM", interval)
-	case "day":
+	case day:
 		return fmt.Sprintf("P%dD", interval)
 	}
 

@@ -138,7 +138,7 @@ func runner(cmd *cobra.Command, args []string) error {
 		// Display plan
 		fmt.Fprintf(w, "%s\t%s\t%s\t%.2f %s\t%s\t%s\n", plan.PlanCode, categoryDisplay, plan.InvoiceName, price, catalog.Locale.CurrencyCode, status, strings.Join(datacenterNames, ", ")) // nolint:errcheck
 	}
-	w.Flush() // nolint:errcheck
+	w.Flush() // nolint:errcheck,gosec
 
 	if nothingAvailable {
 		os.Exit(1)

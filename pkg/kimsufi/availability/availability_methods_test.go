@@ -6,6 +6,12 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+const (
+	DC1 = "DC1"
+	DC2 = "DC2"
+	DC3 = "DC3"
+)
+
 func TestGetAvailableDatacenters(t *testing.T) {
 	testCases := []struct {
 		name string
@@ -24,19 +30,19 @@ func TestGetAvailableDatacenters(t *testing.T) {
 			a: Availability{
 				Datacenters: []Datacenter{
 					{
-						Datacenter:   "DC1",
+						Datacenter:   DC1,
 						Availability: StatusAvailable,
 					},
 				},
 			},
-			want: []string{"DC1"},
+			want: []string{DC1},
 		},
 		{
 			name: "one unavailable",
 			a: Availability{
 				Datacenters: []Datacenter{
 					{
-						Datacenter:   "DC1",
+						Datacenter:   DC1,
 						Availability: StatusUnavailable,
 					},
 				},
@@ -48,68 +54,68 @@ func TestGetAvailableDatacenters(t *testing.T) {
 			a: Availability{
 				Datacenters: []Datacenter{
 					{
-						Datacenter:   "DC1",
+						Datacenter:   DC1,
 						Availability: StatusAvailable,
 					},
 					{
-						Datacenter:   "DC2",
+						Datacenter:   DC2,
 						Availability: StatusUnavailable,
 					},
 				},
 			},
-			want: []string{"DC1"},
+			want: []string{DC1},
 		},
 		{
 			name: "two available",
 			a: Availability{
 				Datacenters: []Datacenter{
 					{
-						Datacenter:   "DC1",
+						Datacenter:   DC1,
 						Availability: StatusAvailable,
 					},
 					{
-						Datacenter:   "DC2",
+						Datacenter:   DC2,
 						Availability: StatusAvailable,
 					},
 				},
 			},
-			want: []string{"DC1", "DC2"},
+			want: []string{DC1, DC2},
 		},
 		{
 			name: "duplicates",
 			a: Availability{
 				Datacenters: []Datacenter{
 					{
-						Datacenter:   "DC1",
+						Datacenter:   DC1,
 						Availability: StatusAvailable,
 					},
 					{
-						Datacenter:   "DC1",
+						Datacenter:   DC1,
 						Availability: StatusAvailable,
 					},
 				},
 			},
-			want: []string{"DC1"},
+			want: []string{DC1},
 		},
 		{
 			name: "mixed",
 			a: Availability{
 				Datacenters: []Datacenter{
 					{
-						Datacenter:   "DC1",
+						Datacenter:   DC1,
 						Availability: StatusAvailable,
 					},
 					{
-						Datacenter:   "DC2",
+						Datacenter:   DC2,
 						Availability: StatusUnavailable,
 					},
 					{
-						Datacenter:   "DC3",
+						Datacenter:   DC3,
 						Availability: StatusAvailable,
 					},
 				},
 			},
-			want: []string{"DC1", "DC3"},
+			want: []string{DC1, DC3},
 		},
 	}
 

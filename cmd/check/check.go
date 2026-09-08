@@ -129,14 +129,14 @@ func runner(cmd *cobra.Command, args []string) error {
 			datacenterNames = datacenters.Codes()
 		}
 
-		var status = datacenters.Status()
+		status := datacenters.Status()
 		if status == kimsufiavailability.StatusAvailable {
 			nothingAvailable = false
 		}
 
 		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", name, memory, storage, status, strings.Join(datacenterNames, ", ")) // nolint:errcheck
 	}
-	w.Flush() // nolint:errcheck
+	w.Flush() // nolint:errcheck,gosec
 
 	if nothingAvailable {
 		os.Exit(1)
@@ -184,7 +184,7 @@ func printDatacenters(catalog *kimsuficatalog.Catalog, planCode string) error {
 		}
 		fmt.Fprintf(w, "%s\t%s\n", datacenter, name) // nolint:errcheck
 	}
-	w.Flush() // nolint:errcheck
+	w.Flush() // nolint:errcheck,gosec
 
 	return nil
 }
@@ -216,7 +216,7 @@ func printItemOptions(catalog *kimsuficatalog.Catalog, planCode string) error {
 			fmt.Fprintf(w, "%s=%s\t%s\t%t\n", addon.Name, genericValue, description, isDefault) // nolint:errcheck
 		}
 	}
-	w.Flush() // nolint:errcheck
+	w.Flush() // nolint:errcheck,gosec
 
 	return nil
 }

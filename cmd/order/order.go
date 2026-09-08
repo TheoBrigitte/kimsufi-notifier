@@ -354,7 +354,7 @@ func printItemOptions(options []kimsufiorder.EcoItemOption, priceConfig kimsufio
 
 		fmt.Fprintf(w, "%s=%s\t%s\t%s\n", o.Family, o.PlanCode, o.ProductName, price) // nolint:errcheck
 	}
-	w.Flush() // nolint:errcheck
+	w.Flush() // nolint:errcheck,gosec
 }
 
 func printPrices(ecoInfos kimsufiorder.EcoItemInfos, planCode string) error {
@@ -374,7 +374,7 @@ func printPrices(ecoInfos kimsufiorder.EcoItemInfos, planCode string) error {
 	for _, p := range planInfo.Prices {
 		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", p.Duration, p.PricingMode, p.Price.Text, p.Description) // nolint:errcheck
 	}
-	w.Flush() // nolint:errcheck
+	w.Flush() // nolint:errcheck,gosec
 
 	return nil
 }
