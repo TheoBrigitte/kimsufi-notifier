@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - Only cache GET / HEAD methods
   - Store JSON encoded byte slice in cache, to not cache pointer address and avoid cache entries sharing between different requests
   - Replace reflect with generics
+- Add missing "united-states" to us Region
 
 ### Added
 
