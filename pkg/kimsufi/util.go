@@ -14,7 +14,12 @@ const (
 // AddonGenericName returns the generic name of an addon.
 // It strips out the last part of the name after the last dash.
 // e.g. ram-64g-ecc-2400-24sk50 -> ram-64g-ecc-2400
-func AddonGenericName(name string) string {
+func AddonGenericName(name, product string) string {
+	if product != "" {
+		before, _, _ := strings.Cut(name, "-"+product)
+		return before
+	}
+
 	index := strings.LastIndex(name, "-")
 	if index > 0 {
 		return name[:index]

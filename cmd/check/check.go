@@ -207,7 +207,7 @@ func printItemOptions(catalog *kimsuficatalog.Catalog, planCode string) error {
 		for _, value := range addon.Addons {
 			isDefault := value == addon.Default
 			description := ""
-			genericValue := kimsufi.AddonGenericName(value)
+			genericValue := kimsufi.AddonGenericName(value, plan.Product)
 			product := catalog.GetProduct(genericValue)
 			if product != nil {
 				description = product.Description

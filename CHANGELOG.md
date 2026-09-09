@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Use plan product to cut generic part in addon with AddonGenericName
+
 ### Added
 
 - Add `--log-format` flag
