@@ -21,6 +21,28 @@ var (
 	priceDivider  = math.Pow10(priceDecimals)
 )
 
+func (p *Plan) GetName() string {
+	s := strings.Split(p.InvoiceName, " | ")
+	return s[0]
+}
+
+func (p *Plan) GetCPU() string {
+	s := strings.Split(p.InvoiceName, " | ")
+	if len(s) > 1 {
+		return s[1]
+	}
+	return ""
+}
+
+func (p *Plan) GetNameAndCPU() (string, string) {
+	s := strings.Split(p.InvoiceName, " | ")
+	cpu := ""
+	if len(s) > 1 {
+		cpu = s[1]
+	}
+	return s[0], cpu
+}
+
 // GetAddons returns addons that match the provided names.
 func (p *Plan) GetAddons(names ...string) []PlanAddonFamily {
 	addons := make([]PlanAddonFamily, 0)
