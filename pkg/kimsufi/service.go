@@ -1,11 +1,13 @@
 package kimsufi
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json/v2"
 	"fmt"
 	"maps"
 	"net/http"
 	"net/url"
-	"reflect"
 	"slices"
 	"strings"
 
@@ -183,11 +185,9 @@ func (s *Service) WithAuth(appKey, appSecret, consumerKey string) (*Service, err
 // path and queryArgs are combined to form the request URL.
 // method, body, response, and needAuth are passed as is.
 // response must be a pointer.
-func (s *Service) request(method, path string, queryArgs map[string]string, body any, response any, needAuth bool) error {
-	// Ensure response is a pointer
-	rv := reflect.ValueOf(response)
-	if rv.Kind() != reflect.Pointer || rv.IsNil() {
-		return fmt.Errorf("response must be a pointer")
+func (s *Service) request[T any]( method, path string, queryArgs map[string]string, body any, response *T, needAuth bool) error {
+	if response == nil {
+		return fmt.Errorf("response must not be nil")
 	}
 
 	u, err := url.Parse(path)
@@ -200,26 +200,48 @@ func (s *Service) request(method, path string, queryArgs map[string]string, body
 	}
 	u.RawQuery = q.Encode()
 
-	cacheKey := fmt.Sprintf("%s%s", s.client.Endpoint(), u.String())
+	// Only idempotent, side-effect-free methods are safe to cache.
+	cacheable := s.cache != nil && (method == http.MethodGet || method == http.MethodHead)
 
-	found := false
-	var cacheEntry any
-	if s.cache != nil {
-		cacheEntry, found = s.cache.Get(cacheKey)
+	var cacheKey string
+	if cacheable {
+		var bodyHash string
+		if body != nil {
+			bodyBytes, err := json.Marshal(body)
+			if err != nil {
+				return fmt.Errorf("encoding body for cache key: %w", err)
+			}
+			sum := sha256.Sum256(bodyBytes)
+			bodyHash = hex.EncodeToString(sum[:])
+		}
+		cacheKey = fmt.Sprintf("%s|%s|%s|auth=%t|body=%s", method, s.client.Endpoint(), u.String(), needAuth, bodyHash)
 	}
-	if found {
-		s.logger.Tracef("cache hit: %s", cacheKey)
-		ce := reflect.ValueOf(cacheEntry)
-		rv.Elem().Set(ce.Elem())
-	} else {
+
+	if cacheable {
+		if cacheEntry, found := s.cache.Get(cacheKey); found {
+			s.logger.Tracef("cache hit: %s", cacheKey)
+			data, ok := cacheEntry.([]byte)
+			if !ok {
+				return fmt.Errorf("unexpected cache entry type %T", cacheEntry)
+			}
+			if err := json.Unmarshal(data, response); err != nil {
+				return fmt.Errorf("decoding cached response: %w", err)
+			}
+			return nil
+		}
 		s.logger.Tracef("cache miss: %s", cacheKey)
-		err = s.client.CallAPI(method, u.String(), body, response, needAuth)
+	}
+
+	if err := s.client.CallAPI(method, u.String(), body, response, needAuth); err != nil {
+		return err
+	}
+
+	if cacheable {
+		data, err := json.Marshal(response)
 		if err != nil {
-			return err
+			return fmt.Errorf("encoding response for cache: %w", err)
 		}
-		if s.cache != nil {
-			s.cache.Set(cacheKey, response, cache.DefaultExpiration)
-		}
+		s.cache.Set(cacheKey, data, cache.DefaultExpiration)
 	}
 
 	return nil

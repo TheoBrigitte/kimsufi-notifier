@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - Use plan product to cut generic part in addon with AddonGenericName
+- Upgrade to Go 1.27
+
+### Fixed
+
+- Fix kimsufi.Service request method
+  - Add request method, body hash to cache key, for cache entries unique identification
+  - Add needAuth to cache key to avoid cache entries sharing between authenticated and non-authenticated requests
+  - Only cache GET / HEAD methods
+  - Store JSON encoded byte slice in cache, to not cache pointer address and avoid cache entries sharing between different requests
+  - Replace reflect with generics
 
 ### Added
 
