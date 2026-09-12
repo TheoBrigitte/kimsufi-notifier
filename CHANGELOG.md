@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 
 - Add plan GetName, GetCPU, and GetNameAndCPU methods
+- Add `--log-format` flag
 
 ### Changed
 
@@ -25,10 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - Store JSON encoded byte slice in cache, to not cache pointer address and avoid cache entries sharing between different requests
   - Replace reflect with generics
 - Add missing "united-states" to us Region
-
-### Added
-
-- Add `--log-format` flag
 
 ## [1.3.0] - 2025-10-26
 
