@@ -1,14 +1,12 @@
 package category
 
-var (
-	// Categories is a list of known plan categories, including an empty string for uncategorized plans
-	Categories = []category{
-		{"kimsufi", "Kimsufi", "sk"},
-		{"soyoustart", "So you Start", "sys"},
-		{"rise", "Rise", "rise"},
-		{"", "uncategorized", ""},
-	}
-)
+// Categories is a list of known plan categories, including an empty string for uncategorized plans
+var Categories = []category{
+	{"kimsufi", "Kimsufi", "sk"},
+	{"soyoustart", "So you Start", "sys"},
+	{"rise", "Rise", "rise"},
+	{"", "uncategorized", ""},
+}
 
 type category struct {
 	Name        string

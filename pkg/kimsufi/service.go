@@ -185,7 +185,7 @@ func (s *Service) WithAuth(appKey, appSecret, consumerKey string) (*Service, err
 // path and queryArgs are combined to form the request URL.
 // method, body, response, and needAuth are passed as is.
 // response must be a pointer.
-func (s *Service) request[T any]( method, path string, queryArgs map[string]string, body any, response *T, needAuth bool) error {
+func (s *Service) request[T any](method, path string, queryArgs map[string]string, body any, response *T, needAuth bool) error {
 	if response == nil {
 		return fmt.Errorf("response must not be nil")
 	}

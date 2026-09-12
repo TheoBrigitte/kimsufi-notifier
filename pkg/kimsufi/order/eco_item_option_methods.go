@@ -19,7 +19,7 @@ func (i EcoItemOptions) Get(family string) *EcoItemOption {
 }
 
 func (i EcoItemOptions) GetMandatoryOptions(filter func(EcoItemOptions, EcoItemOption) bool) EcoItemOptions {
-	var options = EcoItemOptions{}
+	options := EcoItemOptions{}
 
 	for _, option := range i {
 		if !option.Mandatory {
@@ -44,7 +44,7 @@ func (i EcoItemOptions) GetCheapestMandatoryOptions() EcoItemOptions {
 		PricingMode: PricingMode,
 	}
 
-	var options = EcoItemOptions{}
+	options := EcoItemOptions{}
 
 	for _, option := range i {
 		if !option.Mandatory {
@@ -151,13 +151,13 @@ func (opts Options) SplitByPlanCode(planCode string) (Options, Options) {
 }
 
 func NewOptionsCombinationsFromSlice(optionsSlice Options) []Options {
-	var groups = optionsSlice.Groups()
-	var total = 1
+	groups := optionsSlice.Groups()
+	total := 1
 	for _, options := range groups {
 		total *= len(options)
 	}
 
-	var combinations = make([]Options, total)
+	combinations := make([]Options, total)
 	for _, options := range groups {
 		index := 0
 		for i := 0; i < total; i++ {
